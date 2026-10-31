@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { buildIndex } from "@/lib/tree/kinship";
 import type { RelKind } from "@/lib/tree/ops";
-import { CLAN_VAR, CLANS, GENDERS, RANKS, STATUS_LABEL, STATUSES, catName, type Cat } from "@/lib/tree/types";
+import { CLAN_VAR, CLANS, GENDERS, RANKS, STATUS_LABEL, STATUSES, catName, type Cat, type Era, type LifeStage } from "@/lib/tree/types";
 import { AvatarPicker } from "./AvatarPicker";
 import { CatAvatar } from "./CatAvatar";
 
@@ -25,6 +25,8 @@ export function CatDrawer({
   cat,
   cats,
   relTags,
+  eras = [],
+  affiliations = [],
   onClose,
   onUpdate,
   onAddRel,
@@ -35,7 +37,9 @@ export function CatDrawer({
 }: {
   cat: Cat;
   cats: Cat[];
-  relTags?: string[];
+  relTags?: string[] | undefined;
+  eras?: Era[];
+  affiliations?: string[];
   onClose: () => void;
   onUpdate: (patch: Partial<Cat>) => void;
   onAddRel: (kind: RelKind, other: string) => void;
@@ -45,6 +49,11 @@ export function CatDrawer({
   onSelect: (id: string) => void;
 }) {
   const idx = useMemo(() => buildIndex(cats), [cats]);
+  const [editing, setEditing] = useState(false);
+  const [stageIndex, setStageIndex] = useState<number | null>(null);
+  const stages = cat.names.map((name, i) => ({ rank: name.endsWith("kit") ? "Kit" as const : name.endsWith("paw") ? "Apprentice" as const : name.endsWith("star") ? "Leader" as const : i === cat.names.length-1 ? cat.rank : "Warrior" as const, ...cat.stages?.[i], name }));
+  const stage = stageIndex === null ? undefined : stages[stageIndex];
+  const updateStage = (patch: Partial<LifeStage>) => { if (stageIndex === null) return; onUpdate({ stages: stages.map((v, i) => i === stageIndex ? { ...v, ...patch } : v) }); };
   const [newName, setNewName] = useState("");
   const setName = (i: number, v: string) => onUpdate({ names: cat.names.map((n, j) => (j === i ? v : n)) });
   const lists: Record<RelKind, string[]> = {
@@ -63,36 +72,39 @@ export function CatDrawer({
       onPointerDown={(e) => e.stopPropagation()}
     >
       <div className="relative px-5 pb-4 pt-5" style={{ background: `color-mix(in oklab, ${CLAN_VAR[cat.clan]} 18%, var(--card))` }}>
-        <button onClick={onClose} className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground hover:bg-muted" aria-label="Close profile">
+        <Button variant="ghost" size="icon" onClick={onClose} className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground hover:bg-muted" aria-label="Close profile">
           <X size={18} />
-        </button>
+        </Button>
         <div className="flex items-center gap-4">
-          <AvatarPicker value={cat.avatar} onChange={(avatar) => onUpdate({ avatar })} />
+          {editing ? <AvatarPicker value={cat.avatar} onChange={(avatar) => onUpdate({ avatar })} /> : <CatAvatar avatar={cat.avatar} className="h-20 w-20 shrink-0" />}
           <div className="min-w-0">
             <h2 className="truncate font-display text-2xl font-bold text-foreground">{catName(cat)}</h2>
             <p className="text-sm text-muted-foreground">{cat.clan} · {cat.rank === "None" ? "No rank" : cat.rank}</p>
             {relTags && <p className="mt-1 text-xs font-semibold text-primary">{relTags.join(" · ")}</p>}
           </div>
         </div>
+        <Button className="mt-4" size="sm" variant="outline" onClick={() => setEditing(v => !v)}><Pencil size={14} />{editing ? "Done editing" : "Edit profile"}</Button>
       </div>
 
       <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
+        {stage && <section className="space-y-3 border-b border-border pb-5"><Button variant="ghost" size="sm" onClick={() => setStageIndex(null)}><ArrowLeft />Full profile</Button><h3 className="font-display text-xl">{stage.name}</h3>{editing ? <AvatarPicker value={stage.avatar ?? cat.avatar} onChange={avatar => updateStage({ avatar })} /> : <CatAvatar avatar={stage.avatar ?? cat.avatar} className="h-32 w-32" />}{editing ? <><Field label="Stage rank"><Select value={stage.rank ?? cat.rank} onValueChange={v => updateStage({ rank: v as Cat['rank'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{RANKS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent></Select></Field><Field label="Age / moons"><Input aria-label="Stage age" value={stage.age ?? ''} onChange={e => updateStage({ age: e.target.value })} /></Field><Field label="Stage history"><Textarea aria-label="Stage history" value={stage.description ?? ''} onChange={e => updateStage({ description: e.target.value })} /></Field><Field label="Stage mentors"><Input aria-label="Stage mentors" value={stage.mentors ?? ''} onChange={e => updateStage({ mentors: e.target.value })} /></Field><Field label="Stage apprentices"><Input aria-label="Stage apprentices" value={stage.apprentices ?? ''} onChange={e => updateStage({ apprentices: e.target.value })} /></Field></> : <><p className="text-sm text-muted-foreground">{stage.rank ?? cat.rank}{stage.age ? ` · ${stage.age}` : ''}</p><p className="whitespace-pre-wrap text-sm">{stage.description || 'No history recorded for this name.'}</p>{stage.mentors && <p className="text-sm">Mentors: {stage.mentors}</p>}{stage.apprentices && <p className="text-sm">Apprentices: {stage.apprentices}</p>}</>}</section>}
+        <section className="space-y-3"><h3 className="text-xs font-bold uppercase text-muted-foreground">At a glance</h3>{editing ? <Textarea aria-label="TL;DR history" value={cat.summary ?? ''} onChange={e => onUpdate({ summary: e.target.value })} placeholder="TL;DR history" /> : <p className="whitespace-pre-wrap text-sm leading-relaxed">{cat.summary || 'No summary recorded.'}</p>}<h3 className="text-xs font-bold uppercase text-muted-foreground">History & personality</h3>{editing ? <Textarea aria-label="Biography" rows={4} value={cat.biography ?? ''} onChange={e => onUpdate({ biography: e.target.value })} /> : <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{cat.biography || 'No biography recorded.'}</p>}</section>
         <section>
           <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Name history</h3>
           <div className="mb-3 flex flex-wrap items-center gap-1 text-sm">
             {cat.names.map((n, i) => (
               <span key={i} className="flex items-center gap-1">
-                <span className={`rounded-full px-2 py-0.5 ${i === cat.names.length - 1 ? "bg-primary font-semibold text-primary-foreground" : "bg-muted text-foreground"}`}>{n || "…"}</span>
+                <Button size="sm" variant={stageIndex === i ? "default" : "secondary"} onClick={() => setStageIndex(i)}>{n || "…"}</Button>
                 {i < cat.names.length - 1 && <ArrowRight size={12} className="text-muted-foreground" />}
               </span>
             ))}
           </div>
-          <div className="space-y-1.5">
+          {editing && <div className="space-y-1.5">
             {cat.names.map((n, i) => (
               <div key={i} className="flex gap-1.5">
-                <Input value={n} onChange={(e) => setName(i, e.target.value)} className="h-8" />
+                <Input aria-label={`Name ${i + 1}`} value={n} onChange={(e) => setName(i, e.target.value)} className="h-8" />
                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" disabled={cat.names.length === 1}
-                  onClick={() => onUpdate({ names: cat.names.filter((_, j) => j !== i) })} aria-label="Remove name">
+                  onClick={() => onUpdate({ names: cat.names.filter((_, j) => j !== i), stages: stages.filter((_, j) => j !== i) })} aria-label="Remove name">
                   <X size={14} />
                 </Button>
               </div>
@@ -101,14 +113,14 @@ export function CatDrawer({
               <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Add a newer name (e.g. Firestar)" className="h-8" />
               <Button type="submit" size="sm" variant="secondary" className="h-8">Add</Button>
             </form>
-          </div>
+          </div>}
         </section>
 
-        <section className="grid grid-cols-2 gap-3">
+        {editing ? <section className="grid grid-cols-2 gap-3">
           <Field label="Clan / affiliation">
             <Select value={cat.clan} onValueChange={(v) => onUpdate({ clan: v as Cat["clan"] })}>
               <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-              <SelectContent>{CLANS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+              <SelectContent>{[...new Set([...CLANS, ...affiliations, cat.clan])].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
           </Field>
           <Field label="Rank">
@@ -134,43 +146,45 @@ export function CatDrawer({
               <Textarea rows={2} value={cat.appearance} onChange={(e) => onUpdate({ appearance: e.target.value })} placeholder="Flame-colored tom with green eyes…" />
             </Field>
           </div>
-        </section>
+<div className="col-span-2"><Field label="Born under leadership"><Select value={cat.birthEra ?? "unknown"} onValueChange={v => onUpdate({ birthEra: v === "unknown" ? undefined : v })}><SelectTrigger aria-label="Born under leadership"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unknown">Not recorded</SelectItem>{eras.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}</SelectContent></Select></Field></div>
+        </section> : <section className="space-y-2 border-y border-border py-4"><p className="text-sm">{cat.gender} · {cat.rank} · {STATUS_LABEL[cat.status]}</p><p className="whitespace-pre-wrap text-sm text-muted-foreground">{cat.appearance}</p>{cat.birthEra && <p className="text-xs text-muted-foreground">Born under: {eras.find(e => e.id === cat.birthEra)?.name ?? "Unknown era"}</p>}</section>}
 
         <section>
           <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Relationships</h3>
           <div className="space-y-3">
             {SECTIONS.map(({ kind, label }) => {
               const ids = lists[kind];
-              const options = cats.filter((c) => c.id !== cat.id && !ids.includes(c.id));
+              const options = cats.filter((c) => c.id !== cat.id && true);
               return (
                 <div key={kind} className="rounded-xl border border-border p-2.5">
                   <div className="mb-1.5 flex items-center justify-between">
                     <span className="text-sm font-semibold text-foreground">{label}</span>
-                    <div className="flex items-center gap-1">
+                    {editing && <div className="flex items-center gap-1">
                       <Select value="" onValueChange={(v) => onAddRel(kind, v)}>
-                        <SelectTrigger className="h-7 w-[120px] text-xs"><SelectValue placeholder="Link cat…" /></SelectTrigger>
+                        <SelectTrigger aria-label={`Link ${label.toLowerCase()}`} className="h-7 w-[120px] text-xs"><SelectValue placeholder="Link cat…" /></SelectTrigger>
                         <SelectContent>{options.map((o) => <SelectItem key={o.id} value={o.id}>{catName(o)}</SelectItem>)}</SelectContent>
                       </Select>
                       <Button size="icon" variant="ghost" className="h-7 w-7" title={`Create new ${label.toLowerCase()}`} onClick={() => onCreateRel(kind)}>
                         <Plus size={14} />
                       </Button>
-                    </div>
+                    </div>}
                   </div>
                   {ids.length === 0 ? (
                     <p className="text-xs text-muted-foreground">None yet</p>
                   ) : (
                     <div className="flex flex-wrap gap-1.5">
                       {ids.map((id) => {
-                        const o = idx.byId.get(id)!;
+                        const o = idx.byId.get(id);
+                         if (!o) return null;
                         return (
                           <span key={id} className="flex items-center gap-1 rounded-full bg-muted py-0.5 pl-0.5 pr-1 text-xs">
-                            <button type="button" className="flex items-center gap-1 hover:underline" onClick={() => onSelect(id)}>
+                            <Button variant="ghost" className="h-auto p-0 flex items-center gap-1 hover:underline" onClick={() => onSelect(id)}>
                               <CatAvatar avatar={o.avatar} className="h-5 w-5" />
                               {catName(o)}
-                            </button>
-                            <button type="button" onClick={() => onRemoveRel(kind, id)} className="rounded-full p-0.5 text-muted-foreground hover:bg-background" aria-label={`Unlink ${catName(o)}`}>
+                            </Button>
+                            {editing && <Button variant="ghost" size="icon" onClick={() => onRemoveRel(kind, id)} className="rounded-full p-0.5 text-muted-foreground hover:bg-background" aria-label={`Unlink ${catName(o)}`}>
                               <X size={11} />
-                            </button>
+                            </Button>}
                           </span>
                         );
                       })}
@@ -183,11 +197,11 @@ export function CatDrawer({
         </section>
       </div>
 
-      <div className="border-t border-border px-5 py-3">
+      {editing && <div className="border-t border-border px-5 py-3">
         <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={onDelete}>
           <Trash2 size={14} /> Remove {catName(cat)} from tree
         </Button>
-      </div>
+      </div>}
     </aside>
   );
 }

@@ -1,5 +1,6 @@
 import { canonTree } from "./canon";
-import type { Cat, Tree } from "./types";
+import { initialClans } from "./clans";
+import type { ClanPage, Cat, Tree } from "./types";
 
 export type RelKind = "parents" | "mates" | "fosterParents" | "mentors" | "kits" | "fosterKits" | "apprentices";
 
@@ -87,6 +88,7 @@ export function newCat(partial: Partial<Cat> = {}): Cat {
 export interface Store {
   trees: Tree[];
   activeId: string;
+  clans: ClanPage[];
 }
 const KEY = "warrior-cats-trees-v1";
 
@@ -95,13 +97,18 @@ export function loadStore(): Store {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const s = JSON.parse(raw) as Store;
-      if (s.trees?.length) return s;
+      if (s.trees?.length) {
+        const first = s.trees[0];
+        if (!first) throw new Error("No trees");
+        const clans = s.clans ?? initialClans(first.id);
+        return { ...s, clans, trees: s.trees.map(t => ({ ...t, clanId: t.clanId ?? "thunderclan" })) };
+      }
     }
   } catch {
     /* ignore */
   }
   const t = canonTree(crypto.randomUUID());
-  return { trees: [t], activeId: t.id };
+  return { trees: [{ ...t, clanId: "thunderclan" }], activeId: t.id, clans: initialClans(t.id) };
 }
 
 export function saveStore(s: Store) {

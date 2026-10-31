@@ -1,4 +1,5 @@
-import { Cloud, Feather, Footprints, House, Moon, Sparkles, TreePine, Waves, Wind, Zap } from "lucide-react";
+import { Cloud, Droplet, Feather, Footprints, House, Moon, Sparkles, TreePine, Waves, Wind, Zap } from "lucide-react";
+import { ClanCrest } from "./ClanCrest";
 import { PELTS } from "@/lib/tree/pelts";
 import { CLAN_VAR, type Avatar, type Clan } from "@/lib/tree/types";
 
@@ -12,12 +13,14 @@ export const CLAN_ICON: Record<Clan, typeof Zap> = {
   "Dark Forest": TreePine,
   "Loner/Rogue": Footprints,
   Kittypet: House,
+  BloodClan: Droplet,
 };
 
 export function PeltFace({ pelt }: { pelt: string }) {
-  const p = (PELTS[pelt] ?? PELTS["gray"])!;
+  const p = PELTS[pelt] ?? PELTS["gray"];
+  if (!p) return null;
   return (
-    <svg viewBox="0 0 64 64" className="h-full w-full">
+    <svg viewBox="0 0 64 64" className="h-full! w-full!">
       <rect width="64" height="64" fill="var(--muted)" />
       <path d="M12 34 L16 9 L30 22 Z" fill={p.base} />
       <path d="M52 34 L48 9 L34 22 Z" fill={p.base} />
@@ -53,10 +56,9 @@ export function PeltFace({ pelt }: { pelt: string }) {
 }
 
 export function ClanBadge({ clan, size = 28 }: { clan: Clan; size?: number }) {
-  const Icon = CLAN_ICON[clan];
   return (
     <div className="flex h-full w-full items-center justify-center text-primary-foreground" style={{ background: CLAN_VAR[clan] }}>
-      <Icon size={size} strokeWidth={2} />
+      <ClanCrest crest={clan} className="h-3/4 w-3/4" />
     </div>
   );
 }
