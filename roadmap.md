@@ -1,4 +1,6 @@
 # Current Clan updates
+- [x] Apply obstacle-aware curves to parentage, mate and foster connections as well as mentors.
+- [x] Verify all visible relationship paths avoid names and symbols; browser sampled all 37 enabled paths with no label/symbol collisions or missing connections.
 - [x] Keep mentor arrowheads clear of extra symbols and reconnect parentage at the avatar edge.
 - [x] Fill role symbols and strengthen deceased names to blue-gray.
 - [x] Verify endpoint geometry, line selection and visible artwork; 10 targeted tests passed and Princess endpoint matches her avatar top in the browser.

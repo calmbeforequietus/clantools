@@ -6,6 +6,7 @@ import { ClanCrest } from "./ClanCrest";
 import { CatAvatar } from "./CatAvatar";
 import { buildIndex, type Kinship } from "@/lib/tree/kinship";
 import { routeMentorConnections, roundedMentorPath } from '@/lib/tree/mentor-routing';
+import { parentPort, relationshipPath } from '@/lib/tree/relationship-routing';
 import { AVATAR, AVATAR_CY, AVATAR_TOP, bounds, NODE_H, NODE_W, type Positions } from "@/lib/tree/layout";
 import { CLAN_VAR, catName, type Cat, type ClanPage } from "@/lib/tree/types";
 
@@ -202,19 +203,7 @@ export function TreeCanvas({
     const out: { d: string; kind: "blood" | "mate" | "foster" | "mentor"; on: boolean; key: string; ids: string[] }[] = [];
     const seenMate = new Set<string>();
     const mentorRoutes = options.showMentors ? routeMentorConnections(positions, cats.flatMap(c => visible(c.id) ? idx.mentors(c.id).filter(visible).map(p => ({ mentor:p, apprentice:c.id })) : [])) : new Map();
-    const curve = (sx: number, sy: number, ex: number, ey: number) => {
-      const my = sy + (ey - sy) / 2;
-      return `M${sx},${sy} C${sx},${my} ${ex},${my} ${ex},${ey}`;
-    };
-    const fromParent = (parent: { x: number; y: number }, ex: number, ey: number) => {
-      // Leave the lower-left ring and pass outside the name and role symbol.
-      const sx = parent.x - 24;
-      const sy = parent.y + AV_CY + Math.sqrt((AVATAR / 2) ** 2 - 24 ** 2);
-      const laneX = parent.x - NODE_W / 2 - 12;
-      const laneY = parent.y + NODE_H;
-      const my = laneY + (ey - laneY) / 2;
-      return `M${sx},${sy} C${laneX},${sy + 16} ${laneX},${laneY - 24} ${laneX},${laneY} C${laneX},${my} ${ex},${my} ${ex},${ey}`;
-    };
+    const curve = (sx: number, sy: number, ex: number, ey: number, ids: string[]) => relationshipPath({x:sx,y:sy},{x:ex,y:ey},positions,ids);
     for (const c of cats) {
       const cp = positions.get(c.id);
       if (!cp || !visible(c.id)) continue;
@@ -225,9 +214,7 @@ export function TreeCanvas({
         seenMate.add(k);
         const [l, r] = cp.x < mp.x ? [cp, mp] : [mp, cp];
         const y1 = l.y + AV_CY, y2 = r.y + AV_CY;
-        const d = y1 === y2
-          ? `M${l.x + AVATAR / 2},${y1} H${r.x - AVATAR / 2}`
-          : curve(l.x, l.y + NODE_H, r.x, r.y);
+        const d = curve(l.x + AVATAR / 2, y1, r.x - AVATAR / 2, y2, [c.id,m]);
         out.push({ d, kind: "mate", on: isOn(c.id) && isOn(m), key: "m" + k, ids: [c.id,m] });
       }
       const ps = (options.showParents ? idx.parents(c.id) : []).filter((p) => positions.has(p) && visible(p));
@@ -235,12 +222,12 @@ export function TreeCanvas({
       const [pa, pb] = ps;
       const a = pa ? positions.get(pa) : undefined, bb = pb ? positions.get(pb) : undefined;
       if (ps.length === 2 && pa && pb && a && bb && idx.mates(pa).includes(pb) && a.y === bb.y) {
-        out.push({ d: curve((a.x + bb.x) / 2, a.y + AV_CY, ex, ey), kind: "blood", on: isOn(c.id) && isOn(pa), key: "b" + c.id, ids: [pa,pb,c.id] });
+        out.push({ d: curve((a.x + bb.x) / 2, a.y + AV_CY, ex, ey, [pa,pb,c.id]), kind: "blood", on: isOn(c.id) && isOn(pa), key: "b" + c.id, ids: [pa,pb,c.id] });
       } else {
         ps.forEach((p) => {
           const pp = positions.get(p);
           if (!pp) return;
-          out.push({ d: fromParent(pp, ex, ey), kind: "blood", on: isOn(c.id) && isOn(p), key: "b" + c.id + p, ids: [p,c.id] });
+          out.push({ d: relationshipPath(parentPort(pp), {x:ex,y:ey}, positions, [p,c.id]), kind: "blood", on: isOn(c.id) && isOn(p), key: "b" + c.id + p, ids: [p,c.id] });
         });
       }
       if (options.showFoster)
@@ -248,7 +235,7 @@ export function TreeCanvas({
           const pp = positions.get(p);
           if (!pp || !visible(p)) return;
           const fosterY = cp.y + AV_CY - Math.sqrt((AVATAR / 2) ** 2 - 18 ** 2);
-          out.push({ d: fromParent(pp, ex + 18, fosterY), kind: "foster", on: isOn(c.id) && isOn(p), key: "f" + c.id + p, ids: [p,c.id] });
+          out.push({ d: relationshipPath(parentPort(pp), {x:ex-18,y:fosterY}, positions, [p,c.id]), kind: "foster", on: isOn(c.id) && isOn(p), key: "f" + c.id + p, ids: [p,c.id] });
         });
       if (options.showMentors)
         idx.mentors(c.id).forEach((p) => {
