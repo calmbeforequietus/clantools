@@ -105,6 +105,7 @@
   --status-living: oklch(0.66 0.14 145);
   --status-starclan: oklch(0.72 0.11 270);
   --status-darkforest: oklch(0.3 0.04 20);
+  --deceased-name: oklch(0.48 0 0);
 
   --clan-thunder: oklch(0.64 0.16 48);
   --clan-shadow: oklch(0.4 0.05 290);
@@ -141,6 +142,7 @@
   --ring: oklch(0.72 0.15 55);
   --canvas: oklch(0.2 0.02 50);
   --canvas-dot: oklch(0.32 0.02 50);
+  --deceased-name: oklch(0.72 0 0);
 }
 
 @theme inline {
@@ -189,5 +191,5 @@ button svg.crest-detail { width: 24px; height: 24px; }
   --cat-gold: oklch(0.79 0.15 85); --cat-rose: oklch(0.73 0.12 10);
   --cat-green: oklch(0.64 0.15 150); --cat-blue: oklch(0.65 0.13 240);
 }
-.deceased-name { color: color-mix(in oklab, var(--foreground) 72%, var(--muted-foreground)); }
+.deceased-name { color: var(--deceased-name); }
 @media (max-width: 640px) { .allegiance-row { grid-template-columns: 1fr; gap: 12px; } }
