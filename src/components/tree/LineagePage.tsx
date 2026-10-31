@@ -1,4 +1,4 @@
-import { Link, useParams, useSearch } from "@tanstack/react-router";
+import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, ChevronDown, Copy, Download, FilePlus2, FileUp, Focus, ImageDown, Maximize, Minus, Pencil, Plus, RotateCcw, Trash2, X,
@@ -13,18 +13,22 @@ import { useForest } from "./ForestProvider";
 import { clanTreeCats } from "@/lib/tree/clans";
 import { checkRelation, type RelationWarning } from "@/lib/tree/validation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CatDrawer } from "@/components/tree/CatDrawer";
 import { TreeCanvas, type CanvasApi, type CanvasOptions } from "@/components/tree/TreeCanvas";
 import { canonTree } from "@/lib/tree/canon";
 import { computeKinship } from "@/lib/tree/kinship";
 import { computeLayout } from "@/lib/tree/layout";
 import {
-  addRelation, deleteCat, isTree, newCat, removeRelation, type RelKind,
+  addRelation, deleteCat, isTree, moveLineage, newCat, removeRelation, type RelKind,
 } from "@/lib/tree/ops";
 import { catName, type Cat, type Tree } from "@/lib/tree/types";
 
 export function LineagePage() {
   const { store, setStore } = useForest();
+  const navigate = useNavigate();
+  const [moving, setMoving] = useState(false);
+  const [destination, setDestination] = useState('');
   const { clanId } = useParams({ from: '/clan/$clanId/lineage' });
   const search = useSearch({ from: '/clan/$clanId/lineage' });
   const clan = store?.clans.find(c => c.id === clanId);
@@ -53,6 +57,12 @@ export function LineagePage() {
   const positions = useMemo(() => computeLayout(cats), [cats]);
   const kinship = useMemo(() => (focusId && cats.some((c) => c.id === focusId) ? computeKinship(cats, focusId) : null), [cats, focusId]);
   const focused = cats.find((c) => c.id === focusId);
+  useEffect(() => {
+    if (!tree || search.cat) return;
+    const leader = cats.find(c => c.clan === clan?.affiliation && c.rank === 'Leader' && c.status === 'Living');
+    setFocusId(leader?.id ?? null);
+    setDrawer(false);
+  }, [tree?.id, search.cat]);
 
   const setCats = useCallback((fn: (c: Cat[]) => Cat[]) => {
     setStore((s) => s && { ...s, trees: s.trees.map((t) => (t.id === tree?.id ? { ...t, cats: fn(t.cats), updatedAt: Date.now() } : t)) });
@@ -169,6 +179,7 @@ export function LineagePage() {
             <DropdownMenuItem onClick={actions.canon}><RotateCcw /> Add a copy of Firestar's lineage</DropdownMenuItem>
             <DropdownMenuItem onClick={actions.rename}><Pencil /> Rename</DropdownMenuItem>
             <DropdownMenuItem onClick={actions.duplicate}><Copy /> Duplicate</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>{setDestination('');setMoving(true);}}><ArrowLeft />Move to another Clan</DropdownMenuItem>
             <DropdownMenuItem onClick={actions.remove} className="text-destructive"><Trash2 /> Delete tree</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -250,6 +261,7 @@ export function LineagePage() {
         />
       )}
       {warning && <Dialog open onOpenChange={v => !v && setWarning(null)}><DialogContent><DialogHeader><DialogTitle>{warning.title}</DialogTitle></DialogHeader><p className="text-sm leading-relaxed text-muted-foreground">{warning.message}</p><DialogFooter><Button variant="outline" onClick={() => setWarning(null)}>{warning.blocked ? 'Close' : 'Cancel'}</Button>{!warning.blocked && <Button onClick={() => { if (focusId) setCats(cs => addRelation(warning.pendingCat ? [...cs, warning.pendingCat] : cs, focusId, warning.kind, warning.other)); setWarning(null); }}>Connect anyway</Button>}</DialogFooter></DialogContent></Dialog>}
+      {moving && <Dialog open onOpenChange={setMoving}><DialogContent><DialogHeader><DialogTitle>Move lineage</DialogTitle></DialogHeader><p className="text-sm text-muted-foreground">Move “{tree.name}” and all its cats to another Clan. Cat affiliations and relationships stay unchanged.</p><Select value={destination} onValueChange={setDestination}><SelectTrigger aria-label="Destination Clan"><SelectValue placeholder="Choose a Clan" /></SelectTrigger><SelectContent>{store.clans.filter(c=>c.id!==clanId).map(c=><SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select><DialogFooter><Button variant="outline" onClick={()=>setMoving(false)}>Cancel</Button><Button disabled={!destination} onClick={()=>{setStore(s=>s && moveLineage(s,tree.id,destination));setMoving(false);navigate({to:'/clan/$clanId/lineage',params:{clanId:destination},search:{}});}}>Move lineage</Button></DialogFooter></DialogContent></Dialog>}
     </main>
   );
 }

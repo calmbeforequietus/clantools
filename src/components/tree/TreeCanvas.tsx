@@ -105,10 +105,18 @@ export function TreeCanvas({
     },
   }));
 
-  // Fit when a tree is opened
+  // Open near the living leader at readable scale; Fit remains a full-tree action.
   useEffect(() => {
-    fit();
-    const r = requestAnimationFrame(() => fit());
+    const open = () => {
+      const el = containerRef.current;
+      const leader = cats.find(c => c.clan === clan?.affiliation && c.rank === 'Leader' && c.status === 'Living');
+      const target = positions.get(focusId ?? leader?.id ?? '');
+      if (!el || !target) { fit(); return; }
+      const k = 0.85;
+      setView({ k, x: el.clientWidth / 2 - target.x * k, y: el.clientHeight * 0.43 - (target.y + NODE_H / 2) * k });
+    };
+    open();
+    const r = requestAnimationFrame(open);
     return () => cancelAnimationFrame(r);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [treeKey]);
@@ -235,7 +243,11 @@ export function TreeCanvas({
           const sx = pp.x + AVATAR / 2 + 4, sy = pp.y + AV_CY;
           const tx = cp.x + AVATAR / 2 + 4, ty = cp.y + AV_CY;
           const bend = Math.max(sx, tx) + 42 + (out.filter(e => e.kind === "mentor").length % 5) * 18;
-          out.push({ d: `M${sx},${sy} H${bend} V${ty} H${tx}`, kind: "mentor", on: isOn(c.id) && isOn(p), key: "t" + c.id + p });
+          const laneY = sy - 72 - (out.filter(e => e.kind === "mentor").length % 5) * 16;
+          const d = Math.abs(sy - ty) < 1
+            ? `M${sx},${sy} C${sx},${laneY} ${tx},${laneY} ${tx},${ty}`
+            : `M${sx},${sy} C${bend},${sy} ${bend},${ty} ${tx},${ty}`;
+          out.push({ d, kind: "mentor", on: isOn(c.id) && isOn(p), key: "t" + c.id + p });
         });
     }
     return out;
@@ -327,7 +339,7 @@ export function TreeCanvas({
                 </div>
                 <StatusDot status={c.status} />
               </div>
-              <div className="mt-1.5 w-full shrink-0 truncate font-display text-[15px] font-semibold leading-tight text-foreground">{catName(c)}</div>
+              <div className={`mt-1.5 w-full shrink-0 truncate font-display text-[15px] font-semibold leading-tight ${c.status === 'Living' ? 'text-foreground' : 'deceased-name'}`}>{catName(c)}</div>
               <div className="mt-1 flex h-7 items-center justify-center text-muted-foreground" title={`${c.rank} · ${c.status}`}><RoleIcon cat={c} /></div>
               {clan && c.clan !== clan.affiliation && <span title={c.clan} className="absolute -top-1 right-4 flex h-9 w-9 items-center justify-center" style={{ color: CLAN_VAR[c.clan] ?? clan.color }}><ClanCrest crest={c.clan} className="h-9 w-9" /></span>}
             </Button>

@@ -16,5 +16,5 @@ export function ClanCrest({ crest, className = '' }: { crest: string; className?
   if (/^(data:image\/|https?:\/\/)/.test(crest)) return <img src={crest} alt="Clan crest" className={`object-contain ${className}`} />;
   const Icon = symbols[crest] ?? PawPrint;
   if (crest === 'Kittypet') return <span className={`inline-block shrink-0 ${className}`}><Icon className="clan-symbol h-full w-full" aria-hidden /></span>;
-  return <span className={`inline-block shrink-0 ${className}`}><svg viewBox="0 0 64 64" className="clan-symbol h-full w-full" aria-hidden><path d="M5 60V3L22 18H42L59 3V60Z" fill="currentColor" /><g transform="translate(18 25) scale(1.17)" className="text-background"><Icon className="crest-detail" width="24" height="24" strokeWidth={2.2} /></g></svg></span>;
+  return <span className={`inline-block shrink-0 ${className}`}><svg viewBox="0 0 64 64" className="clan-symbol h-full w-full" aria-hidden><path d="M0 64V0L20 15H44L64 0V64Z" fill="currentColor" /><g transform="translate(18 25) scale(1.17)" className="text-background"><Icon className="crest-detail" width="24" height="24" strokeWidth={2.2} /></g></svg></span>;
 }

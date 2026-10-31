@@ -98,6 +98,7 @@ export function loadStore(): Store {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const s = JSON.parse(raw) as Store;
+      if (Array.isArray(s.trees) && Array.isArray(s.clans) && s.trees.length === 0) return refineStore(s);
       if (s.trees?.length) {
         const first = s.trees[0];
         if (!first) throw new Error("No trees");
@@ -120,6 +121,17 @@ export function refineStore(store: Store): Store {
 
 export function saveStore(s: Store) {
   localStorage.setItem(KEY, JSON.stringify(s));
+}
+
+export function deleteClan(store: Store, clanId: string): Store {
+  const trees = store.trees.filter(t => t.clanId !== clanId);
+  return { ...store, clans: store.clans.filter(c => c.id !== clanId), trees,
+    activeId: trees.some(t => t.id === store.activeId) ? store.activeId : trees[0]?.id ?? '' };
+}
+
+export function moveLineage(store: Store, treeId: string, clanId: string): Store {
+  if (!store.clans.some(c => c.id === clanId) || !store.trees.some(t => t.id === treeId)) return store;
+  return { ...store, activeId: treeId, trees: store.trees.map(t => t.id === treeId ? { ...t, clanId } : t) };
 }
 
 export function isTree(x: unknown): x is Tree {
