@@ -303,7 +303,7 @@ export function TreeCanvas({
                   className={`rounded-full p-[3px] transition-transform group-hover:scale-105 ${focused ? "ring-4 ring-primary ring-offset-2 ring-offset-canvas" : ""}`}
                   style={{ background: CLAN_VAR[c.clan], boxShadow: "var(--shadow-float)" }}
                 >
-                  <CatAvatar avatar={c.avatar} className="border-2 border-card" />
+                  <CatAvatar avatar={c.avatar} className="h-[62px] w-[62px] border-2 border-card" />
                 </div>
                 <StatusDot status={c.status} />
               </div>
@@ -316,7 +316,6 @@ export function TreeCanvas({
           );
         })}
       </div>
-      <style>{`.rounded-full > .border-2 { width: ${AVATAR - 6}px; height: ${AVATAR - 6}px; }`}</style>
     </div>
   );
 }
