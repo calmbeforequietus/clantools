@@ -38,7 +38,7 @@ export function TreeCanvas({
   apiRef,
   treeKey,
 }: {
-  clan: ClanPage;
+  clan?: ClanPage | undefined;
   cats: Cat[];
   positions: Positions;
   focusId: string | null;
@@ -269,7 +269,7 @@ export function TreeCanvas({
           height={b.maxY - b.minY}
           viewBox={`${b.minX} ${b.minY} ${b.maxX - b.minX} ${b.maxY - b.minY}`}
         >
-          {options.showEras && clan.eras.map((era, i) => {
+          {options.showEras && clan?.eras.map((era, i) => {
             const born = cats.filter(c => c.birthEra === era.id).map(c => positions.get(c.id)).filter((p): p is { x: number; y: number } => !!p);
             if (!born.length) return null;
             const y = Math.min(...born.map(p => p.y)) - 32;
@@ -333,7 +333,7 @@ export function TreeCanvas({
               </div>
               <div className="mt-1.5 w-full shrink-0 truncate font-display text-[15px] font-semibold leading-tight text-foreground">{catName(c)}</div>
               <div className="mt-1 flex h-5 items-center justify-center text-muted-foreground" title={`${c.rank} · ${c.status}`}><RoleIcon cat={c} /></div>
-              {c.clan !== clan.affiliation && <span title={c.clan} className="absolute -top-3 right-6 flex h-7 w-7 items-center justify-center rounded-full border-2 border-card bg-card shadow-float" style={{ color: CLAN_VAR[c.clan] ?? clan.color }}><ClanCrest crest={c.clan} className="h-5 w-5" /></span>}
+              {clan && c.clan !== clan.affiliation && <span title={c.clan} className="absolute -top-3 right-6 flex h-7 w-7 items-center justify-center rounded-full border-2 border-card bg-card shadow-float" style={{ color: CLAN_VAR[c.clan] ?? clan.color }}><ClanCrest crest={c.clan} className="h-5 w-5" /></span>}
             </Button>
           );
         })}
