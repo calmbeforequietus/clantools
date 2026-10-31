@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { canonCats } from './canon';
 import { checkRelation } from './validation';
 import { computeLayout, GAP_X, NODE_W } from './layout';
-import { loadStore } from './ops';
+import { loadStore, refineStore } from './ops';
 import { clanRoster } from './clans';
 
 describe('connection safeguards', () => {
@@ -16,5 +16,6 @@ describe('connection safeguards', () => {
  it('places Tigerstar ancestry outward from Firestar and Squirrelflight', () => { const p = computeLayout(cats); expect(p.get('tigerstar')?.x).toBeGreaterThan(p.get('brambleclaw')?.x ?? Infinity); expect(p.get('goldenflower')?.x).toBeGreaterThan(p.get('squirrelflight')?.x ?? Infinity); });
  it('uses a Clan own trees as its roster once created', () => { const trees = [{ id: 'source', name: '', updatedAt: 0, clanId: 'thunderclan', cats }, { id: 'wind', name: '', updatedAt: 1, clanId: 'windclan', cats: [] }]; expect(clanRoster(trees, 'windclan', 'WindClan')).toHaveLength(0); expect(clanRoster(trees.slice(0,1), 'windclan', 'WindClan').map(c => c.id)).toEqual(['crowfeather']); });
  it('keeps nodes separated within every generation', () => { const p = [...computeLayout(cats).values()]; for (let i=0; i<p.length; i++) for (let j=i+1; j<p.length; j++) { const a=p[i], b=p[j]; if (a && b && a.y === b.y) expect(Math.abs(a.x-b.x)).toBeGreaterThanOrEqual(NODE_W+GAP_X); } });
- it('migrates existing saved trees without dropping cats', () => { const t = { id: 'old', name: 'Saved tree', cats, updatedAt: 0 }; localStorage.setItem('warrior-cats-trees-v1', JSON.stringify({ trees: [t], activeId: 'old' })); const s = loadStore(); expect(s.trees[0]?.cats).toHaveLength(26); expect(s.trees[0]?.clanId).toBe('thunderclan'); expect(s.clans).toHaveLength(7); localStorage.clear(); });
+ it('migrates existing saved trees without dropping cats', () => { const t = { id: 'old', name: 'Saved tree', cats, updatedAt: 0 }; localStorage.setItem('warrior-cats-trees-v1', JSON.stringify({ trees: [t], activeId: 'old' })); const s = loadStore(); expect(s.trees[0]?.cats).toHaveLength(26); expect(s.trees[0]?.clanId).toBe('thunderclan'); expect(s.clans.map(c => c.name)).toEqual(['ThunderClan','ShadowClan','WindClan','RiverClan']); localStorage.clear(); });
+ it('removes obsolete defaults once but retains user-created Clans and all trees', () => { const store = loadStore(); const base = store.clans[0]; if (!base) throw new Error('Missing default'); const old = { ...store, presentationVersion: 0, clans: [...store.clans, {...base,id:'skyclan',name:'SkyClan'}, {...base,id:'custom',name:'OakClan'}] }; const migrated = refineStore(old); expect(migrated.clans.map(c => c.id)).toEqual(['thunderclan','shadowclan','windclan','riverclan','custom']); expect(migrated.trees).toBe(old.trees); expect(refineStore({...migrated,clans:[...migrated.clans,{...base,id:'skyclan'}]}).clans).toHaveLength(6); });
 });
