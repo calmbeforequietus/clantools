@@ -28,7 +28,7 @@ export function BackupControls() {
     } catch { toast.error("That file isn't a Clantools backup."); }
   };
   return <div className="mt-8 flex flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground">
-    <span>Your saves live only in this browser.</span>
+    <span>Your saves live only in this browser — back up to keep them safe or move them.</span>
     <Button variant="outline" size="sm" onClick={download}><DatabaseBackup />Back up everything</Button>
     <Button variant="ghost" size="sm" onClick={() => file.current?.click()}><FileUp />Restore backup</Button>
     <input ref={file} type="file" accept="application/json,.json" className="hidden" aria-label="Backup file" onChange={e => { read(e.target.files?.[0]); e.target.value = ''; }} />
