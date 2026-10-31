@@ -7,12 +7,22 @@ import { computeLayout } from '@/lib/tree/layout';
 
 afterEach(() => { cleanup(); localStorage.clear(); });
 
-it('shares context identity across separately evaluated preview modules', async () => {
-  const original = await import('./forest-context');
-  const first = original.getForestContext();
+it('shares saved state across separately evaluated preview modules', async () => {
+  const original = await import('./forest-store');
+  original.initializeForestStore();
+  const first = original.getForestSnapshot();
   vi.resetModules();
-  const refreshed = await import('./forest-context');
-  expect(refreshed.getForestContext()).toBe(first);
+  const refreshed = await import('./forest-store');
+  expect(refreshed.getForestSnapshot()).toBe(first);
+});
+
+it('loads saved trees without any ancestor provider', async () => {
+  function OrphanReader() {
+    const { store } = useForest();
+    return <p>{store?.trees[0]?.name ?? 'Loading'}</p>;
+  }
+  render(<OrphanReader />);
+  await waitFor(() => expect(screen.getByText("Firestar’s Lineage")).toBeInTheDocument());
 });
 
 it('keeps the saved store available when provider children update', async () => {
