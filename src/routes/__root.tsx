@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import { ForestProvider } from "@/components/tree/ForestProvider";
 import { SiteFooter } from '@/components/SiteFooter';
 import { Toaster } from "@/components/ui/sonner";
+import { APPLY_SCRIPT } from "@/lib/settings";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -109,8 +110,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: APPLY_SCRIPT }} />
         <HeadContent />
       </head>
       <body>
