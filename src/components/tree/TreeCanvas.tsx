@@ -40,6 +40,7 @@ export function TreeCanvas({
   onZoom,
   apiRef,
   treeKey,
+  panKey = 0,
   highlightIds,
 }: {
   clan?: ClanPage | undefined;
@@ -52,6 +53,7 @@ export function TreeCanvas({
   onZoom: (k: number) => void;
   apiRef: Ref<CanvasApi>;
   treeKey: string;
+  panKey?: number;
   highlightIds?: Set<string> | null;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -136,7 +138,7 @@ export function TreeCanvas({
     const r = requestAnimationFrame(open);
     return () => cancelAnimationFrame(r);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [treeKey]);
+  }, [treeKey, panKey]);
 
   // Wheel zoom (non-passive)
   useEffect(() => {
@@ -243,11 +245,16 @@ export function TreeCanvas({
           out.push({ d: parentRelationshipPath(pp, {x:ex,y:ey}), kind: "blood", on: isOn(c.id) && isOn(p), key: "b" + c.id + p, ids: [p,c.id] });
         });
       }
-      if (options.showFoster)
-        idx.fosterParents(c.id).forEach((p) => {
+      const fps = (options.showFoster ? idx.fosterParents(c.id) : []).filter(p => positions.has(p) && visible(p));
+      const [fa, fb] = fps, fpa = fa ? positions.get(fa) : undefined, fpb = fb ? positions.get(fb) : undefined;
+      const fosterY = cp.y + AV_CY - Math.sqrt((AVATAR / 2) ** 2 - 18 ** 2);
+      // A foster couple raises a kit together: one family line from the pair, like parentage.
+      if (fps.length === 2 && fa && fb && fpa && fpb && idx.mates(fa).includes(fb) && fpa.y === fpb.y) {
+        out.push({ d: curve((fpa.x + fpb.x) / 2, fpa.y + AV_CY, ex - 18, fosterY, [fa, fb, c.id]), kind: "foster", on: isOn(c.id) && isOn(fa), key: "f" + c.id, ids: [fa, fb, c.id] });
+      } else if (options.showFoster)
+        fps.forEach((p) => {
           const pp = positions.get(p);
-          if (!pp || !visible(p)) return;
-          const fosterY = cp.y + AV_CY - Math.sqrt((AVATAR / 2) ** 2 - 18 ** 2);
+          if (!pp) return;
           out.push({ d: parentRelationshipPath(pp, {x:ex-18,y:fosterY}), kind: "foster", on: isOn(c.id) && isOn(p), key: "f" + c.id + p, ids: [p,c.id] });
         });
       if (options.showMentors)
@@ -275,6 +282,22 @@ export function TreeCanvas({
         backgroundPosition: `${view.x}px ${view.y}px`,
       }}
       onPointerDown={onPointerDown}
+      tabIndex={0}
+      role="application"
+      aria-label="Family tree. Arrow keys move the view, plus and minus zoom, Tab moves between cats."
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
+        const step = 80, el = containerRef.current;
+        if (e.key === 'ArrowLeft') setView(v => ({ ...v, x: v.x + step }));
+        else if (e.key === 'ArrowRight') setView(v => ({ ...v, x: v.x - step }));
+        else if (e.key === 'ArrowUp') setView(v => ({ ...v, y: v.y + step }));
+        else if (e.key === 'ArrowDown') setView(v => ({ ...v, y: v.y - step }));
+        else if ((e.key === '+' || e.key === '=') && el) zoomAt(el.clientWidth / 2, el.clientHeight / 2, viewRef.current.k * 1.2);
+        else if (e.key === '-' && el) zoomAt(el.clientWidth / 2, el.clientHeight / 2, viewRef.current.k / 1.2);
+        else if (e.key === 'Escape') { setSelectedEdge(null); onSelect(null); }
+        else return;
+        e.preventDefault();
+      }}
       onClick={() => { if (!moved.current) { setSelectedEdge(null); onSelect(null); } }}
     >
       {selectedEdge && <div className="absolute left-3 top-20 z-20 flex max-w-[calc(100%-24px)] flex-wrap items-center gap-2 rounded-md border border-border bg-card p-2 shadow-float" onPointerDown={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()}>
@@ -301,7 +324,7 @@ export function TreeCanvas({
               d={e.d}
               fill="none"
               stroke={stroke[e.kind]}
-              strokeWidth={2}
+              strokeWidth={e.kind === 'blood' || e.kind === 'mate' ? 2.75 : 2}
               strokeDasharray={dash[e.kind]}
               markerEnd={e.kind === "mentor" ? "url(#mentor-arrow)" : undefined}
               strokeLinejoin="round"
@@ -334,7 +357,7 @@ export function TreeCanvas({
               }}
               aria-label={`View ${catName(c)}`}
               data-relationship-highlighted={selectedEdge?.ids.includes(c.id) ?? false}
-              className="group absolute flex flex-col !justify-start gap-0 rounded-none p-0 items-center whitespace-normal text-center outline-none hover:bg-transparent"
+              className="group absolute flex flex-col !justify-start gap-0 rounded-md p-0 items-center whitespace-normal text-center hover:bg-transparent focus-visible:ring-2 focus-visible:ring-ring"
               style={{
                 left: p.x - NODE_W / 2,
                 top: p.y,
@@ -411,13 +434,10 @@ function Minimap({ positions, cats, b, view, size, onJump }: { positions: Positi
   </div>;
 }
 
-/** Stable pseudo-random stars scattered around (and over) an avatar. */
-function starsFor(id: string) {
-  let h = 2166136261;
-  for (const ch of id) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
-  const rnd = () => { h = (h + 0x6d2b79f5) | 0; let t = Math.imul(h ^ (h >>> 15), 1 | h); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-  return Array.from({ length: 9 }, (_, i) => {
-    const a = (i / 9) * Math.PI * 2 + rnd() * 0.6, r = i % 4 === 0 ? 12 + rnd() * 14 : 37 + rnd() * 14;
-    return { x: 34 + Math.cos(a) * r, y: 34 + Math.sin(a) * r, size: 7 + rnd() * 8, o: 0.55 + rnd() * 0.45, glyph: rnd() > 0.5 ? '✦' : '✧' };
-  });
-}
+/** Six fixed stars around the rim of a 68px avatar, clear of the eyes and face. */
+const STARS = [
+  { x: 6, y: 10, size: 12, o: 0.95, glyph: '✦' }, { x: 62, y: 8, size: 10, o: 0.85, glyph: '✧' },
+  { x: -2, y: 40, size: 9, o: 0.8, glyph: '✧' }, { x: 70, y: 46, size: 12, o: 0.95, glyph: '✦' },
+  { x: 16, y: 66, size: 8, o: 0.75, glyph: '✧' }, { x: 34, y: -6, size: 9, o: 0.85, glyph: '✦' },
+];
+function starsFor(_id: string) { return STARS; }

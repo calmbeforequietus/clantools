@@ -7,6 +7,7 @@ export function SiteFooter() {
     <span>© DJ Maddox 2026</span>
     <nav aria-label="Site information" className="flex flex-wrap justify-center gap-5">
       <Link to="/about" className="hover:text-foreground">About</Link>
+      <Link to="/devlog" className="hover:text-foreground">Devlog</Link>
       <Link to="/terms" className="hover:text-foreground">Terms of Service</Link>
       <Link to="/privacy" className="hover:text-foreground">Privacy Policy</Link>
     </nav>

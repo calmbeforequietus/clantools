@@ -28,3 +28,6 @@
 - Site display settings (theme, text size) live in src/lib/settings.ts, persist in their own localStorage key and are applied to <html> data attributes by an inline pre-paint script; themes only override CSS tokens. Why: every page, including the canvas, themes consistently without hydration flashes.
 - Full backups wrap the whole forest store with an app/kind marker and restoring replaces it after confirmation; single-tree JSON stays separate. Why: users can move everything between browsers without mixing up file types.
 - Kinship checks, Allegiances text export and name suggestions are pure modules under src/lib/tree. Why: their outputs are testable without UI.
+- Cat profiles are one centered read-first dialog (CatDrawer) for Clan pages and lineages; body art derives from icon settings unless a portrait is uploaded. Why: one layout, one appearance editor.
+- New Clan IDs are name slugs fixed at creation; Clan sections (built-in + custom) may pair half-width, Allegiances always full. Why: stable URLs, flexible layouts.
+- Lineage undo/redo keeps 10 store snapshots, typing bursts coalesced. Why: reversible edits.

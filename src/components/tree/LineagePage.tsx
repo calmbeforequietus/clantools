@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft, ChevronDown, GitCompare, Sparkles, Copy, Download, FilePlus2, FileUp, Focus, ImageDown, Maximize, Minus, Pencil, Plus, RotateCcw, Trash2, X,
+  ArrowLeft, ChevronDown, GitCompare, Sparkles, Copy, Download, FilePlus2, FileUp, Focus, ImageDown, Maximize, Minus, Pencil, Plus, RotateCcw, Trash2, X, Undo2, Redo2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useForest } from "./ForestProvider";
+import { pushHistory } from "@/lib/tree/ops";
+import type { Store } from "@/lib/tree/ops";
 import { clanTreeCats } from "@/lib/tree/clans";
 import { checkRelation, type RelationWarning } from "@/lib/tree/validation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -29,7 +31,31 @@ import { KinshipChecker } from './KinshipChecker';
 import { SettingsButton } from '@/components/SettingsButton';
 
 export function LineagePage() {
-  const { store, setStore } = useForest();
+  const { store, setStore: rawSetStore } = useForest();
+  const past = useRef<Store[]>([]), future = useRef<Store[]>([]), lastEdit = useRef(0);
+  const storeRef = useRef(store); storeRef.current = store;
+  /** Records an undo step (typing bursts within 800ms count as one) then applies the change. */
+  const setStore: typeof rawSetStore = useCallback((next) => {
+    const cur = storeRef.current;
+    if (cur && Date.now() - lastEdit.current > 800) { past.current = pushHistory(past.current, cur); future.current = []; }
+    lastEdit.current = Date.now();
+    rawSetStore(next);
+  }, [rawSetStore]);
+  const [, bump] = useState(0);
+  const undo = useCallback(() => { const prev = past.current.pop(); const cur = storeRef.current; if (!prev || !cur) return; future.current = pushHistory(future.current, cur); lastEdit.current = 0; rawSetStore({ ...prev, activeId: cur.activeId }); bump(n => n + 1); toast("Undone"); }, [rawSetStore]);
+  const redo = useCallback(() => { const next = future.current.pop(); const cur = storeRef.current; if (!next || !cur) return; past.current = pushHistory(past.current, cur); lastEdit.current = 0; rawSetStore({ ...next, activeId: cur.activeId }); bump(n => n + 1); toast("Redone"); }, [rawSetStore]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.closest("input, textarea, [contenteditable=true]"))) return;
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const k = e.key.toLowerCase();
+      if (k === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+      else if ((k === "z" && e.shiftKey) || k === "y") { e.preventDefault(); redo(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [undo, redo]);
   const navigate = useNavigate();
   const [moving, setMoving] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -45,8 +71,9 @@ export function LineagePage() {
   const search = useSearch({ from: '/clan/$clanId/lineage' });
   const clan = store?.clans.find(c => c.id === clanId);
   const [warning, setWarning] = useState<(RelationWarning & { kind: RelKind; other: string; pendingCat?: Cat }) | null>(null);
-  const [focusId, setFocusId] = useState<string | null>(null);
-  const [drawer, setDrawer] = useState(false);
+  const [focusId, setFocusId] = useState<string | null>(search.cat ?? null);
+  const [drawer, setDrawer] = useState(!!search.cat);
+  const [panKey, setPanKey] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [options, setOptions] = useState<CanvasOptions>({ showMentors: false, showFoster: false, showParents: true, showMates: true, showEras: false, hideUnrelated: false });
   const api = useRef<CanvasApi>(null);
@@ -58,12 +85,12 @@ export function LineagePage() {
     if (!existing) {
       const shared = store.trees.flatMap(t => t.cats).filter((c, i, all) => all.findIndex(v => v.id === c.id) === i);
       const t: Tree = { id: crypto.randomUUID(), name: `${clan.name} Lineage`, cats: clanTreeCats({ id: '', name: '', cats: shared, updatedAt: 0 }, clan.affiliation), clanId, updatedAt: Date.now() };
-      setStore(s => s && { ...s, trees: [...s.trees, t], activeId: t.id });
+      rawSetStore(s => s && { ...s, trees: [...s.trees, t], activeId: t.id });
     } else if (((search.tree || search.cat) && existing.id!==store.activeId) || store.trees.find(t => t.id === store.activeId)?.clanId !== clanId) {
-      setStore(s => s && { ...s, activeId: existing.id });
+      rawSetStore(s => s && { ...s, activeId: existing.id });
     }
-  }, [clanId, clan, store, setStore, search.tree, search.cat]);
-  useEffect(() => { if (search.cat) { setFocusId(search.cat); setDrawer(true); } }, [search.cat]);
+  }, [clanId, clan, store, rawSetStore, search.tree, search.cat]);
+  useEffect(() => { if (search.cat) { setFocusId(search.cat); setDrawer(true); setPanKey(k => k + 1); } }, [search.cat]);
   const tree = store?.trees.find(t => t.id === store.activeId && t.clanId === clanId) ?? store?.trees.find(t => t.clanId === clanId);
   const cats = tree?.cats ?? [];
   const positions = useMemo(() => computeLayout(cats), [cats]);
@@ -78,9 +105,9 @@ export function LineagePage() {
 
   const setCats = useCallback((fn: (c: Cat[]) => Cat[]) => {
     setStore((s) => s && { ...s, trees: s.trees.map((t) => (t.id === tree?.id ? { ...t, cats: fn(t.cats), updatedAt: Date.now() } : t)) });
-  }, [tree?.id]);
+  }, [tree?.id, setStore]);
   const switchTo = (id: string) => {
-    setStore((s) => s && { ...s, activeId: id });
+    rawSetStore((s) => s && { ...s, activeId: id });
     navigate({to:'/clan/$clanId/lineage',params:{clanId},search:{tree:id}});
     setFocusId(null);
     setDrawer(false);
@@ -168,6 +195,7 @@ export function LineagePage() {
         onZoom={setZoom}
         apiRef={api}
         treeKey={tree.id}
+        panKey={panKey}
         highlightIds={kinHighlight}
       />
 
@@ -216,6 +244,8 @@ export function LineagePage() {
 
       {/* Top-right: actions */}
       <div className={`absolute top-20 sm:top-3 z-20 flex items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-float backdrop-blur transition-all right-3 ${drawer ? "hidden" : ""}`}>
+        <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Undo (Ctrl+Z)" title="Undo (Ctrl+Z)" disabled={!past.current.length} onClick={undo}><Undo2 size={15} /></Button>
+        <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Redo (Ctrl+Shift+Z)" title="Redo (Ctrl+Shift+Z)" disabled={!future.current.length} onClick={redo}><Redo2 size={15} /></Button>
         <Button size="sm" onClick={()=>setAddingCat(true)}><Plus size={15} /> Add cat</Button>
         <Button size="sm" variant="ghost" aria-pressed={checking} onClick={()=>{setChecking(v=>!v);setKinHighlight(null);}}><GitCompare size={15} /> Kinship</Button>
         <DropdownMenu>
@@ -243,11 +273,10 @@ export function LineagePage() {
       {/* Bottom-right: legend */}
       {!drawer && (
         <div className="absolute bottom-3 right-3 z-20 space-y-1.5 rounded-2xl border border-border bg-card/95 p-3 text-xs shadow-float backdrop-blur">
-          <LegendRow color="var(--edge-blood)" label="Parentage" toggle={options.showParents} onToggle={v => setOptions(o => ({ ...o, showParents: v }))} />
-          <LegendRow color="var(--edge-mate)" label="Mates" toggle={options.showMates} onToggle={v => setOptions(o => ({ ...o, showMates: v }))} />
+          <LegendRow color="var(--edge-blood)" color2="var(--edge-mate)" label="Parentage & mates" toggle={options.showParents} onToggle={v => setOptions(o => ({ ...o, showParents: v, showMates: v }))} />
           <LegendRow color="var(--edge-foster)" label="Foster" dash="6 4" toggle={options.showFoster} onToggle={(v) => setOptions((o) => ({ ...o, showFoster: v }))} />
           <LegendRow color="var(--edge-mentor)" label="Mentor → apprentice" dash="2 4" toggle={options.showMentors} onToggle={(v) => setOptions((o) => ({ ...o, showMentors: v }))} />
-          <label className="flex items-center gap-2 border-t border-border pt-1.5"><Sparkles size={14} className="text-muted-foreground" /><span className="flex-1 text-muted-foreground">Spirit realm</span><Switch className="scale-75" checked={!!options.spiritRealm} onCheckedChange={v => setOptions(o => ({ ...o, spiritRealm: v }))} aria-label="Spirit realm glow" /></label>
+          <label className="flex items-center gap-2 border-t border-border pt-1.5"><Sparkles size={14} className="text-muted-foreground" /><span className="flex-1 text-muted-foreground">Afterlives</span><Switch className="scale-75" checked={!!options.spiritRealm} onCheckedChange={v => setOptions(o => ({ ...o, spiritRealm: v }))} aria-label="Show afterlives" /></label>
         </div>
       )}
 
@@ -259,7 +288,7 @@ export function LineagePage() {
           cats={cats}
           affiliations={store.clans.map(c => c.affiliation)}
           otherLineages={store.trees.filter(t=>t.id!==tree.id && t.cats.some(c=>c.id===focused.id)).map(t=>({id:t.id,name:t.name,clanId:t.clanId??clanId}))}
-          onOpenLineage={(id,targetClan)=>{setStore(s=>s&&{...s,activeId:id});navigate({to:'/clan/$clanId/lineage',params:{clanId:targetClan},search:{tree:id,cat:focused.id}});}}
+          onOpenLineage={(id,targetClan)=>{rawSetStore(s=>s&&{...s,activeId:id});navigate({to:'/clan/$clanId/lineage',params:{clanId:targetClan},search:{tree:id,cat:focused.id}});}}
           relTags={kinship?.labels.get(focused.id)}
           onClose={() => setDrawer(false)}
           onSelect={(id) => select(id)}
@@ -298,12 +327,12 @@ export function LineagePage() {
   );
 }
 
-function LegendRow({ color, label, dash, toggle, onToggle }: {
-  color: string; label: string; dash?: string; toggle?: boolean; onToggle?: (v: boolean) => void;
+function LegendRow({ color, color2, label, dash, toggle, onToggle }: {
+  color: string; color2?: string; label: string; dash?: string; toggle?: boolean; onToggle?: (v: boolean) => void;
 }) {
   return (
     <div className="flex items-center gap-2">
-      <svg width="28" height="8"><path d="M2 4 H26" stroke={color} strokeWidth={2} strokeDasharray={dash} strokeLinecap="round" /></svg>
+      <svg width="28" height="10" aria-hidden><path d={color2 ? "M2 3 H26" : "M2 5 H26"} stroke={color} strokeWidth={2.5} strokeDasharray={dash} strokeLinecap="round" />{color2 && <path d="M2 8 H26" stroke={color2} strokeWidth={2.5} strokeLinecap="round" />}</svg>
       <span className="flex-1 text-muted-foreground">{label}</span>
       {onToggle && <Switch aria-label={`Show ${label}`} checked={!!toggle} onCheckedChange={onToggle} className="scale-75" />}
     </div>

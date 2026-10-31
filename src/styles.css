@@ -169,10 +169,15 @@
   --gender-she: oklch(0.77 0.12 355);
   --gender-tom: oklch(0.74 0.11 235);
   --gender-other: oklch(0.65 0.02 250);
-  --edge-blood: oklch(0.52 0.11 150);
-  --edge-mate: oklch(0.6 0.13 305);
-  --edge-mentor: oklch(0.7 0.13 85);
+  /* Lineage lines: deep green family, crimson mates, blue foster, dark amber mentor. */
+  --edge-blood: oklch(0.42 0.11 150);
+  --edge-mate: oklch(0.52 0.19 18);
+  --edge-foster: oklch(0.5 0.14 255);
+  --edge-mentor: oklch(0.55 0.13 65);
+  --primary-hover: oklch(0.5 0.15 45);
+  --deceased-name: oklch(0.66 0.035 245);
 }
+.dark, html[data-theme="night"] { --primary-hover: oklch(0.82 0.13 65); }
 .clan-crest { display: inline-block; background: currentColor; mask-size: contain; mask-repeat: no-repeat; mask-position: center; }
 .clan-page { max-width: 1320px; margin-inline: auto; padding: 18px 24px 32px; }
 .clan-heading { font-family: var(--font-display); font-size: 48px; line-height: 1.1; }
@@ -210,7 +215,7 @@ html[data-text="xl"] { font-size: 20px; }
 /* Spirit realm filter */
 .spirit-starclan { filter: drop-shadow(0 0 7px color-mix(in oklab, var(--spirit-star) 70%, transparent)); }
 .spirit-star { position: absolute; z-index: 1; color: var(--spirit-star); pointer-events: none; line-height: 1; filter: drop-shadow(0 0 2px var(--spirit-star)); }
-.spirit-shadow { position: absolute; z-index: 1; inset: 3px; border-radius: 9999px; pointer-events: none; background: linear-gradient(to top, color-mix(in oklab, var(--spirit-dark) 92%, transparent) 0%, color-mix(in oklab, var(--spirit-dark) 70%, transparent) 22%, transparent 33%); }
+.spirit-shadow { position: absolute; z-index: 1; inset: 3px; border-radius: 9999px; pointer-events: none; background: linear-gradient(to bottom, color-mix(in oklab, var(--spirit-dark) 55%, transparent) 0%, color-mix(in oklab, var(--spirit-dark) 30%, transparent) 20%, transparent 33%); }
 .spirit-darkforest { filter: drop-shadow(0 0 8px var(--spirit-dark)) drop-shadow(0 0 16px var(--spirit-dark)); }
 :root { --spirit-star: oklch(0.72 0.14 265); --spirit-dark: oklch(0.16 0.04 300); }
 
@@ -220,8 +225,8 @@ html[data-theme="night"] {
   --popover: oklch(0.26 0.022 50); --popover-foreground: oklch(0.95 0.015 78); --primary: oklch(0.72 0.15 55); --primary-foreground: oklch(0.2 0.02 50);
   --secondary: oklch(0.32 0.025 50); --secondary-foreground: oklch(0.95 0.015 78); --muted: oklch(0.3 0.02 50); --muted-foreground: oklch(0.75 0.03 70);
   --accent: oklch(0.34 0.03 55); --accent-foreground: oklch(0.95 0.015 78); --border: oklch(1 0 0 / 14%); --input: oklch(1 0 0 / 18%); --ring: oklch(0.72 0.15 55);
-  --canvas: oklch(0.2 0.02 50); --canvas-dot: oklch(0.32 0.02 50); --deceased-name: oklch(0.7 0.04 245);
-  --edge-blood: oklch(0.68 0.12 150); --edge-mate: oklch(0.7 0.13 305); --edge-mentor: oklch(0.8 0.13 85); --edge-foster: oklch(0.7 0.08 190);
+  --canvas: oklch(0.2 0.02 50); --canvas-dot: oklch(0.32 0.02 50); --deceased-name: oklch(0.6 0.035 245);
+  --edge-blood: oklch(0.74 0.13 150); --edge-mate: oklch(0.72 0.16 18); --edge-foster: oklch(0.72 0.12 245); --edge-mentor: oklch(0.82 0.13 80);
 }
 html[data-theme="leafbare"] {
   --background: oklch(0.96 0.008 240); --foreground: oklch(0.27 0.03 250); --card: oklch(0.99 0.004 240); --card-foreground: oklch(0.27 0.03 250);
@@ -229,36 +234,50 @@ html[data-theme="leafbare"] {
   --secondary: oklch(0.92 0.015 240); --secondary-foreground: oklch(0.3 0.03 250); --muted: oklch(0.93 0.012 240); --muted-foreground: oklch(0.48 0.03 250);
   --accent: oklch(0.9 0.03 230); --accent-foreground: oklch(0.27 0.03 250); --border: oklch(0.87 0.015 240); --input: oklch(0.86 0.015 240); --ring: oklch(0.5 0.09 240);
   --canvas: oklch(0.95 0.01 240); --canvas-dot: oklch(0.84 0.02 240);
+  --edge-blood: oklch(0.4 0.09 160); --edge-mate: oklch(0.5 0.17 15); --edge-foster: oklch(0.45 0.13 265); --edge-mentor: oklch(0.52 0.1 70); --primary-hover: oklch(0.4 0.1 245);
 }
 html[data-theme="cb-redgreen"], html[data-theme="cb-blueyellow"] {
   --background: oklch(0.97 0.004 90); --foreground: oklch(0.22 0 0); --card: oklch(1 0 0); --card-foreground: oklch(0.22 0 0);
   --popover: oklch(1 0 0); --popover-foreground: oklch(0.22 0 0); --secondary: oklch(0.93 0 0); --secondary-foreground: oklch(0.22 0 0);
   --muted: oklch(0.93 0 0); --muted-foreground: oklch(0.42 0 0); --accent: oklch(0.91 0 0); --accent-foreground: oklch(0.22 0 0);
-  --border: oklch(0.82 0 0); --input: oklch(0.8 0 0); --canvas: oklch(0.96 0.003 90); --canvas-dot: oklch(0.82 0 0); --deceased-name: oklch(0.5 0 0);
+  --border: oklch(0.82 0 0); --input: oklch(0.8 0 0); --canvas: oklch(0.96 0.003 90); --canvas-dot: oklch(0.82 0 0); --deceased-name: oklch(0.62 0.02 245);
 }
 /* Okabe–Ito palette: distinguishable with protanopia and deuteranopia */
 html[data-theme="cb-redgreen"] {
-  --primary: oklch(0.53 0.13 245); --primary-foreground: oklch(1 0 0); --ring: oklch(0.53 0.13 245);
+  --primary: oklch(0.53 0.13 245); --primary-foreground: oklch(1 0 0); --ring: oklch(0.53 0.13 245); --primary-hover: oklch(0.42 0.13 250);
   --edge-blood: oklch(0.53 0.13 245); --edge-mate: oklch(0.62 0.18 45); --edge-foster: oklch(0.67 0.12 345); --edge-mentor: oklch(0.45 0 0);
   --gender-she: oklch(0.76 0.16 75); --gender-tom: oklch(0.53 0.13 245); --gender-other: oklch(0.7 0 0);
   --status-living: oklch(0.74 0.11 235); --status-starclan: oklch(0.76 0.16 75); --status-darkforest: oklch(0.25 0 0);
 }
 /* Red / teal / black: distinguishable with tritanopia */
 html[data-theme="cb-blueyellow"] {
-  --primary: oklch(0.55 0.2 25); --primary-foreground: oklch(1 0 0); --ring: oklch(0.55 0.2 25);
+  --primary: oklch(0.55 0.2 25); --primary-foreground: oklch(1 0 0); --ring: oklch(0.55 0.2 25); --primary-hover: oklch(0.44 0.18 25);
   --edge-blood: oklch(0.5 0.08 200); --edge-mate: oklch(0.55 0.2 25); --edge-foster: oklch(0.65 0.2 350); --edge-mentor: oklch(0.3 0 0);
   --gender-she: oklch(0.66 0.2 15); --gender-tom: oklch(0.6 0.1 195); --gender-other: oklch(0.7 0 0);
   --status-living: oklch(0.6 0.1 195); --status-starclan: oklch(0.65 0.2 350); --status-darkforest: oklch(0.25 0 0);
 }
-html[data-theme="mono"] {
+html[data-theme="mono"], html[data-theme="mono-full"] {
   --background: oklch(0.97 0 0); --foreground: oklch(0.2 0 0); --card: oklch(1 0 0); --card-foreground: oklch(0.2 0 0);
   --popover: oklch(1 0 0); --popover-foreground: oklch(0.2 0 0); --primary: oklch(0.3 0 0); --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.92 0 0); --secondary-foreground: oklch(0.2 0 0); --muted: oklch(0.93 0 0); --muted-foreground: oklch(0.45 0 0);
   --accent: oklch(0.9 0 0); --accent-foreground: oklch(0.2 0 0); --destructive: oklch(0.35 0 0); --border: oklch(0.82 0 0); --input: oklch(0.8 0 0); --ring: oklch(0.3 0 0);
-  --canvas: oklch(0.96 0 0); --canvas-dot: oklch(0.82 0 0); --deceased-name: oklch(0.58 0 0);
-  --edge-blood: oklch(0.25 0 0); --edge-mate: oklch(0.5 0 0); --edge-foster: oklch(0.4 0 0); --edge-mentor: oklch(0.62 0 0);
+  --canvas: oklch(0.96 0 0); --canvas-dot: oklch(0.82 0 0); --deceased-name: oklch(0.62 0 0); --primary-hover: oklch(0.12 0 0);
+  --edge-blood: oklch(0.2 0 0); --edge-mate: oklch(0.45 0 0); --edge-foster: oklch(0.35 0 0); --edge-mentor: oklch(0.55 0 0);
   --gender-she: oklch(0.86 0 0); --gender-tom: oklch(0.4 0 0); --gender-other: oklch(0.65 0 0);
   --status-living: oklch(0.55 0 0); --status-starclan: oklch(0.8 0 0); --status-darkforest: oklch(0.2 0 0);
   --spirit-star: oklch(0.85 0 0); --spirit-dark: oklch(0.2 0 0);
 }
-html[data-theme="mono"] img, html[data-theme="mono"] svg, html[data-theme="mono"] .clan-crest { filter: grayscale(1); }
+/* Monochrome keeps cat artwork in color; the full option grays everything. */
+html[data-theme="mono"] .clan-crest, html[data-theme="mono"] img[alt="Clan crest"], html[data-theme="mono"] svg.clan-symbol { filter: grayscale(1); }
+html[data-theme="mono-full"] { filter: grayscale(1); }
+
+/* File inputs: show only the "Choose File" button, sitting slightly lower. */
+input[type="file"] { color: transparent; padding-top: 0.4rem; }
+input[type="file"]::file-selector-button { color: var(--foreground); margin-top: 1px; }
+/* Crest hover bounce (shared by gateway and Clan pages). */
+@keyframes crest-bounce { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-6px); } 70% { transform: translateY(-2px); } }
+.crest-bounce:hover, .group:hover .crest-bounce { animation: crest-bounce 600ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .crest-bounce:hover, .group:hover .crest-bounce { animation: none; } }
+/* Visible keyboard focus everywhere. */
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.devlog { font-family: var(--font-sans); }

@@ -166,3 +166,31 @@ export function parseBackup(x: unknown): Store | null {
   const activeId = s.trees.some(t => t.id === s.activeId) ? s.activeId : s.trees[0]?.id ?? '';
   return { ...s, activeId, presentationVersion: PRESENTATION_VERSION };
 }
+
+// ---------- single-Clan backup ----------
+export interface ClanBackup { app: 'clantools'; kind: 'clan'; version: 1; exportedAt: string; clan: ClanPage; trees: Tree[] }
+export function makeClanBackup(store: Store, clanId: string, now = new Date()): ClanBackup | null {
+  const clan = store.clans.find(c => c.id === clanId);
+  if (!clan) return null;
+  return { app: 'clantools', kind: 'clan', version: 1, exportedAt: now.toISOString(), clan, trees: store.trees.filter(t => t.clanId === clanId) };
+}
+export function parseClanBackup(x: unknown): ClanBackup | null {
+  const b = x as ClanBackup;
+  if (!b || b.app !== 'clantools' || b.kind !== 'clan' || !b.clan?.id || !Array.isArray(b.trees) || !b.trees.every(isTree)) return null;
+  return b;
+}
+/** Adds or replaces one Clan and its lineages, leaving every other Clan untouched. */
+export function mergeClanBackup(store: Store, b: ClanBackup): Store {
+  const trees = b.trees.map(t => ({ ...t, clanId: b.clan.id }));
+  const ids = new Set(trees.map(t => t.id));
+  return { ...store,
+    clans: store.clans.some(c => c.id === b.clan.id) ? store.clans.map(c => c.id === b.clan.id ? b.clan : c) : [...store.clans, b.clan],
+    trees: [...store.trees.filter(t => t.clanId !== b.clan.id && !ids.has(t.id)), ...trees],
+    activeId: store.activeId || trees[0]?.id || '' };
+}
+
+// ---------- undo history ----------
+export const UNDO_LIMIT = 10;
+export function pushHistory<T>(stack: T[], item: T, limit = UNDO_LIMIT): T[] {
+  return [...stack, item].slice(-limit);
+}

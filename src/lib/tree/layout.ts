@@ -6,8 +6,8 @@ export const NODE_H = 140;
 export const AVATAR = 68;
 export const AVATAR_TOP = 14;
 export const AVATAR_CY = AVATAR_TOP + AVATAR / 2;
-export const GAP_X = 60;
-export const GAP_Y = 140;
+export const GAP_X = 30;
+export const GAP_Y = 96;
 const W = NODE_W + GAP_X;
 export type Positions = Map<string, { x: number; y: number }>;
 
