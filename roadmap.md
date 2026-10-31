@@ -1,4 +1,5 @@
 # Shared lineage characters
+- [ ] Explain Clan member count versus lineage cat count from the actual calculation.
 - [ ] Prompt on matching names for new cats across Clans: reuse the existing character and data, or keep separate identity.
 - [ ] Add existing-cat picker with selectable known relatives when adding to a lineage.
 - [ ] Link character profiles across their saved lineages and retain shared identity.
