@@ -23,6 +23,8 @@ export function CatBodyArt({ settings, className = '', colors }: { settings: Cat
     {s.pattern === 'tabby' && <path d="M178 196l10-4 M184 172l10 0 M172 150l8-6" stroke={mark} strokeWidth="5" strokeLinecap="round" />}
     {/* body */}
     <path d="M60 240 Q48 170 72 128 Q100 105 128 128 Q152 170 140 240 Z" fill={base} />
+    {/* neck joins head to body */}
+    <path d="M76 96 H124 L130 132 Q100 140 70 132 Z" fill={base} />
     {s.pattern === 'tabby' && <g stroke={mark} strokeWidth="6" strokeLinecap="round" fill="none"><path d="M64 160q10 4 14 14 M60 190q12 4 16 14 M136 160q-10 4-14 14 M140 190q-12 4-16 14" /></g>}
     {s.pattern === 'marbled' && <g stroke={mark} strokeWidth="6" fill="none" strokeLinecap="round"><path d="M64 165q18-6 16 16 q-2 16 -14 20 M136 165q-18-6-16 16 q2 16 14 20" /></g>}
     {s.pattern === 'spotted' && <g fill={mark}><circle cx="70" cy="170" r="6" /><circle cx="130" cy="176" r="7" /><circle cx="66" cy="205" r="5" /><circle cx="134" cy="210" r="6" /><circle cx="80" cy="225" r="4" /></g>}
