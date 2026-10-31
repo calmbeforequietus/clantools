@@ -35,7 +35,7 @@ export function canonCats(): Cat[] {
     c("goldenflower", ["Goldenflower"], "ThunderClan", "Elder", "StarClan", "She-cat", "paleGinger", "Pale ginger she-cat."),
     c("bluestar", ["Bluekit", "Bluepaw", "Bluefur", "Bluestar"], "ThunderClan", "Leader", "StarClan", "She-cat", "blueGray", "Blue-gray she-cat with a silver-tipped muzzle and blue eyes."),
     c("firestar", ["Rusty", "Firepaw", "Fireheart", "Firestar"], "ThunderClan", "Leader", "StarClan", "Tom", "flame", "Handsome flame-colored tom with bright green eyes.", { parents: ["jake", "nutmeg"], mates: ["sandstorm"], mentors: ["bluestar"] }),
-    c("princess", ["Princess"], "Kittypet", "Queen", "Living", "She-cat", "princess", "Light brown tabby with a white chest and paws."),
+    c("princess", ["Princess"], "Kittypet", "Queen", "Living", "She-cat", "princess", "Light brown tabby with a white chest and paws.", { parents: ["jake", "nutmeg"] }),
     c("sandstorm", ["Sandkit", "Sandpaw", "Sandstorm"], "ThunderClan", "Warrior", "StarClan", "She-cat", "paleGinger", "Pale ginger she-cat with green eyes."),
     c("cinderpelt", ["Cinderkit", "Cinderpaw", "Cinderpelt"], "ThunderClan", "Medicine Cat", "StarClan", "She-cat", "darkGray", "Fluffy dark gray she-cat with blue eyes.", { mentors: ["firestar"] }),
     c("cloudtail", ["Cloudkit", "Cloudpaw", "Cloudtail"], "ThunderClan", "Warrior", "Living", "Tom", "white", "Long-haired white tom with blue eyes.", { parents: ["princess"], mentors: ["firestar"], mates: ["brightheart"] }),
