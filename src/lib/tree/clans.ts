@@ -27,3 +27,12 @@ export function clanTreeCats(tree: Tree, affiliation: string) {
   }
   return tree.cats.filter(c => keep.has(c.id));
 }
+// A Clan's own saved trees define its roster once it has one. Before that,
+// discover available members in the original imported/preset trees.
+export function clanRoster(trees: Tree[], clanId: string, affiliation: string) {
+  const own = trees.filter(t => t.clanId === clanId);
+  const source = own.length ? own : trees;
+  const byId = new Map<string, typeof trees[number]['cats'][number]>();
+  for (const tree of [...source].sort((a,b) => a.updatedAt-b.updatedAt)) for (const cat of tree.cats) byId.set(cat.id, cat);
+  return [...byId.values()].filter(c => c.clan === affiliation);
+}

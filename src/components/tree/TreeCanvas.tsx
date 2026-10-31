@@ -76,7 +76,7 @@ export function TreeCanvas({
     const w = el.clientWidth, h = el.clientHeight;
     const bw = b.maxX - b.minX, bh = b.maxY - b.minY;
     const k = clamp(Math.min((w - 230) / bw, (h - 140) / bh, 1.1));
-    setView({ k, x: (w - 220 - bw * k) / 2 - b.minX * k, y: (h - bh * k) / 2 - b.minY * k + 20 });
+    setView({ k, x: (w - bw * k) / 2 - b.minX * k, y: (h - bh * k) / 2 - b.minY * k + 20 });
   }, [b]);
 
   useImperativeHandle(apiRef, () => ({
@@ -136,10 +136,11 @@ export function TreeCanvas({
     pointers.current.set(e.pointerId, { x: e.clientX - rect.left, y: e.clientY - rect.top });
     const pts = [...pointers.current.values()];
     moved.current = false;
-    if (pts.length === 1) gesture.current = { view: viewRef.current, x: pts[0]!.x, y: pts[0]!.y };
-    else if (pts.length === 2) {
-      const cx = (pts[0]!.x + pts[1]!.x) / 2, cy = (pts[0]!.y + pts[1]!.y) / 2;
-      gesture.current = { view: viewRef.current, x: cx, y: cy, dist: Math.hypot(pts[0]!.x - pts[1]!.x, pts[0]!.y - pts[1]!.y) };
+    const [first, second] = pts;
+    if (first && !second) gesture.current = { view: viewRef.current, x: first.x, y: first.y };
+    else if (first && second) {
+      const cx = (first.x + second.x) / 2, cy = (first.y + second.y) / 2;
+      gesture.current = { view: viewRef.current, x: cx, y: cy, dist: Math.hypot(first.x-second.x, first.y-second.y) };
     }
     const move = (ev: PointerEvent) => {
       if (!pointers.current.has(ev.pointerId)) return;
@@ -147,14 +148,15 @@ export function TreeCanvas({
       const g = gesture.current;
       if (!g) return;
       const ps = [...pointers.current.values()];
-      if (ps.length === 1) {
-        const dx = ps[0]!.x - g.x, dy = ps[0]!.y - g.y;
+      const [first, second] = ps;
+      if (first && !second) {
+        const dx = first.x - g.x, dy = first.y - g.y;
         if (Math.abs(dx) + Math.abs(dy) > 4) moved.current = true;
         if (moved.current) setView({ ...g.view, x: g.view.x + dx, y: g.view.y + dy });
-      } else if (ps.length >= 2 && g.dist) {
+      } else if (first && second && g.dist) {
         moved.current = true;
-        const cx = (ps[0]!.x + ps[1]!.x) / 2, cy = (ps[0]!.y + ps[1]!.y) / 2;
-        const k = clamp(g.view.k * (Math.hypot(ps[0]!.x - ps[1]!.x, ps[0]!.y - ps[1]!.y) / g.dist));
+        const cx = (first.x + second.x) / 2, cy = (first.y + second.y) / 2;
+        const k = clamp(g.view.k * (Math.hypot(first.x - second.x, first.y - second.y) / g.dist));
         const r = k / g.view.k;
         setView({ k, x: cx - (g.x - g.view.x) * r, y: cy - (g.y - g.view.y) * r });
       }
@@ -167,7 +169,8 @@ export function TreeCanvas({
         window.removeEventListener("pointerup", up);
         window.removeEventListener("pointercancel", up);
       } else {
-        const p = [...pointers.current.values()][0]!;
+        const p = [...pointers.current.values()][0];
+        if (!p) return;
         gesture.current = { view: viewRef.current, x: p.x, y: p.y };
       }
     };
@@ -208,12 +211,14 @@ export function TreeCanvas({
       }
       const ps = (options.showParents ? idx.parents(c.id) : []).filter((p) => positions.has(p) && visible(p));
       const ex = cp.x, ey = cp.y + 6;
-      if (ps.length === 2 && idx.mates(ps[0]!).includes(ps[1]!) && positions.get(ps[0]!)!.y === positions.get(ps[1]!)!.y) {
-        const a = positions.get(ps[0]!)!, bb = positions.get(ps[1]!)!;
-        out.push({ d: curve((a.x + bb.x) / 2, a.y + AV_CY, ex, ey), kind: "blood", on: isOn(c.id) && isOn(ps[0]!), key: "b" + c.id });
+      const [pa, pb] = ps;
+      const a = pa ? positions.get(pa) : undefined, bb = pb ? positions.get(pb) : undefined;
+      if (ps.length === 2 && pa && pb && a && bb && idx.mates(pa).includes(pb) && a.y === bb.y) {
+        out.push({ d: curve((a.x + bb.x) / 2, a.y + AV_CY, ex, ey), kind: "blood", on: isOn(c.id) && isOn(pa), key: "b" + c.id });
       } else {
         ps.forEach((p) => {
-          const pp = positions.get(p)!;
+          const pp = positions.get(p);
+          if (!pp) return;
           out.push({ d: curve(pp.x, pp.y + NODE_H - 4, ex, ey), kind: "blood", on: isOn(c.id) && isOn(p), key: "b" + c.id + p });
         });
       }

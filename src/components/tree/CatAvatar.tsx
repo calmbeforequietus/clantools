@@ -56,7 +56,6 @@ export function PeltFace({ pelt }: { pelt: string }) {
 }
 
 export function ClanBadge({ clan, size = 28 }: { clan: Clan; size?: number }) {
-  const Icon = CLAN_ICON[clan] ?? Footprints;
   return (
     <div className="flex h-full w-full items-center justify-center text-primary-foreground" style={{ background: CLAN_VAR[clan] }}>
       <ClanCrest crest={clan} className="h-3/4 w-3/4" />

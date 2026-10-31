@@ -10,6 +10,7 @@ import { ClanCrest } from '@/components/tree/ClanCrest';
 import { ClanEditor } from '@/components/tree/ClanEditor';
 import { TerritoryMap } from '@/components/tree/TerritoryMap';
 import { useForest } from '@/components/tree/ForestProvider';
+import { clanRoster } from "@/lib/tree/clans";
 import { catName, RANKS, type ClanPage } from '@/lib/tree/types';
 
 export const Route = createFileRoute('/clan/$clanId/')({
@@ -21,7 +22,7 @@ function ClanOverview() {
  const { store, setStore } = useForest();
  const clan = store?.clans.find(c => c.id === clanId);
  const [editing, setEditing] = useState(false), [loreEdit, setLoreEdit] = useState(false), [query, setQuery] = useState(''), [rank, setRank] = useState('all');
- const cats = useMemo(() => (store?.trees.flatMap(t => t.cats) ?? []).filter((c, i, all) => c.clan === clan?.affiliation && all.findIndex(v => v.id === c.id) === i), [store, clan?.affiliation]);
+ const cats = useMemo(() => clan ? clanRoster(store?.trees ?? [], clanId, clan.affiliation) : [], [store, clan, clanId]);
  const update = (patch: Partial<ClanPage>) => setStore(s => s && { ...s, clans: s.clans.map(c => c.id === clanId ? { ...c, ...patch } : c) });
  if (!store) return <main className="min-h-screen bg-background" />;
  if (!clan) return <main className="clan-page"><h1 className="clan-heading">Clan not found</h1><Button asChild variant="link"><Link to="/">All Clans</Link></Button></main>;
