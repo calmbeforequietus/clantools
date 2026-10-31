@@ -1,11 +1,12 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
+import { SettingsButton } from './SettingsButton';
 import type { ReactNode } from 'react';
 
 export function InformationPage({title,children}:{title:string;children:ReactNode}) {
   return <main className="clan-page w-full">
     <header className="flex items-center justify-between border-b border-border pb-3">
-      <Link to="/" className="site-wordmark">Clantools</Link>
+      <span className="flex items-center gap-1"><Link to="/" className="site-wordmark">Clantools</Link><SettingsButton /></span>
       <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft size={16}/>The Clans</Link>
     </header>
     <article className="mx-auto max-w-2xl py-10 sm:py-14">

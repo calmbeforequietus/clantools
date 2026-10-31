@@ -22,6 +22,7 @@ export interface CanvasOptions {
   showMentors: boolean;
   showFoster: boolean;
   hideUnrelated: boolean;
+  spiritRealm?: boolean;
 }
 
 const MIN = 0.15, MAX = 2.5;
@@ -39,6 +40,7 @@ export function TreeCanvas({
   onZoom,
   apiRef,
   treeKey,
+  highlightIds,
 }: {
   clan?: ClanPage | undefined;
   cats: Cat[];
@@ -50,6 +52,7 @@ export function TreeCanvas({
   onZoom: (k: number) => void;
   apiRef: Ref<CanvasApi>;
   treeKey: string;
+  highlightIds?: Set<string> | null;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
@@ -63,6 +66,16 @@ export function TreeCanvas({
   const gesture = useRef<{ view: typeof view; x: number; y: number; dist?: number } | null>(null);
 
   useEffect(() => onZoom(view.k), [view.k, onZoom]);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    setSize({ w: el.clientWidth, h: el.clientHeight });
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => setSize({ w: el.clientWidth, h: el.clientHeight }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const b = useMemo(() => bounds(positions), [positions]);
 
@@ -194,7 +207,7 @@ export function TreeCanvas({
   };
 
   const idx = useMemo(() => buildIndex(cats), [cats]);
-  const hl = selectedEdge ? new Set(selectedEdge.ids) : kinship?.highlight;
+  const hl = selectedEdge ? new Set(selectedEdge.ids) : highlightIds ?? kinship?.highlight;
   const isOn = (id: string) => !hl || hl.has(id);
   const visible = (id: string) => !(options.hideUnrelated && hl && !hl.has(id));
 
@@ -268,6 +281,7 @@ export function TreeCanvas({
         {selectedEdge.ids.map(id => { const cat=idx.byId.get(id); return cat && <Button key={id} variant="ghost" size="sm" onClick={()=>{setSelectedEdge(null);onSelect(id);}}>{catName(cat)}</Button>; })}
         <Button variant="ghost" size="icon" className="size-8" aria-label="Clear relationship highlight" onClick={()=>setSelectedEdge(null)}><X /></Button>
       </div>}
+      {size.w > 0 && positions.size > 0 && <Minimap positions={positions} cats={cats} b={b} view={view} size={size} onJump={(x, y) => setView(v => ({ ...v, x: size.w / 2 - x * v.k, y: size.h / 2 - y * v.k }))} />}
       <div
         ref={worldRef}
         className="absolute left-0 top-0"
@@ -338,13 +352,15 @@ export function TreeCanvas({
               {focused && !selectedEdge && (
                 <span className="absolute -top-5 rounded-full bg-foreground px-2 py-0.5 text-[11px] font-semibold text-background">Focused</span>
               )}
-              <div className="relative mt-3.5 shrink-0">
+              <div className={`relative mt-3.5 shrink-0 ${options.spiritRealm && c.status === "StarClan" ? "spirit-starclan" : options.spiritRealm && c.status === "Dark Forest" ? "spirit-darkforest" : ""}`}>
                 <div
                   className={`rounded-full p-[3px] transition-transform group-hover:scale-105 ${focused ? "ring-4 ring-primary ring-offset-2 ring-offset-canvas" : ""}`}
                   style={{ background: c.gender === "She-cat" ? "var(--gender-she)" : c.gender === "Tom" ? "var(--gender-tom)" : "var(--gender-other)", boxShadow: "var(--shadow-float)" }}
                 >
                   <CatAvatar avatar={c.avatar} className="h-[62px] w-[62px] border-2 border-card" />
                 </div>
+                {options.spiritRealm && c.status === "Dark Forest" && <span className="spirit-shadow" aria-hidden />}
+                {options.spiritRealm && c.status === "StarClan" && starsFor(c.id).map((st, i) => <svg key={i} className="spirit-star" aria-hidden viewBox="0 0 10 10" width={st.size} height={st.size} style={{ left: st.x - st.size / 2, top: st.y - st.size / 2, opacity: st.o }}><path d={st.glyph === "✦" ? "M5 0L6.2 3.8 10 5 6.2 6.2 5 10 3.8 6.2 0 5 3.8 3.8Z" : "M5 1L5.8 4.2 9 5 5.8 5.8 5 9 4.2 5.8 1 5 4.2 4.2Z"} fill="currentColor" /></svg>)}
                 <StatusDot status={c.status} />
               </div>
               <div className={`mt-1.5 w-full shrink-0 truncate font-display text-[15px] font-semibold leading-tight ${c.status === 'Living' ? 'text-foreground' : 'deceased-name'}`}><span className="bg-canvas px-1">{catName(c)}</span></div>
@@ -375,4 +391,33 @@ function StatusDot({ status }: { status: Cat["status"] }) {
 function RoleIcon({ cat }: { cat: Cat }) {
   const Icon = cat.rank === 'Leader' ? Star : cat.rank === 'Deputy' ? Shield : cat.rank === 'Medicine Cat' ? Leaf : cat.rank === 'Elder' ? Moon : PawPrint;
   return <Icon className="!size-6 fill-current" aria-label={cat.rank} />;
+}
+
+function Minimap({ positions, cats, b, view, size, onJump }: { positions: Positions; cats: Cat[]; b: ReturnType<typeof bounds>; view: { x: number; y: number; k: number }; size: { w: number; h: number }; onJump: (x: number, y: number) => void }) {
+  const W = 180, H = 120, bw = b.maxX - b.minX, bh = b.maxY - b.minY;
+  const s = Math.min(W / bw, H / bh), ox = (W - bw * s) / 2, oy = (H - bh * s) / 2;
+  const toMap = (x: number, y: number) => [ox + (x - b.minX) * s, oy + (y - b.minY) * s] as const;
+  const [vx, vy] = toMap(-view.x / view.k, -view.y / view.k);
+  const jump = (e: React.PointerEvent<SVGSVGElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    onJump((e.clientX - r.left - ox) / s + b.minX, (e.clientY - r.top - oy) / s + b.minY);
+  };
+  return <div className="absolute bottom-16 left-3 z-20 hidden rounded-xl border border-border bg-card/95 p-1.5 shadow-float backdrop-blur sm:block" onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
+    <svg width={W} height={H} role="img" aria-label="Tree overview. Click to jump." className="cursor-pointer" onPointerDown={e => { jump(e); e.currentTarget.setPointerCapture(e.pointerId); }} onPointerMove={e => { if (e.buttons) jump(e); }}>
+      {cats.map(c => { const p = positions.get(c.id); if (!p) return null; const [x, y] = toMap(p.x, p.y + AVATAR_CY);
+        return <circle key={c.id} cx={x} cy={y} r={2.2} fill={c.gender === 'She-cat' ? 'var(--gender-she)' : c.gender === 'Tom' ? 'var(--gender-tom)' : 'var(--gender-other)'} />; })}
+      <rect x={vx} y={vy} width={size.w / view.k * s} height={size.h / view.k * s} fill="var(--primary)" fillOpacity={0.08} stroke="var(--primary)" strokeWidth={1.2} rx={2} />
+    </svg>
+  </div>;
+}
+
+/** Stable pseudo-random stars scattered around (and over) an avatar. */
+function starsFor(id: string) {
+  let h = 2166136261;
+  for (const ch of id) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const rnd = () => { h = (h + 0x6d2b79f5) | 0; let t = Math.imul(h ^ (h >>> 15), 1 | h); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  return Array.from({ length: 9 }, (_, i) => {
+    const a = (i / 9) * Math.PI * 2 + rnd() * 0.6, r = i % 4 === 0 ? 12 + rnd() * 14 : 37 + rnd() * 14;
+    return { x: 34 + Math.cos(a) * r, y: 34 + Math.sin(a) * r, size: 7 + rnd() * 8, o: 0.55 + rnd() * 0.45, glyph: rnd() > 0.5 ? '✦' : '✧' };
+  });
 }

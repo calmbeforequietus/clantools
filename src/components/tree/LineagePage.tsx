@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft, ChevronDown, Copy, Download, FilePlus2, FileUp, Focus, ImageDown, Maximize, Minus, Pencil, Plus, RotateCcw, Trash2, X,
+  ArrowLeft, ChevronDown, GitCompare, Sparkles, Copy, Download, FilePlus2, FileUp, Focus, ImageDown, Maximize, Minus, Pencil, Plus, RotateCcw, Trash2, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -25,11 +25,15 @@ import {
 import { catName, type Cat, type Tree } from "@/lib/tree/types";
 import { sharedCats, reuseCat, matchingNames, combineCat } from '@/lib/tree/shared-cats';
 import { ExistingCatPicker } from './ExistingCatPicker';
+import { KinshipChecker } from './KinshipChecker';
+import { SettingsButton } from '@/components/SettingsButton';
 
 export function LineagePage() {
   const { store, setStore } = useForest();
   const navigate = useNavigate();
   const [moving, setMoving] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [kinHighlight, setKinHighlight] = useState<Set<string> | null>(null);
   const [addingCat,setAddingCat]=useState(false);
   const [creatingRelation,setCreatingRelation]=useState<RelKind|null>(null);
   const [nameMatches,setNameMatches]=useState<Cat[]>([]);
@@ -164,12 +168,13 @@ export function LineagePage() {
         onZoom={setZoom}
         apiRef={api}
         treeKey={tree.id}
+        highlightIds={kinHighlight}
       />
 
       {/* Top-left: brand + tree switcher */}
       <div className="absolute left-3 top-3 z-20 flex items-center gap-2 rounded-2xl border border-border bg-card/95 p-1.5 pl-3 shadow-float backdrop-blur">
         <Button size="icon" variant="ghost" title="Back to Clan" aria-label="Back to Clan" asChild><Link to="/clan/$clanId" params={{ clanId }}><ArrowLeft /></Link></Button>
-        <span className="site-wordmark">Clantools</span>
+        <span className="site-wordmark">Clantools</span><SettingsButton />
         <span className="h-5 w-px bg-border" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -212,6 +217,7 @@ export function LineagePage() {
       {/* Top-right: actions */}
       <div className={`absolute top-20 sm:top-3 z-20 flex items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-float backdrop-blur transition-all right-3 ${drawer ? "hidden" : ""}`}>
         <Button size="sm" onClick={()=>setAddingCat(true)}><Plus size={15} /> Add cat</Button>
+        <Button size="sm" variant="ghost" aria-pressed={checking} onClick={()=>{setChecking(v=>!v);setKinHighlight(null);}}><GitCompare size={15} /> Kinship</Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button size="sm" variant="ghost"><Download size={15} /> Share</Button>
@@ -241,9 +247,11 @@ export function LineagePage() {
           <LegendRow color="var(--edge-mate)" label="Mates" toggle={options.showMates} onToggle={v => setOptions(o => ({ ...o, showMates: v }))} />
           <LegendRow color="var(--edge-foster)" label="Foster" dash="6 4" toggle={options.showFoster} onToggle={(v) => setOptions((o) => ({ ...o, showFoster: v }))} />
           <LegendRow color="var(--edge-mentor)" label="Mentor → apprentice" dash="2 4" toggle={options.showMentors} onToggle={(v) => setOptions((o) => ({ ...o, showMentors: v }))} />
+          <label className="flex items-center gap-2 border-t border-border pt-1.5"><Sparkles size={14} className="text-muted-foreground" /><span className="flex-1 text-muted-foreground">Spirit realm</span><Switch className="scale-75" checked={!!options.spiritRealm} onCheckedChange={v => setOptions(o => ({ ...o, spiritRealm: v }))} aria-label="Spirit realm glow" /></label>
         </div>
       )}
 
+      {checking && !drawer && <KinshipChecker key={tree.id} cats={cats} initialA={focusId} onHighlight={setKinHighlight} onClose={()=>setChecking(false)} />}
       {drawer && focused && (
         <CatDrawer
           key={focused.id}
