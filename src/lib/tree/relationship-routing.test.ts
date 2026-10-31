@@ -20,3 +20,13 @@ it('keeps Princess outgoing connection attached to her ring with a label-clearin
   expect(path).toContain('Q');
   expect(path.endsWith(`${kit.x},${kit.y+AVATAR_TOP}`)).toBe(true);
 });
+it('keeps a foster connection visible by approaching opposite the foreign Clan crest',()=>{
+  const positions=computeLayout(canonCats());
+  const parent=positions.get('squirrelflight'),kit=positions.get('jayfeather');
+  expect(parent).toBeDefined();expect(kit).toBeDefined();
+  if(!parent||!kit) return;
+  const end={x:kit.x-18,y:kit.y+AVATAR_CY-Math.sqrt((AVATAR/2)**2-18**2)};
+  const path=relationshipPath(parentPort(parent),end,positions,['squirrelflight','jayfeather']);
+  expect(path).not.toBe('');
+  expect(path.endsWith(`${end.x},${end.y}`)).toBe(true);
+});
