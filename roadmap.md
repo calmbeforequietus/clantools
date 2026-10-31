@@ -1,4 +1,5 @@
 # Current Clan updates
+- [ ] Align New Clan tile bottom edge with Clan tiles.
 - [ ] Move lineage, edit and arrange controls higher on Clan pages.
 - [ ] Make the small cat mouth an upside-down V.
 - [ ] Remove main-page Clan count and give shared mentor connections unique approaches at each cat.
