@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { ForestProvider, useForest } from './ForestProvider';
 import { TreeCanvas } from './TreeCanvas';
 import { canonCats } from '@/lib/tree/canon';
-import { AVATAR_TOP, computeLayout } from '@/lib/tree/layout';
+import { AVATAR, AVATAR_CY, AVATAR_TOP, computeLayout } from '@/lib/tree/layout';
 
 afterEach(() => { cleanup(); localStorage.clear(); });
 
@@ -65,4 +65,20 @@ it('connects Princess parentage to the top of her avatar, not above it', () => {
   if (!princess) return;
   const path = screen.getByRole('button',{name:'Parentage connection: Jake and Nutmeg and Princess'}).getAttribute('d');
   expect(path?.endsWith(`${princess.x},${princess.y+AVATAR_TOP}`)).toBe(true);
+});
+it('starts Princess’s outgoing parentage at her avatar instead of below her role symbol', () => {
+  const cats = canonCats(), positions = computeLayout(cats);
+  render(<TreeCanvas cats={cats} positions={positions} focusId={null} kinship={null}
+    options={{showParents:true,showMates:true,showFoster:true,showMentors:false,showEras:false,hideUnrelated:false}}
+    onSelect={vi.fn()} onZoom={vi.fn()} apiRef={{current:null}} treeKey="princess-outgoing" />);
+  const princess = positions.get('princess');
+  expect(princess).toBeDefined();
+  if (!princess) return;
+  const path = screen.getByRole('button',{name:'Parentage connection: Princess and Cloudtail'}).getAttribute('d') ?? '';
+  const start = /^M([^,]+),([^ ]+)/.exec(path);
+  expect(start).not.toBeNull();
+  const dx = Number(start?.[1])-princess.x;
+  const dy = Number(start?.[2])-princess.y-AVATAR_CY;
+  expect(Math.hypot(dx,dy)).toBeCloseTo(AVATAR/2);
+  expect(dx).toBeLessThan(0);
 });

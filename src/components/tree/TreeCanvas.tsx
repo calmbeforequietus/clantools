@@ -206,6 +206,15 @@ export function TreeCanvas({
       const my = sy + (ey - sy) / 2;
       return `M${sx},${sy} C${sx},${my} ${ex},${my} ${ex},${ey}`;
     };
+    const fromParent = (parent: { x: number; y: number }, ex: number, ey: number) => {
+      // Leave the lower-left ring and pass outside the name and role symbol.
+      const sx = parent.x - 24;
+      const sy = parent.y + AV_CY + Math.sqrt((AVATAR / 2) ** 2 - 24 ** 2);
+      const laneX = parent.x - NODE_W / 2 - 12;
+      const laneY = parent.y + NODE_H;
+      const my = laneY + (ey - laneY) / 2;
+      return `M${sx},${sy} C${laneX},${sy + 16} ${laneX},${laneY - 24} ${laneX},${laneY} C${laneX},${my} ${ex},${my} ${ex},${ey}`;
+    };
     for (const c of cats) {
       const cp = positions.get(c.id);
       if (!cp || !visible(c.id)) continue;
@@ -231,7 +240,7 @@ export function TreeCanvas({
         ps.forEach((p) => {
           const pp = positions.get(p);
           if (!pp) return;
-          out.push({ d: curve(pp.x, pp.y + NODE_H - 4, ex, ey), kind: "blood", on: isOn(c.id) && isOn(p), key: "b" + c.id + p, ids: [p,c.id] });
+          out.push({ d: fromParent(pp, ex, ey), kind: "blood", on: isOn(c.id) && isOn(p), key: "b" + c.id + p, ids: [p,c.id] });
         });
       }
       if (options.showFoster)
@@ -239,7 +248,7 @@ export function TreeCanvas({
           const pp = positions.get(p);
           if (!pp || !visible(p)) return;
           const fosterY = cp.y + AV_CY - Math.sqrt((AVATAR / 2) ** 2 - 18 ** 2);
-          out.push({ d: curve(pp.x + 18, pp.y + NODE_H - 4, ex + 18, fosterY), kind: "foster", on: isOn(c.id) && isOn(p), key: "f" + c.id + p, ids: [p,c.id] });
+          out.push({ d: fromParent(pp, ex + 18, fosterY), kind: "foster", on: isOn(c.id) && isOn(p), key: "f" + c.id + p, ids: [p,c.id] });
         });
       if (options.showMentors)
         idx.mentors(c.id).forEach((p) => {
