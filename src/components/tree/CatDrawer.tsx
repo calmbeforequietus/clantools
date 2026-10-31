@@ -67,40 +67,40 @@ export function CatDrawer({
   };
   const shownAvatar = stage?.avatar ?? cat.avatar;
   const portrait = cat.portrait && !stage?.avatar ? <img src={cat.portrait} alt={`${catName(cat)} portrait`} className="h-full w-full object-contain" />
-    : shownAvatar.kind === "custom" ? <CatBodyArt settings={shownAvatar.settings} className="h-full max-h-[420px] w-full" />
-    : shownAvatar.kind === "pelt" ? <PeltBodyArt pelt={shownAvatar.pelt} className="h-full max-h-[420px] w-full" />
+    : shownAvatar.kind === "custom" ? <CatBodyArt settings={shownAvatar.settings} className="h-full max-h-[300px] w-full" />
+    : shownAvatar.kind === "pelt" ? <PeltBodyArt pelt={shownAvatar.pelt} className="h-full max-h-[300px] w-full" />
     : <CatAvatar avatar={shownAvatar} className="aspect-square w-3/4" />;
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-h-[92dvh] w-[min(1040px,calc(100%-24px))] max-w-none gap-0 overflow-y-auto p-0 sm:rounded-2xl [&>button.absolute]:hidden" onPointerDown={(e) => e.stopPropagation()}>
-        <div className="flex flex-wrap items-center justify-end gap-2 border-b border-border px-4 py-2" style={{ background: `color-mix(in oklab, ${CLAN_VAR[cat.clan] ?? "var(--primary)"} 14%, var(--card))` }}>
+      <DialogContent className="max-h-[85dvh] w-[min(780px,calc(100%-24px))] max-w-none gap-0 overflow-y-auto p-0 sm:rounded-2xl [&>button.absolute]:hidden">
+        <div className="flex flex-wrap items-center justify-end gap-2 border-b border-border px-3 py-1.5" style={{ background: `color-mix(in oklab, ${CLAN_VAR[cat.clan] ?? "var(--primary)"} 14%, var(--card))` }}>
           {onViewInLineage && <Button size="sm" variant="outline" onClick={onViewInLineage}><GitBranch size={14} />View in lineage</Button>}
           <Button size="sm" variant={editing ? "default" : "outline"} onClick={() => setEditing((v) => !v)}><Pencil size={14} />{editing ? "Done editing" : "Edit profile"}</Button>
-          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close profile"><X size={18} /></Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose} aria-label="Close profile"><X size={18} /></Button>
         </div>
-        <div className="grid gap-4 p-4 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-          <div className="space-y-4">
-            <div className="flex items-center justify-evenly gap-4 rounded-xl border border-border p-4">
-              <span title={cat.clan} style={{ color: CLAN_VAR[cat.clan] ?? "var(--primary)" }}><ClanCrest crest={cat.clan} className="h-24 w-24 sm:h-28 sm:w-28" /></span>
-              {editing ? <AvatarPicker value={cat.avatar} onChange={(avatar) => onUpdate({ avatar })} /> : <CatAvatar avatar={cat.avatar} className="h-24 w-24 shrink-0 sm:h-28 sm:w-28" />}
+        <div className="grid gap-3 p-3 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+          <div className="space-y-3">
+            <div className="flex items-center justify-evenly gap-4 rounded-xl border border-border p-3">
+              <span title={cat.clan} style={{ color: CLAN_VAR[cat.clan] ?? "var(--primary)" }}><ClanCrest crest={cat.clan} className="h-20 w-20 sm:h-24 sm:w-24" /></span>
+              {editing ? <AvatarPicker value={cat.avatar} onChange={(avatar) => onUpdate({ avatar })} /> : <CatAvatar avatar={cat.avatar} className="h-20 w-20 shrink-0 sm:h-24 sm:w-24" />}
             </div>
-            <div className="flex min-h-[260px] items-center justify-center rounded-xl border border-border bg-muted/40 p-4">{portrait}</div>
+            <div className="flex min-h-[180px] items-center justify-center rounded-xl border border-border bg-muted/40 p-3">{portrait}</div>
             {editing && <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="outline" asChild><label><ImageUp size={14} />Upload picture<input type="file" accept="image/*" className="sr-only" aria-label="Upload profile picture" onChange={(e) => { uploadPortrait(e.target.files?.[0]); e.target.value = ""; }} /></label></Button>
               {cat.portrait && <Button size="sm" variant="ghost" onClick={() => onUpdate({ portrait: undefined })}>Use drawn cat</Button>}
             </div>}
           </div>
 
-          <div className="space-y-4">
-            <div className="rounded-xl border border-border p-3">
-              <DialogTitle className="font-display text-3xl font-bold">{catName(cat)}</DialogTitle>
-              <DialogDescription className="mt-1 text-base text-muted-foreground">{cat.clan} – {cat.rank === "None" ? "No rank" : cat.rank}{cat.status !== "Living" && ` · ${STATUS_LABEL[cat.status]}`}</DialogDescription>
+          <div className="space-y-3">
+            <div className="rounded-xl border border-border p-2.5">
+              <DialogTitle className="font-display text-2xl font-bold">{catName(cat)}</DialogTitle>
+              <DialogDescription className="mt-1 text-sm text-muted-foreground">{cat.clan} – {cat.rank === "None" ? "No rank" : cat.rank}{cat.status !== "Living" && ` · ${STATUS_LABEL[cat.status]}`}</DialogDescription>
               {relTags && <p className="mt-1 text-xs font-semibold text-primary">{relTags.join(" · ")}</p>}
             </div>
 
             <Box title="Lore">
-              {stage && <div className="mb-4 space-y-2 border-b border-border pb-4"><Button variant="ghost" size="sm" onClick={() => setStageIndex(null)}><ArrowLeft />Full profile</Button><h4 className="font-display text-xl">{stage.name}</h4>
+              {stage && <div className="mb-3 space-y-2 border-b border-border pb-3"><Button variant="ghost" size="sm" onClick={() => setStageIndex(null)}><ArrowLeft />Full profile</Button><h4 className="font-display text-lg">{stage.name}</h4>
                 {editing ? <><AvatarPicker value={stage.avatar ?? cat.avatar} onChange={(avatar) => updateStage({ avatar })} />
                   <div className="grid gap-2 sm:grid-cols-2"><Field label="Stage rank"><Select value={stage.rank ?? cat.rank} onValueChange={(v) => updateStage({ rank: v as Cat["rank"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{RANKS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent></Select></Field><Field label="Age / moons"><Input aria-label="Stage age" value={stage.age ?? ""} onChange={(e) => updateStage({ age: e.target.value })} /></Field></div>
                   <Field label="Stage history"><Textarea aria-label="Stage history" value={stage.description ?? ""} onChange={(e) => updateStage({ description: e.target.value })} /></Field>
@@ -108,7 +108,7 @@ export function CatDrawer({
                   : <><p className="text-sm text-muted-foreground">{stage.rank ?? cat.rank}{stage.age ? ` · ${stage.age}` : ""}</p><p className="whitespace-pre-wrap text-sm">{stage.description || "No history recorded for this name."}</p>{stage.mentors && <p className="text-sm">Mentors: {stage.mentors}</p>}{stage.apprentices && <p className="text-sm">Apprentices: {stage.apprentices}</p>}</>}
               </div>}
               {editing ? <Textarea aria-label="TL;DR history" value={cat.summary ?? ""} onChange={(e) => onUpdate({ summary: e.target.value })} placeholder="Short summary" /> : <p className="whitespace-pre-wrap text-sm leading-relaxed">{cat.summary || "No summary recorded."}</p>}
-              <h4 className="mb-2 mt-4 text-xs font-bold uppercase text-muted-foreground">Names</h4>
+              <h4 className="mb-2 mt-3 text-xs font-bold uppercase text-muted-foreground">Names</h4>
               <div className="mb-3 flex flex-wrap items-center gap-1 text-sm">
                 {cat.names.map((n, i) => <span key={i} className="flex items-center gap-1"><Button size="sm" variant={stageIndex === i ? "default" : "secondary"} onClick={() => setStageIndex(i)}>{n || "…"}</Button>{i < cat.names.length - 1 && <ArrowRight size={12} className="text-muted-foreground" />}</span>)}
               </div>
@@ -127,7 +127,7 @@ export function CatDrawer({
               {editing ? <Textarea aria-label="Biography" rows={4} value={cat.biography ?? ""} onChange={(e) => onUpdate({ biography: e.target.value })} /> : <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{cat.biography || "No biography recorded."}</p>}
             </Box>
 
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-3 lg:grid-cols-2">
               <Box title="Family">
                 <div className="space-y-3">
                   {SECTIONS.map(({ kind, label }) => {
@@ -172,7 +172,7 @@ export function CatDrawer({
 }
 
 function Box({ title, children }: { title: string; children: React.ReactNode }) {
-  return <section className="rounded-xl border border-border p-3"><h3 className="mb-2 font-display text-lg font-semibold">{title}</h3>{children}</section>;
+  return <section className="rounded-xl border border-border p-2.5"><h3 className="mb-2 font-display text-base font-semibold">{title}</h3>{children}</section>;
 }
 function Row({ k, v }: { k: string; v: string }) {
   return <div className="flex justify-between gap-3"><dt className="text-muted-foreground">{k}</dt><dd className="text-right font-medium">{v}</dd></div>;
