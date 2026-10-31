@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type Ref } from "react";
 import { toPng } from "html-to-image";
-import { Leaf, Moon, PawPrint, Shield, Sparkles, Star, X } from "lucide-react";
+import { Baby, Compass, Feather, House, Leaf, Moon, Shield, Skull, Sparkles, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ClanCrest } from "./ClanCrest";
 import { CatAvatar } from "./CatAvatar";
 import { buildIndex, type Kinship } from "@/lib/tree/kinship";
 import { routeMentorConnections, roundedMentorPath } from '@/lib/tree/mentor-routing';
 import { parentRelationshipPath, relationshipPath } from '@/lib/tree/relationship-routing';
-import { AVATAR, AVATAR_CY, AVATAR_TOP, bounds, NODE_H, NODE_W, type Positions } from "@/lib/tree/layout";
+import { AVATAR, AVATAR_CY, AVATAR_TOP, bounds, GAP_X, GAP_Y, NODE_H, NODE_W, type Positions } from "@/lib/tree/layout";
 import { CLAN_VAR, catName, type Cat, type ClanPage } from "@/lib/tree/types";
 
 export interface CanvasApi {
@@ -23,6 +23,8 @@ export interface CanvasOptions {
   showFoster: boolean;
   hideUnrelated: boolean;
   spiritRealm?: boolean;
+  /** Snaps manual drags to the layout lattice (cat columns × generation rows). */
+  snapToGrid?: boolean;
 }
 
 const MIN = 0.15, MAX = 2.5;
@@ -37,6 +39,7 @@ export function TreeCanvas({
   kinship,
   options,
   onSelect,
+  onMoveCat,
   onZoom,
   apiRef,
   treeKey,
@@ -50,6 +53,8 @@ export function TreeCanvas({
   kinship: Kinship | null;
   options: CanvasOptions;
   onSelect: (id: string | null) => void;
+  /** Commits a dragged cat's new position; undefined hides the feature. */
+  onMoveCat?: (id: string, pos: { x: number; y: number }) => void;
   onZoom: (k: number) => void;
   apiRef: Ref<CanvasApi>;
   treeKey: string;
@@ -60,12 +65,16 @@ export function TreeCanvas({
   const worldRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ x: 0, y: 0, k: 1 });
   const [selectedEdge, setSelectedEdge] = useState<{ key: string; ids: string[] } | null>(null);
-  useEffect(() => setSelectedEdge(null), [treeKey, options, cats]);
+  useEffect(() => { setSelectedEdge(null); setDragPos(null); }, [treeKey, options, cats]);
   const viewRef = useRef(view);
   viewRef.current = view;
   const moved = useRef(false);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const gesture = useRef<{ view: typeof view; x: number; y: number; dist?: number } | null>(null);
+  // Manual repositioning: dragPos follows the pointer live; the drop commits it via onMoveCat.
+  const [dragPos, setDragPos] = useState<{ id: string; x: number; y: number } | null>(null);
+  const dragPosRef = useRef<{ id: string; x: number; y: number } | null>(null);
+  const idx = useMemo(() => buildIndex(cats), [cats]);
 
   useEffect(() => onZoom(view.k), [view.k, onZoom]);
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -80,6 +89,70 @@ export function TreeCanvas({
   }, []);
 
   const b = useMemo(() => bounds(positions), [positions]);
+
+  // While dragging, the whole mate-unit follows the pointer live, so edges and the
+  // minimap read the live override instead of the committed layout.
+  const livePositions = useMemo(() => {
+    if (!dragPos) return positions;
+    const base = positions.get(dragPos.id);
+    if (!base) return positions;
+    const dx = dragPos.x - base.x, dy = dragPos.y - base.y;
+    const next = new Map(positions);
+    next.set(dragPos.id, { x: dragPos.x, y: dragPos.y });
+    // The couple moves as one so the joined family line and mate link stay coherent.
+    for (const m of idx.mates(dragPos.id)) {
+      const bp = positions.get(m);
+      if (bp) next.set(m, { x: bp.x + dx, y: bp.y + dy });
+    }
+    return next;
+  }, [positions, dragPos, idx]);
+
+  // Grab a cat to reposition it; pan-on-canvas instead of click-select is preserved for taps.
+  const startCatDrag = (c: Cat) => (e: React.PointerEvent) => {
+    if (!onMoveCat || e.button !== 0) return;
+    const el = containerRef.current;
+    const base = positions.get(c.id);
+    if (!el || !base) return;
+    e.stopPropagation();
+    const grab = {
+      dx: (e.clientX - el.getBoundingClientRect().left - viewRef.current.x) / viewRef.current.k - base.x,
+      dy: (e.clientY - el.getBoundingClientRect().top - viewRef.current.y) / viewRef.current.k - base.y,
+    };
+    const origin = { x: e.clientX, y: e.clientY };
+    moved.current = false;
+    const move = (ev: PointerEvent) => {
+      if (Math.hypot(ev.clientX - origin.x, ev.clientY - origin.y) > 4) moved.current = true;
+      if (!moved.current) return;
+      const rect = el.getBoundingClientRect();
+      const v = viewRef.current;
+      const raw = {
+        id: c.id,
+        x: (ev.clientX - rect.left - v.x) / v.k - grab.dx,
+        y: (ev.clientY - rect.top - v.y) / v.k - grab.dy,
+      };
+      // Optional lattice: columns of NODE_W + GAP_X on generation rows of NODE_H + GAP_Y.
+      const pos = options.snapToGrid ? {
+        id: c.id,
+        x: Math.round(raw.x / (NODE_W + GAP_X)) * (NODE_W + GAP_X),
+        y: Math.round(raw.y / (NODE_H + GAP_Y)) * (NODE_H + GAP_Y),
+      } : raw;
+      dragPosRef.current = pos;
+      setDragPos(pos);
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+      const dp = dragPosRef.current;
+      dragPosRef.current = null;
+      setDragPos(null);
+      // Commit outside of state updaters; a bare click (no movement) never commits.
+      if (moved.current && dp && dp.id === c.id) onMoveCat(c.id, { x: dp.x, y: dp.y });
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  };
 
   const zoomAt = useCallback((px: number, py: number, next: number) => {
     setView((v) => {
@@ -208,13 +281,13 @@ export function TreeCanvas({
     }
   };
 
-  const idx = useMemo(() => buildIndex(cats), [cats]);
   const hl = selectedEdge ? new Set(selectedEdge.ids) : highlightIds ?? kinship?.highlight;
   const isOn = (id: string) => !hl || hl.has(id);
   const visible = (id: string) => !(options.hideUnrelated && hl && !hl.has(id));
 
   // Edges
   const edges = useMemo(() => {
+    const positions = livePositions;
     const out: { d: string; kind: "blood" | "mate" | "foster" | "mentor"; on: boolean; key: string; ids: string[] }[] = [];
     const seenMate = new Set<string>();
     const mentorRoutes = options.showMentors ? routeMentorConnections(positions, cats.flatMap(c => visible(c.id) ? idx.mentors(c.id).filter(visible).map(p => ({ mentor:p, apprentice:c.id })) : [])) : new Map();
@@ -267,7 +340,7 @@ export function TreeCanvas({
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cats, positions, idx, options, hl]);
+  }, [cats, livePositions, idx, options, hl]);
 
   const stroke = { blood: "var(--edge-blood)", mate: "var(--edge-mate)", foster: "var(--edge-foster)", mentor: "var(--edge-mentor)" };
   const dash = { blood: undefined, mate: undefined, foster: "7 5", mentor: "2 5" };
@@ -304,7 +377,7 @@ export function TreeCanvas({
         {selectedEdge.ids.map(id => { const cat=idx.byId.get(id); return cat && <Button key={id} variant="ghost" size="sm" onClick={()=>{setSelectedEdge(null);onSelect(id);}}>{catName(cat)}</Button>; })}
         <Button variant="ghost" size="icon" className="size-8" aria-label="Clear relationship highlight" onClick={()=>setSelectedEdge(null)}><X /></Button>
       </div>}
-      {size.w > 0 && positions.size > 0 && <Minimap positions={positions} cats={cats} b={b} view={view} size={size} onJump={(x, y) => setView(v => ({ ...v, x: size.w / 2 - x * v.k, y: size.h / 2 - y * v.k }))} />}
+      {size.w > 0 && positions.size > 0 && <Minimap positions={livePositions} cats={cats} b={b} view={view} size={size} onJump={(x, y) => setView(v => ({ ...v, x: size.w / 2 - x * v.k, y: size.h / 2 - y * v.k }))} />}
       <div
         ref={worldRef}
         className="absolute left-0 top-0"
@@ -343,10 +416,11 @@ export function TreeCanvas({
           ))}
         </svg>
         {cats.map((c) => {
-          const p = positions.get(c.id);
+          const p = livePositions.get(c.id);
           if (!p || !visible(c.id)) return null;
           const focused = selectedEdge ? selectedEdge.ids.includes(c.id) : c.id === focusId;
           const tags = selectedEdge ? undefined : kinship?.labels.get(c.id);
+          const tiara = getCatTiara(c);
           return (
             <Button variant="ghost"
               key={c.id}
@@ -357,7 +431,8 @@ export function TreeCanvas({
               }}
               aria-label={`View ${catName(c)}`}
               data-relationship-highlighted={selectedEdge?.ids.includes(c.id) ?? false}
-              className="group absolute flex flex-col !justify-start gap-0 rounded-md p-0 items-center whitespace-normal text-center hover:bg-transparent focus-visible:ring-2 focus-visible:ring-ring"
+              onPointerDown={onMoveCat ? startCatDrag(c) : undefined}
+              className={`group absolute flex flex-col !justify-start gap-0 rounded-md p-0 items-center whitespace-normal text-center hover:bg-transparent focus-visible:ring-2 focus-visible:ring-ring ${onMoveCat ? "cursor-move" : ""}`}
               style={{
                 left: p.x - NODE_W / 2,
                 top: p.y,
@@ -384,11 +459,24 @@ export function TreeCanvas({
                 </div>
                 {options.spiritRealm && c.status === "Dark Forest" && <span className="spirit-shadow" aria-hidden />}
                 {options.spiritRealm && c.status === "StarClan" && starsFor(c.id).map((st, i) => <svg key={i} className="spirit-star" aria-hidden viewBox="0 0 10 10" width={st.size} height={st.size} style={{ left: st.x - st.size / 2, top: st.y - st.size / 2, opacity: st.o }}><path d={st.glyph === "✦" ? "M5 0L6.2 3.8 10 5 6.2 6.2 5 10 3.8 6.2 0 5 3.8 3.8Z" : "M5 1L5.8 4.2 9 5 5.8 5.8 5 9 4.2 5.8 1 5 4.2 4.2Z"} fill="currentColor" /></svg>)}
+                {tiara && (
+                  <span
+                    title={tiara.label}
+                    aria-label={tiara.label}
+                    className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 bg-card shadow-md transition-transform group-hover:scale-110"
+                    style={{
+                      color: tiara.color,
+                      borderColor: `color-mix(in oklab, ${tiara.color} 40%, var(--border))`,
+                      backgroundColor: `color-mix(in oklab, ${tiara.color} 12%, var(--card))`,
+                    }}
+                  >
+                    <tiara.icon size={16} className={`shrink-0 stroke-[2.4] ${tiara.fill ? "fill-current" : ""}`} />
+                  </span>
+                )}
                 <StatusDot status={c.status} />
               </div>
               <div className={`mt-1.5 w-full shrink-0 truncate font-display text-[15px] font-semibold leading-tight ${c.status === 'Living' ? 'text-foreground' : 'deceased-name'}`}><span className="bg-canvas px-1">{catName(c)}</span></div>
-              <div className="mt-1 flex h-7 w-8 shrink-0 items-center justify-center rounded-full bg-canvas text-muted-foreground" title={`${c.rank} · ${c.status}`}><RoleIcon cat={c} /></div>
-              {clan && c.clan !== clan.affiliation && <span title={c.clan} className="absolute -top-1 right-4 flex h-9 w-9 items-center justify-center" style={{ color: CLAN_VAR[c.clan] ?? clan.color }}><ClanCrest crest={c.clan} className="h-9 w-9" /></span>}
+              {clan && c.clan !== clan.affiliation && !['Kittypet', 'Loner', 'Rogue'].includes(c.clan) && <span title={c.clan} className="absolute -top-1 right-4 flex h-9 w-9 items-center justify-center" style={{ color: CLAN_VAR[c.clan] ?? clan.color }}><ClanCrest crest={c.clan} className="h-9 w-9" /></span>}
             </Button>
           );
         })}
@@ -411,9 +499,23 @@ function StatusDot({ status }: { status: Cat["status"] }) {
   );
 }
 
-function RoleIcon({ cat }: { cat: Cat }) {
-  const Icon = cat.rank === 'Leader' ? Star : cat.rank === 'Deputy' ? Shield : cat.rank === 'Medicine Cat' ? Leaf : cat.rank === 'Elder' ? Moon : PawPrint;
-  return <Icon className="!size-6 fill-current" aria-label={cat.rank} />;
+interface CatTiara {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  label: string;
+  color: string;
+  fill?: boolean;
+}
+
+function getCatTiara(c: Cat): CatTiara | null {
+  if (c.rank === 'Leader') return { icon: Star, label: 'Leader', color: 'var(--tiara-leader)', fill: true };
+  if (c.rank === 'Deputy') return { icon: Shield, label: 'Deputy', color: 'var(--tiara-deputy)' };
+  if (c.rank === 'Medicine Cat') return { icon: Leaf, label: 'Medicine Cat', color: 'var(--tiara-medcat)', fill: true };
+  if (c.rank === 'Kit') return { icon: Baby, label: 'Kit', color: 'var(--tiara-kit)' };
+  if (c.rank === 'Elder') return { icon: Feather, label: 'Elder', color: 'var(--tiara-elder)' };
+  if (c.clan === 'Kittypet') return { icon: House, label: 'Kittypet', color: 'var(--tiara-kittypet)' };
+  if (c.clan === 'Loner') return { icon: Compass, label: 'Loner', color: 'var(--tiara-loner)' };
+  if (c.clan === 'Rogue') return { icon: Skull, label: 'Rogue', color: 'var(--tiara-rogue)' };
+  return null;
 }
 
 function Minimap({ positions, cats, b, view, size, onJump }: { positions: Positions; cats: Cat[]; b: ReturnType<typeof bounds>; view: { x: number; y: number; k: number }; size: { w: number; h: number }; onJump: (x: number, y: number) => void }) {

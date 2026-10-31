@@ -6,8 +6,8 @@ export const NODE_H = 140;
 export const AVATAR = 68;
 export const AVATAR_TOP = 14;
 export const AVATAR_CY = AVATAR_TOP + AVATAR / 2;
-export const GAP_X = 30;
-export const GAP_Y = 96;
+export const GAP_X = 44;
+export const GAP_Y = 110;
 const W = NODE_W + GAP_X;
 export type Positions = Map<string, { x: number; y: number }>;
 
@@ -79,7 +79,7 @@ export function computeLayout(cats: Cat[]): Positions {
   // Alternating sweeps pull every family unit toward both its parents and its kits,
   // so parents sit over their children instead of drifting across the canvas.
   const kidsOf = (id: string) => [...idx.children(id), ...idx.fosterKits(id)];
-  for (let sweep = 0; sweep < 24; sweep++) {
+  for (let sweep = 0; sweep < 25; sweep++) {
     const down = sweep % 2 === 0;
     for (const g of down ? levels : [...levels].reverse()) {
       const row = rows.get(g) ?? [];
@@ -112,6 +112,25 @@ export function computeLayout(cats: Cat[]): Positions {
     const others = [...positions.entries()].filter(([id, p]) => p.y === 0 && !root.ids.includes(id));
     if (root.ids.every((_, i) => others.every(([, p]) => Math.abs(desired + i * W - p.x) >= W))) {
       root.ids.forEach((id, i) => positions.set(id, { x: desired + i * W, y: 0 }));
+    }
+  }
+  // Manual anchors: a saved pin only translates its own mate-unit; the automatic
+  // layout of everything else stays untouched, so dropping a cat never reflows
+  // the tree and the dropped unit lands exactly where it was left.
+  const posOf = new Map<string, { x: number; y: number }>();
+  for (const c of cats) { if (c.pos?.x !== undefined && c.pos?.y !== undefined) posOf.set(c.id, c.pos); }
+  for (const unit of units) {
+    if (!unit.ids.some(id => posOf.has(id))) continue;
+    const anchor = unit.ids.find(id => posOf.has(id))!;
+    const base = positions.get(anchor);
+    if (!base) continue;
+    const dx = posOf.get(anchor)!.x - base.x, dy = posOf.get(anchor)!.y - base.y;
+    for (const id of unit.ids) {
+      const bp = positions.get(id);
+      if (!bp) continue;
+      // Pinned members hold their own saved spot; unpinned members (e.g. mates
+      // added after the drag) keep the unit coherent by sharing its shift.
+      positions.set(id, posOf.get(id) ?? { x: bp.x + dx, y: bp.y + dy });
     }
   }
   return positions;

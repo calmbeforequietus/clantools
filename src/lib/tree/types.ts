@@ -101,6 +101,8 @@ export interface Cat {
   fosterParents: string[];
   mates: string[];
   mentors: string[];
+  /** Manual canvas position from dragging; layout picks it up and keeps it anchored. */
+  pos?: { x: number; y: number } | undefined;
 }
 
 export interface Tree {

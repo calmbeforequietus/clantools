@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft, ChevronDown, GitCompare, Sparkles, Copy, Download, FilePlus2, FileUp, Focus, ImageDown, Maximize, Minus, Pencil, Plus, RotateCcw, Trash2, X, Undo2, Redo2,
+  ArrowLeft, ChevronDown, GitCompare, Sparkles, Copy, Download, FilePlus2, FileUp, Focus, ImageDown, LayoutGrid, Maximize, Minus, Pencil, Plus, RotateCcw, Trash2, X, Undo2, Redo2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -71,11 +71,12 @@ export function LineagePage() {
   const search = useSearch({ from: '/clan/$clanId/lineage' });
   const clan = store?.clans.find(c => c.id === clanId);
   const [warning, setWarning] = useState<(RelationWarning & { kind: RelKind; other: string; pendingCat?: Cat }) | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(search.cat ?? null);
   const [drawer, setDrawer] = useState(!!search.cat);
   const [panKey, setPanKey] = useState(0);
   const [zoom, setZoom] = useState(1);
-  const [options, setOptions] = useState<CanvasOptions>({ showMentors: false, showFoster: false, showParents: true, showMates: true, showEras: false, hideUnrelated: false });
+  const [options, setOptions] = useState<CanvasOptions>({ showMentors: false, showFoster: false, showParents: true, showMates: true, showEras: false, hideUnrelated: false, snapToGrid: false });
   const api = useRef<CanvasApi>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -178,6 +179,11 @@ export function LineagePage() {
       setCats((cs) => [...cs, c]);
       select(c.id);
     },
+    resetLayout: () => {
+      const n = cats.filter(c => c.pos).length;
+      if (n) setCats(cs => cs.map(c => (c.pos ? { ...c, pos: undefined } : c)));
+      toast.success(n === 1 ? "Restored automatic layout for 1 cat" : `Restored automatic layout for ${n} cats`);
+    },
   };
 
   const relCount = kinship ? kinship.highlight.size - 1 : 0;
@@ -192,6 +198,19 @@ export function LineagePage() {
         kinship={kinship}
         options={options}
         onSelect={select}
+        onMoveCat={(id, pos) => {
+          // Dropping a cat moves its whole mate-unit by the same shift so the
+          // joined family line stays coherent; other units' pins are untouched.
+          const base = positions.get(id);
+          if (!base) return;
+          const dx = pos.x - base.x, dy = pos.y - base.y;
+          setCats(cs => cs.map(c2 => {
+            if (c2.id !== id && !c2.mates.includes(id)) return c2;
+            const prev = c2.pos ?? positions.get(c2.id);
+            if (!prev) return c2;
+            return { ...c2, pos: { x: prev.x + dx, y: prev.y + dy } };
+          }));
+        }}
         onZoom={setZoom}
         apiRef={api}
         treeKey={tree.id}
@@ -231,14 +250,14 @@ export function LineagePage() {
 
       {/* Top-center: focus banner */}
       {focused && (
-        <div className={`absolute top-20 z-20 hidden -translate-x-1/2 ${drawer ? "left-[calc((100%-416px)/2)] " : "left-1/2"} items-center gap-3 rounded-full border border-border bg-card/95 py-1.5 pl-4 pr-1.5 text-sm shadow-float backdrop-blur xl:flex`}>
-          <Focus size={15} className="text-primary" />
-          <span>Focused on <b>{catName(focused)}</b> · {relCount} relatives</span>
-          <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Switch checked={options.hideUnrelated} onCheckedChange={(v) => setOptions((o) => ({ ...o, hideUnrelated: v }))} />
-            Hide others
+        <div className={`absolute top-3 z-30 flex -translate-x-1/2 ${drawer ? "left-[calc((100%-416px)/2)] " : "left-1/2"} max-w-[calc(100%-24px)] items-center gap-2.5 rounded-full border border-border bg-card/95 py-1.5 pl-3.5 pr-1.5 text-xs sm:text-sm shadow-float backdrop-blur transition-all`}>
+          <Focus size={15} className="shrink-0 text-primary" />
+          <span className="truncate">Focused on <b>{catName(focused)}</b> · {relCount} relatives</span>
+          <label className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
+            <Switch className="scale-75" checked={options.hideUnrelated} onCheckedChange={(v) => setOptions((o) => ({ ...o, hideUnrelated: v }))} />
+            <span className="hidden sm:inline">Hide others</span>
           </label>
-          <Button size="icon" variant="ghost" className="h-7 w-7 rounded-full" onClick={() => select(null)} aria-label="Clear focus"><X size={14} /></Button>
+          <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0 rounded-full" onClick={() => select(null)} aria-label="Clear focus"><X size={14} /></Button>
         </div>
       )}
 
@@ -268,6 +287,8 @@ export function LineagePage() {
         <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => api.current?.zoomBy(1.25)} aria-label="Zoom in"><Plus size={15} /></Button>
         <span className="mx-0.5 h-5 w-px bg-border" />
         <Button size="sm" variant="ghost" className="h-8" onClick={() => api.current?.fit()}><Maximize size={14} /> Fit</Button>
+        <span className="mx-0.5 h-5 w-px bg-border" />
+        <Button size="sm" variant="ghost" className="h-8" onClick={() => setConfirmReset(true)} title="Restore automatic layout" aria-label="Restore automatic layout"><LayoutGrid size={14} /> Reset</Button>
       </div>
 
       {/* Bottom-right: legend */}
@@ -276,13 +297,17 @@ export function LineagePage() {
           <LegendRow color="var(--edge-blood)" color2="var(--edge-mate)" label="Parentage & mates" toggle={options.showParents} onToggle={v => setOptions(o => ({ ...o, showParents: v, showMates: v }))} />
           <LegendRow color="var(--edge-foster)" label="Foster" dash="6 4" toggle={options.showFoster} onToggle={(v) => setOptions((o) => ({ ...o, showFoster: v }))} />
           <LegendRow color="var(--edge-mentor)" label="Mentor → apprentice" dash="2 4" toggle={options.showMentors} onToggle={(v) => setOptions((o) => ({ ...o, showMentors: v }))} />
-          <label className="flex items-center gap-2 border-t border-border pt-1.5"><Sparkles size={14} className="text-muted-foreground" /><span className="flex-1 text-muted-foreground">Afterlives</span><Switch className="scale-75" checked={!!options.spiritRealm} onCheckedChange={v => setOptions(o => ({ ...o, spiritRealm: v }))} aria-label="Show afterlives" /></label>
+          <label className="flex items-center gap-2"><Sparkles size={14} className="text-muted-foreground" /><span className="flex-1 text-muted-foreground">Afterlives</span><Switch className="scale-75" checked={!!options.spiritRealm} onCheckedChange={v => setOptions(o => ({ ...o, spiritRealm: v }))} aria-label="Show afterlives" /></label>
+          <div className="border-t border-border pt-1.5 mt-0.5">
+            <label className="flex items-center gap-2"><LayoutGrid size={14} className="text-muted-foreground" /><span className="flex-1 text-muted-foreground">Snap cats to grid</span><Switch className="scale-75" checked={!!options.snapToGrid} onCheckedChange={v => setOptions(o => ({ ...o, snapToGrid: v }))} aria-label="Snap cats to grid while dragging" /></label>
+          </div>
         </div>
       )}
 
       {checking && !drawer && <KinshipChecker key={tree.id} cats={cats} initialA={focusId} onHighlight={setKinHighlight} onClose={()=>setChecking(false)} />}
       {drawer && focused && (
         <CatDrawer
+          variant="side"
           key={focused.id}
           cat={focused}
           cats={cats}
@@ -306,6 +331,7 @@ export function LineagePage() {
           }}
         />
       )}
+      {confirmReset && <Dialog open onOpenChange={v => !v && setConfirmReset(false)}><DialogContent className="max-w-sm"><DialogHeader><DialogTitle>Restore automatic layout?</DialogTitle></DialogHeader><p className="text-sm leading-relaxed text-muted-foreground">Every cat you placed by hand returns to its automatic spot. You can undo this with Ctrl+Z.</p><DialogFooter><Button variant="outline" onClick={() => setConfirmReset(false)}>Cancel</Button><Button variant="destructive" onClick={() => { setConfirmReset(false); actions.resetLayout(); }}>Reset layout</Button></DialogFooter></DialogContent></Dialog>}
       {warning && <Dialog open onOpenChange={v => !v && setWarning(null)}><DialogContent><DialogHeader><DialogTitle>{warning.title}</DialogTitle></DialogHeader><p className="text-sm leading-relaxed text-muted-foreground">{warning.message}</p><DialogFooter><Button variant="outline" onClick={() => setWarning(null)}>{warning.blocked ? 'Close' : 'Cancel'}</Button>{!warning.blocked && <Button onClick={() => { if (focusId) setCats(cs => addRelation(warning.pendingCat ? [...cs, warning.pendingCat] : cs, focusId, warning.kind, warning.other)); setWarning(null); }}>Connect anyway</Button>}</DialogFooter></DialogContent></Dialog>}
       {moving && <Dialog open onOpenChange={setMoving}><DialogContent><DialogHeader><DialogTitle>Move lineage</DialogTitle></DialogHeader><p className="text-sm text-muted-foreground">Move “{tree.name}” and all its cats to another Clan. Cat affiliations and relationships stay unchanged.</p><Select value={destination} onValueChange={setDestination}><SelectTrigger aria-label="Destination Clan"><SelectValue placeholder="Choose a Clan" /></SelectTrigger><SelectContent>{store.clans.filter(c=>c.id!==clanId).map(c=><SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select><DialogFooter><Button variant="outline" onClick={()=>setMoving(false)}>Cancel</Button><Button disabled={!destination} onClick={()=>{setStore(s=>s && moveLineage(s,tree.id,destination));setMoving(false);navigate({to:'/clan/$clanId/lineage',params:{clanId:destination},search:{}});}}>Move lineage</Button></DialogFooter></DialogContent></Dialog>}
       {addingCat && <ExistingCatPicker all={sharedCats(store.trees)} available={sharedCats(store.trees).filter(c=>!cats.some(local=>local.id===c.id))} onClose={()=>setAddingCat(false)} onNew={(name)=>{setAddingCat(false);actions.addCat(name);}} onAdd={(id,selected)=>{setCats(cs=>reuseCat(cs,sharedCats(store.trees),id,selected));setAddingCat(false);select(id);}}/>}

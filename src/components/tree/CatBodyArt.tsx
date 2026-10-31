@@ -17,7 +17,16 @@ export function CatBodyArt({ settings, className = '', colors }: { settings: Cat
   const points = s.pattern === 'pointed' ? mark : base;
   const ink = 'var(--cat-ink)';
   const scar = { stroke: 'var(--cat-scar)', strokeWidth: 2.4, strokeLinecap: 'round' as const, fill: 'none' };
-  return <svg viewBox="0 0 200 260" role="img" aria-label="Full-body cat drawing" className={className}>
+  return <svg viewBox="34 34 172 220" role="img" aria-label="Full-body cat drawing" className={className} filter="url(#cat-body-outline)">
+    <defs>
+      {/* Dark ring cut from the artwork's own silhouette so light coats stay visible on light backgrounds. */}
+      <filter id="cat-body-outline" x="-10%" y="-10%" width="120%" height="120%">
+        <feMorphology in="SourceAlpha" operator="dilate" radius="4" result="ring" />
+        <feFlood style={{ floodColor: 'var(--cat-ink)' }} result="ink" />
+        <feComposite in="ink" in2="ring" operator="in" result="outline" />
+        <feMerge><feMergeNode in="outline" /><feMergeNode in="SourceGraphic" /></feMerge>
+      </filter>
+    </defs>
     {/* tail */}
     <path d="M140 232 Q190 225 186 180 Q183 150 168 140" fill="none" stroke={points} strokeWidth="16" strokeLinecap="round" />
     {s.pattern === 'tabby' && <path d="M178 196l10-4 M184 172l10 0 M172 150l8-6" stroke={mark} strokeWidth="5" strokeLinecap="round" />}
