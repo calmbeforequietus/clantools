@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ClanClanIdRouteImport } from './routes/clan.$clanId'
 import { Route as ClanClanIdIndexRouteImport } from './routes/clan.$clanId.index'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -50,6 +56,7 @@ const ClanClanIdLineageRoute = ClanClanIdLineageRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/clan/$clanId': typeof ClanClanIdRouteWithChildren
   '/clan/$clanId/lineage': typeof ClanClanIdLineageRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/clan/$clanId/lineage': typeof ClanClanIdLineageRoute
   '/clan/$clanId': typeof ClanClanIdIndexRoute
@@ -66,6 +74,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/clan/$clanId': typeof ClanClanIdRouteWithChildren
   '/clan/$clanId/lineage': typeof ClanClanIdLineageRoute
@@ -76,16 +85,24 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/privacy'
     | '/terms'
     | '/clan/$clanId'
     | '/clan/$clanId/lineage'
     | '/clan/$clanId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/terms' | '/clan/$clanId/lineage' | '/clan/$clanId'
+  to:
+    | '/'
+    | '/about'
+    | '/privacy'
+    | '/terms'
+    | '/clan/$clanId/lineage'
+    | '/clan/$clanId'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/privacy'
     | '/terms'
     | '/clan/$clanId'
     | '/clan/$clanId/lineage'
@@ -95,6 +112,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
   ClanClanIdRoute: typeof ClanClanIdRouteWithChildren
 }
@@ -113,6 +131,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -163,6 +188,7 @@ const ClanClanIdRouteWithChildren = ClanClanIdRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
   ClanClanIdRoute: ClanClanIdRouteWithChildren,
 }
