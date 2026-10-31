@@ -1,3 +1,8 @@
+# Site information and Clan cleanup
+- [x] Add copyright footer, simple Terms, Privacy and About with placeholder contact.
+- [x] Remove lingering original Clan pages while preserving expanded ThunderClan data.
+- [x] Verify saved-state cleanup and navigation to every new page; 23 targeted tests passed, browser verified copyright, ThunderClan-only gateway, all information pages and mobile policy layout.
+
 # Factory preset refresh
 - [x] Reset existing local forests once to clean expanded Firestar data and ThunderClan only.
 - [x] Center the Clan choices, retaining aligned New Clan tiles.

@@ -39,6 +39,13 @@ describe('connection safeguards', () => {
 });
 
 describe('Clan management', () => {
+ it('removes lingering original Clans from version-two saves without losing ThunderClan edits', () => {
+  const s=loadStore(),base=s.clans[0],tree=s.trees[0];if(!base||!tree)throw new Error('Missing defaults');
+  const old={...s,presentationVersion:2,clans:[base,...['shadowclan','windclan','riverclan'].map(id=>({...base,id})),{...base,id:'custom',name:'OakClan'}],trees:[{...tree,name:'Edited ThunderClan'},{...tree,id:'river-tree',clanId:'riverclan'}]};
+  const next=refineStore(old);expect(next.clans.map(c=>c.id)).toEqual(['thunderclan','custom']);
+  expect(next.trees[0]?.name).toBe('Edited ThunderClan');expect(next.trees[0]?.cats).toBe(tree.cats);
+  expect(next.trees[1]?.clanId).toBe('thunderclan');expect(refineStore(next)).toBe(next);
+ });
  it('deletes associated lineages but keeps other Clans and trees', () => {
   const s = loadStore(); const original = s.trees[0]; if (!original) throw new Error('No tree');
   const state = { ...s, trees: [original, {...original,id:'shadow-tree',clanId:'shadowclan'}] };

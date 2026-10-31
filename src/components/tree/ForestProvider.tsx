@@ -7,6 +7,6 @@ export function ForestProvider({ children }: { children: ReactNode }) {
 }
 export function useForest() {
   const store = useSyncExternalStore(subscribeForest, getForestSnapshot, getServerForestSnapshot);
-  useEffect(initializeForestStore, []);
+  useEffect(initializeForestStore, [store]);
   return { store, setStore: setForestStore };
 }

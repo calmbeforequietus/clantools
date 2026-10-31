@@ -11,6 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import { ForestProvider } from "@/components/tree/ForestProvider";
+import { SiteFooter } from '@/components/SiteFooter';
 import { Toaster } from "@/components/ui/sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -126,7 +127,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <ForestProvider><Outlet /></ForestProvider>
+      <ForestProvider><div className="flex min-h-screen flex-col bg-background"><div className="flex-1"><Outlet /></div><SiteFooter /></div></ForestProvider>
       <Toaster position="bottom-center" />
     </QueryClientProvider>
   );
