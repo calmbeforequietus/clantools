@@ -354,5 +354,5 @@ function StatusDot({ status }: { status: Cat["status"] }) {
 
 function RoleIcon({ cat }: { cat: Cat }) {
   const Icon = cat.rank === 'Leader' ? Star : cat.rank === 'Deputy' ? Shield : cat.rank === 'Medicine Cat' ? Leaf : cat.rank === 'Elder' ? Moon : PawPrint;
-  return <Icon className="size-6" aria-label={cat.rank} />;
+  return <Icon className="!size-6" aria-label={cat.rank} />;
 }

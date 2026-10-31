@@ -13,7 +13,6 @@ import { useForest } from "./ForestProvider";
 import { clanTreeCats } from "@/lib/tree/clans";
 import { checkRelation, type RelationWarning } from "@/lib/tree/validation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { CatDrawer } from "@/components/tree/CatDrawer";
 import { TreeCanvas, type CanvasApi, type CanvasOptions } from "@/components/tree/TreeCanvas";
 import { canonTree } from "@/lib/tree/canon";
@@ -255,8 +254,8 @@ export function LineagePage() {
   );
 }
 
-function LegendRow({ color, label, dash, thick, toggle, onToggle }: {
-  color: string; label: string; dash?: string; thick?: boolean; toggle?: boolean; onToggle?: (v: boolean) => void;
+function LegendRow({ color, label, dash, toggle, onToggle }: {
+  color: string; label: string; dash?: string; toggle?: boolean; onToggle?: (v: boolean) => void;
 }) {
   return (
     <div className="flex items-center gap-2">
