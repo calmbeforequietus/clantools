@@ -16,8 +16,8 @@ describe('connection safeguards', () => {
  it('places a standalone in-law branch outward from Firestar and Squirrelflight', () => {
   // Isolate the original two-founder topology; extended shared ancestry can
   // legitimately reverse branch order while preserving mate adjacency.
-  const ids=['jake','nutmeg','tigerstar','goldenflower','firestar','sandstorm','brambleclaw','squirrelflight'];
-  const family=cats.filter(c=>ids.includes(c.id)).map(c=>({...c,parents:c.parents.filter(id=>ids.includes(id)),mentors:[]}));
+  const ids=cats.slice(0,26).map(c=>c.id);
+  const family=cats.filter(c=>ids.includes(c.id)).map(c=>({...c,parents:c.parents.filter(id=>ids.includes(id)),mates:c.mates.filter(id=>ids.includes(id))}));
   const p=computeLayout(family);expect(p.get('tigerstar')?.x).toBeGreaterThan(p.get('brambleclaw')?.x ?? Infinity);expect(p.get('goldenflower')?.x).toBeGreaterThan(p.get('squirrelflight')?.x ?? Infinity);
  });
  it('uses a Clan own trees as its roster once created', () => { const trees = [{ id: 'source', name: '', updatedAt: 0, clanId: 'thunderclan', cats }, { id: 'wind', name: '', updatedAt: 1, clanId: 'windclan', cats: [] }]; expect(clanRoster(trees, 'windclan', 'WindClan')).toHaveLength(0); expect(clanRoster(trees.slice(0,1), 'windclan', 'WindClan').map(c => c.id)).toEqual(['crowfeather']); });
