@@ -12,7 +12,7 @@ import type { RelKind } from "@/lib/tree/ops";
 import { CLAN_VAR, CLANS, GENDERS, RANKS, STATUS_LABEL, STATUSES, catName, type Cat, type LifeStage } from "@/lib/tree/types";
 import { AvatarPicker } from "./AvatarPicker";
 import { CatAvatar } from "./CatAvatar";
-import { CatBodyArt } from "./CatBodyArt";
+import { CatBodyArt, PeltBodyArt } from "./CatBodyArt";
 import { ClanCrest } from "./ClanCrest";
 import { NameIdeas } from "./NameIdeas";
 
@@ -68,6 +68,7 @@ export function CatDrawer({
   const shownAvatar = stage?.avatar ?? cat.avatar;
   const portrait = cat.portrait && !stage?.avatar ? <img src={cat.portrait} alt={`${catName(cat)} portrait`} className="h-full w-full object-contain" />
     : shownAvatar.kind === "custom" ? <CatBodyArt settings={shownAvatar.settings} className="h-full max-h-[420px] w-full" />
+    : shownAvatar.kind === "pelt" ? <PeltBodyArt pelt={shownAvatar.pelt} className="h-full max-h-[420px] w-full" />
     : <CatAvatar avatar={shownAvatar} className="aspect-square w-3/4" />;
 
   return (
@@ -80,15 +81,14 @@ export function CatDrawer({
         </div>
         <div className="grid gap-4 p-4 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <div className="space-y-4">
-            <div className="flex items-center gap-4 rounded-xl border border-border p-3">
-              {editing ? <AvatarPicker value={cat.avatar} onChange={(avatar) => onUpdate({ avatar })} /> : <CatAvatar avatar={cat.avatar} className="h-20 w-20 shrink-0" />}
-              <span title={cat.clan} style={{ color: CLAN_VAR[cat.clan] ?? "var(--primary)" }}><ClanCrest crest={cat.clan} className="h-16 w-16" /></span>
+            <div className="flex items-center justify-evenly gap-4 rounded-xl border border-border p-4">
+              <span title={cat.clan} style={{ color: CLAN_VAR[cat.clan] ?? "var(--primary)" }}><ClanCrest crest={cat.clan} className="h-24 w-24 sm:h-28 sm:w-28" /></span>
+              {editing ? <AvatarPicker value={cat.avatar} onChange={(avatar) => onUpdate({ avatar })} /> : <CatAvatar avatar={cat.avatar} className="h-24 w-24 shrink-0 sm:h-28 sm:w-28" />}
             </div>
             <div className="flex min-h-[260px] items-center justify-center rounded-xl border border-border bg-muted/40 p-4">{portrait}</div>
             {editing && <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="outline" asChild><label><ImageUp size={14} />Upload picture<input type="file" accept="image/*" className="sr-only" aria-label="Upload profile picture" onChange={(e) => { uploadPortrait(e.target.files?.[0]); e.target.value = ""; }} /></label></Button>
               {cat.portrait && <Button size="sm" variant="ghost" onClick={() => onUpdate({ portrait: undefined })}>Use drawn cat</Button>}
-              {!cat.portrait && cat.avatar.kind !== "custom" && <p className="text-xs text-muted-foreground">Create a custom icon to get a matching full-body drawing.</p>}
             </div>}
           </div>
 

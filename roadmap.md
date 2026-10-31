@@ -72,4 +72,5 @@ Verified: 28 tests passed; StarClan switch excludes deceased cats initially; cus
 - [x] Verify saved data, navigation and editing end-to-end.
 
 Verified: desktop navigation and life-stage persistence; map uploads and saved pins; duplicate and cycle dialogs; custom Clan and member on mobile; assigned leadership band; PNG export; 15 automated checks.
-Historical bios and birth-era assignments remain unfilled until supplied; SkyClan/BloodClan use built-in crest presets rather than artwork absent from the supplied reference.
+Historical bios and birth-era assignments remain unfilled until supplied; SkyClan/BloodClan use built-in crest presets rather than artwork absent from the supplied reference.- [x] Profile header: flip icon/crest order, enlarge to fill box
+- [x] Reattach heads on full-body drawings

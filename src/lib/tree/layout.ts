@@ -46,58 +46,63 @@ export function computeLayout(cats: Cat[]): Positions {
   units.forEach((u, i) => { u.generation = generation(i, new Set()); const row = rows.get(u.generation) ?? []; row.push(u); rows.set(u.generation, row); });
   const levels = [...rows.keys()].sort((a, b) => a - b);
   const positions: Positions = new Map();
-  const pack = (row: typeof units, targets?: Map<typeof units[number], number>, normalize = true) => {
-    let cursor = 0;
-    const raw: { unit: typeof units[number]; start: number; width: number }[] = [];
-    for (const unit of row) {
-      const desired = targets?.get(unit);
-      const start = Math.max(cursor, (desired ?? cursor) - (unit.ids.length - 1) * W / 2);
+  type Unit = typeof units[number];
+  /** Places a row in its current order as close as possible (least squares) to each unit's
+   *  desired center while keeping spacing: isotonic regression (pool-adjacent-violators). */
+  const pack = (row: Unit[], targets?: Map<Unit, number>, weights?: Map<Unit, number>) => {
+    let c = 0;
+    const items = row.map(unit => {
       const width = (unit.ids.length - 1) * W;
-      raw.push({ unit, start, width }); cursor = start + width + W + GAP_X;
+      const desired = (targets?.get(unit) ?? unit.x) - width / 2;
+      const it = { unit, width, offset: c, y: desired - c, w: weights?.get(unit) ?? 1 };
+      c += width + W + GAP_X;
+      return it;
+    });
+    const blocks: { sum: number; w: number; n: number }[] = [];
+    for (const it of items) {
+      blocks.push({ sum: it.y * it.w, w: it.w, n: 1 });
+      while (blocks.length > 1) {
+        const last = blocks[blocks.length - 1]!, prev = blocks[blocks.length - 2]!;
+        if (prev.sum / prev.w <= last.sum / last.w) break;
+        blocks.pop(); prev.sum += last.sum; prev.w += last.w; prev.n += last.n;
+      }
     }
-    const offset = normalize && raw.length ? Math.min(...raw.map(v => v.start)) : 0;
-    for (const v of raw) {
-      v.unit.ids.forEach((id, i) => positions.set(id, { x: v.start - offset + i * W, y: v.unit.generation * (NODE_H + GAP_Y) }));
-      v.unit.x = v.start - offset + v.width / 2;
+    let k = 0;
+    for (const bl of blocks) for (let j = 0; j < bl.n; j++, k++) {
+      const it = items[k]!; const start = bl.sum / bl.w + it.offset;
+      it.unit.ids.forEach((id, i) => positions.set(id, { x: start + i * W, y: it.unit.generation * (NODE_H + GAP_Y) }));
+      it.unit.x = start + it.width / 2;
     }
   };
   levels.forEach(g => pack(rows.get(g) ?? []));
   const mean = (ids: string[]) => { const ps = ids.map(id => positions.get(id)).filter((p): p is { x: number; y: number } => !!p); return ps.length ? ps.reduce((sum, p) => sum + p.x, 0) / ps.length : undefined; };
-  // Alternating sweeps pull ancestor branches toward their descendants instead
-  // of leaving imported in-law families stranded across the central lineage.
-  for (let sweep = 0; sweep < 12; sweep++) {
+  // Alternating sweeps pull every family unit toward both its parents and its kits,
+  // so parents sit over their children instead of drifting across the canvas.
+  const kidsOf = (id: string) => [...idx.children(id), ...idx.fosterKits(id)];
+  for (let sweep = 0; sweep < 24; sweep++) {
     const down = sweep % 2 === 0;
     for (const g of down ? levels : [...levels].reverse()) {
       const row = rows.get(g) ?? [];
-      const targets = new Map<typeof units[number], number>();
+      const targets = new Map<Unit, number>(), weights = new Map<Unit, number>();
       for (const unit of row) {
-        const links = unit.ids.flatMap(id => down ? parents(id) : [...idx.children(id), ...idx.fosterKits(id)]);
-        const target = mean(links);
-        targets.set(unit, target ?? unit.x);
-        if (down) unit.ids.sort((a, b) => (mean(parents(a)) ?? target ?? unit.x) - (mean(parents(b)) ?? target ?? unit.x));
+        const up = unit.ids.flatMap(parents), dn = unit.ids.flatMap(kidsOf);
+        const mu = mean(up), md = mean(dn);
+        const primary = down ? mu : md, secondary = down ? md : mu;
+        const t = primary !== undefined && secondary !== undefined ? (primary * 2 + secondary) / 3 : primary ?? secondary;
+        targets.set(unit, t ?? unit.x);
+        weights.set(unit, t === undefined ? 0.05 : 1 + up.length + dn.length);
+        if (down) unit.ids.sort((a, b) => (mean(parents(a)) ?? t ?? unit.x) - (mean(parents(b)) ?? t ?? unit.x));
       }
-      row.sort((a, b) => (targets.get(a) ?? a.x) - (targets.get(b) ?? b.x));
-      pack(row, targets);
+      row.sort((a, b) => (targets.get(a) ?? a.x) - (targets.get(b) ?? b.x) || a.ids.flatMap(parents).sort().join('|').localeCompare(b.ids.flatMap(parents).sort().join('|')));
+      pack(row, targets, weights);
     }
-  }
-  // Final downward pass preserves sibling blocks and inheritance ordering.
-  for (const g of levels) {
-    const row = rows.get(g) ?? [];
-    const targets = new Map<typeof units[number], number>();
-    const branchKeys = new Map<typeof units[number], string>();
-    for (const unit of row) {
-      targets.set(unit, mean(unit.ids.flatMap(parents)) ?? unit.x);
-      branchKeys.set(unit, unit.ids.flatMap(parents).sort().join('|'));
-    }
-    row.sort((a, b) => (targets.get(a) ?? a.x) - (targets.get(b) ?? b.x) || (branchKeys.get(a) ?? '').localeCompare(branchKeys.get(b) ?? ''));
-    pack(row, targets, false);
   }
   // Mentor-only roots sit beside the main founders, not far away at an old sweep position.
   const roots = rows.get(0) ?? [];
   const targets = new Map<typeof units[number], number>();
   for (const unit of roots) targets.set(unit, mean(unit.ids.flatMap(id => [...idx.children(id), ...idx.apprentices(id)])) ?? unit.x);
   roots.sort((a, b) => (targets.get(a) ?? a.x) - (targets.get(b) ?? b.x));
-  pack(roots);
+  pack(roots, targets);
   for (const root of roots) {
     const descendants = root.ids.flatMap(id => idx.children(id));
     if (!descendants.length) continue;

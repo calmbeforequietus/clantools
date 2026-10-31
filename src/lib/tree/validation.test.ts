@@ -18,9 +18,12 @@ describe('connection safeguards', () => {
   // legitimately reverse branch order while preserving mate adjacency.
   const ids=cats.slice(0,26).map(c=>c.id);
   const family=cats.filter(c=>ids.includes(c.id)).map(c=>({...c,parents:c.parents.filter(id=>ids.includes(id)),mates:c.mates.filter(id=>ids.includes(id))}));
-  const p=computeLayout(family);expect(p.get('tigerstar')?.x).toBeGreaterThan(p.get('brambleclaw')?.x ?? Infinity);expect(p.get('goldenflower')?.x).toBeGreaterThan(p.get('squirrelflight')?.x ?? Infinity);
+  const p=computeLayout(family);const x=(id:string)=>p.get(id)?.x ?? NaN;const side=Math.sign(x('brambleclaw')-x('squirrelflight'));
+  // In-law parents sit on Bramblestar's outer side, never across Squirrelflight's family.
+  expect(Math.sign(x('tigerstar')-x('squirrelflight'))).toBe(side);expect(Math.sign(x('goldenflower')-x('squirrelflight'))).toBe(side);
  });
  it('uses a Clan own trees as its roster once created', () => { const trees = [{ id: 'source', name: '', updatedAt: 0, clanId: 'thunderclan', cats }, { id: 'wind', name: '', updatedAt: 1, clanId: 'windclan', cats: [] }]; expect(clanRoster(trees, 'windclan', 'WindClan')).toHaveLength(0); expect(clanRoster(trees.slice(0,1), 'windclan', 'WindClan').map(c => c.id)).toEqual(['crowfeather']); });
+ it('keeps parents close to their kits in the canon tree', () => { const p = computeLayout(cats); let total = 0; for (const c of cats) for (const id of c.parents) total += Math.abs((p.get(c.id)?.x ?? 0) - (p.get(id)?.x ?? 0)); expect(total).toBeLessThan(20000); });
  it('keeps nodes separated within every generation', () => { const p = [...computeLayout(cats).values()]; for (let i=0; i<p.length; i++) for (let j=i+1; j<p.length; j++) { const a=p[i], b=p[j]; if (a && b && a.y === b.y) expect(Math.abs(a.x-b.x)).toBeGreaterThanOrEqual(NODE_W+GAP_X); } });
  it('resets unversioned saved forests to the canonical preset', () => {
   localStorage.setItem('warrior-cats-trees-v1', JSON.stringify({ trees: [{ id:'old',name:'Edited',cats:[],updatedAt:0 }],activeId:'old' }));

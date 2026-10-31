@@ -1,9 +1,18 @@
-import { catColor, normalizeIcon, type CatIconSettings } from '@/lib/tree/cat-icon';
+import { catColor, DEFAULT_CAT_ICON, normalizeIcon, type CatIconSettings } from '@/lib/tree/cat-icon';
+import { PELTS } from '@/lib/tree/pelts';
+
+const PELT_PATTERN = { solid: 'solid', tabby: 'tabby', white: 'bicolor', tortie: 'tortoiseshell' } as const;
+/** Full-body drawing for a built-in pelt, using the pelt's own palette. */
+export function PeltBodyArt({ pelt, className = '' }: { pelt: string; className?: string }) {
+  const p = PELTS[pelt] ?? Object.values(PELTS)[0]!;
+  return <CatBodyArt className={className} settings={{ ...DEFAULT_CAT_ICON, pattern: PELT_PATTERN[p.pattern] }} colors={{ coat: p.base, markings: p.mark, eye: p.eye }} />;
+}
 
 /** Full-body sitting cat drawn from the same saved settings as the face icon. */
-export function CatBodyArt({ settings, className = '' }: { settings: CatIconSettings; className?: string }) {
+export function CatBodyArt({ settings, className = '', colors }: { settings: CatIconSettings; className?: string; colors?: { coat: string; markings: string; eye: string } }) {
   const s = normalizeIcon(settings);
-  const coat = catColor(s.coat), mark = catColor(s.markings), white = catColor('snow');
+  const coat = colors?.coat ?? catColor(s.coat), mark = colors?.markings ?? catColor(s.markings), white = catColor('snow');
+  const eyeColor = (c: string) => colors?.eye ?? catColor(c as never);
   const base = s.pattern === 'calico' ? white : coat;
   const points = s.pattern === 'pointed' ? mark : base;
   const ink = 'var(--cat-ink)';
@@ -14,6 +23,8 @@ export function CatBodyArt({ settings, className = '' }: { settings: CatIconSett
     {s.pattern === 'tabby' && <path d="M178 196l10-4 M184 172l10 0 M172 150l8-6" stroke={mark} strokeWidth="5" strokeLinecap="round" />}
     {/* body */}
     <path d="M60 240 Q48 170 72 128 Q100 105 128 128 Q152 170 140 240 Z" fill={base} />
+    {/* neck joins head to body */}
+    <path d="M76 96 H124 L130 132 Q100 140 70 132 Z" fill={base} />
     {s.pattern === 'tabby' && <g stroke={mark} strokeWidth="6" strokeLinecap="round" fill="none"><path d="M64 160q10 4 14 14 M60 190q12 4 16 14 M136 160q-10 4-14 14 M140 190q-12 4-16 14" /></g>}
     {s.pattern === 'marbled' && <g stroke={mark} strokeWidth="6" fill="none" strokeLinecap="round"><path d="M64 165q18-6 16 16 q-2 16 -14 20 M136 165q-18-6-16 16 q2 16 14 20" /></g>}
     {s.pattern === 'spotted' && <g fill={mark}><circle cx="70" cy="170" r="6" /><circle cx="130" cy="176" r="7" /><circle cx="66" cy="205" r="5" /><circle cx="134" cy="210" r="6" /><circle cx="80" cy="225" r="4" /></g>}
@@ -26,7 +37,7 @@ export function CatBodyArt({ settings, className = '' }: { settings: CatIconSett
     <ellipse cx="80" cy="240" rx="14" ry="7" fill={s.pattern === 'tuxedo' || s.pattern === 'bicolor' ? white : points} />
     <ellipse cx="120" cy="240" rx="14" ry="7" fill={s.pattern === 'tuxedo' || s.pattern === 'bicolor' ? white : points} />
     {/* head */}
-    <g transform="translate(52 18) scale(1.5)">
+    <g transform="translate(52 36) scale(1.5)">
       <path d="M11 35 14 7 30 22 M53 35 50 7 34 22" fill={points} />
       <path d="M16 26 17 13 26 23 M48 26 47 13 38 23" fill="var(--cat-rose)" />
       {s.ears === 'torn left' && <path d="M10 6 22 20 14 22Z" fill="var(--card)" />}
@@ -39,7 +50,7 @@ export function CatBodyArt({ settings, className = '' }: { settings: CatIconSett
       {(s.pattern === 'bicolor' || s.pattern === 'tuxedo') && <path d="M32 33Q27 42 23 48Q24 58 32 58Q40 58 41 48Q37 42 32 33" fill={white} />}
       {s.pattern === 'pointed' && <ellipse cx="32" cy="40" rx="14" ry="14" fill={mark} />}
       {(['left', 'right'] as const).map(side => { const cx = side === 'left' ? 24 : 40, blind = s.blind === side; return <g key={side}>
-        <ellipse cx={cx} cy="36" rx="4.5" ry="5" fill={blind ? 'var(--cat-cloud)' : catColor(side === 'left' ? s.leftEye : s.rightEye)} />
+        <ellipse cx={cx} cy="36" rx="4.5" ry="5" fill={blind ? 'var(--cat-cloud)' : eyeColor(side === 'left' ? s.leftEye : s.rightEye)} />
         {!blind && <ellipse cx={cx} cy="36" rx="1.4" ry="3.7" fill={ink} />}</g>; })}
       {s.scars?.includes('eye') && <path d="M18 29 30 43" {...scar} strokeWidth={1.6} />}
       {s.scars?.includes('brow') && <path d="M37 26 45 30" {...scar} strokeWidth={1.6} />}
@@ -50,7 +61,7 @@ export function CatBodyArt({ settings, className = '' }: { settings: CatIconSett
       {s.accessory === 'feather' && <path d="M50 22Q60 10 58 3Q48 9 50 22Z" fill="var(--cat-feather)" />}
       {s.accessory === 'flower' && <circle cx="48" cy="18" r="4" fill="var(--cat-flower)" />}
     </g>
-    {(s.accessory === 'collar' || s.accessory === 'bell collar') && <path d="M72 120 Q100 136 128 120" fill="none" stroke="var(--cat-collar)" strokeWidth="7" strokeLinecap="round" />}
-    {s.accessory === 'bell collar' && <circle cx="100" cy="134" r="5" fill="var(--cat-gold)" stroke={ink} strokeWidth="1" />}
+    {(s.accessory === 'collar' || s.accessory === 'bell collar') && <path d="M72 132 Q100 148 128 132" fill="none" stroke="var(--cat-collar)" strokeWidth="7" strokeLinecap="round" />}
+    {s.accessory === 'bell collar' && <circle cx="100" cy="146" r="5" fill="var(--cat-gold)" stroke={ink} strokeWidth="1" />}
   </svg>;
 }
