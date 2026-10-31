@@ -359,6 +359,8 @@ export function TreeCanvas({
                 >
                   <CatAvatar avatar={c.avatar} className="h-[62px] w-[62px] border-2 border-card" />
                 </div>
+                {options.spiritRealm && c.status === "Dark Forest" && <span className="spirit-shadow" aria-hidden />}
+                {options.spiritRealm && c.status === "StarClan" && starsFor(c.id).map((st, i) => <span key={i} className="spirit-star" aria-hidden style={{ left: st.x, top: st.y, fontSize: st.size, opacity: st.o }}>{st.glyph}</span>)}
                 <StatusDot status={c.status} />
               </div>
               <div className={`mt-1.5 w-full shrink-0 truncate font-display text-[15px] font-semibold leading-tight ${c.status === 'Living' ? 'text-foreground' : 'deceased-name'}`}><span className="bg-canvas px-1">{catName(c)}</span></div>
@@ -407,4 +409,15 @@ function Minimap({ positions, cats, b, view, size, onJump }: { positions: Positi
       <rect x={vx} y={vy} width={size.w / view.k * s} height={size.h / view.k * s} fill="var(--primary)" fillOpacity={0.08} stroke="var(--primary)" strokeWidth={1.2} rx={2} />
     </svg>
   </div>;
+}
+
+/** Stable pseudo-random stars scattered around (and over) an avatar. */
+function starsFor(id: string) {
+  let h = 2166136261;
+  for (const ch of id) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const rnd = () => ((h = Math.imul(h ^ (h >>> 15), 2246822507) ^ Math.imul(h ^ (h >>> 13), 3266489909)) >>> 0) / 4294967296;
+  return Array.from({ length: 9 }, () => {
+    const a = rnd() * Math.PI * 2, r = 22 + rnd() * 24;
+    return { x: 34 + Math.cos(a) * r - 4, y: 34 + Math.sin(a) * r - 5, size: 6 + rnd() * 7, o: 0.55 + rnd() * 0.45, glyph: rnd() > 0.5 ? '✦' : '✧' };
+  });
 }
