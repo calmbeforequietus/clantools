@@ -235,7 +235,7 @@ export function TreeCanvas({
           const pp = positions.get(p);
           if (!pp || !visible(p)) return;
           const fosterY = cp.y + AV_CY - Math.sqrt((AVATAR / 2) ** 2 - 18 ** 2);
-          out.push({ d: relationshipPath(parentPort(pp), {x:ex+18,y:fosterY}, positions, [p,c.id]), kind: "foster", on: isOn(c.id) && isOn(p), key: "f" + c.id + p, ids: [p,c.id] });
+          out.push({ d: relationshipPath(parentPort(pp), {x:ex-18,y:fosterY}, positions, [p,c.id]), kind: "foster", on: isOn(c.id) && isOn(p), key: "f" + c.id + p, ids: [p,c.id] });
         });
       if (options.showMentors)
         idx.mentors(c.id).forEach((p) => {
