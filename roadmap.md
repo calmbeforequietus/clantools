@@ -1,3 +1,8 @@
+# Shared lineage characters
+- [ ] Add existing-cat picker with selectable known relatives when adding to a lineage.
+- [ ] Link character profiles across their saved lineages and retain shared identity.
+- [ ] Test selected relationship imports and verify create, reuse and switching in the app.
+
 # Policy clarity and contact
 - [x] Strengthen plain-language Terms and Privacy without making unverifiable privacy promises.
 - [x] Replace placeholder email and remove placeholder explanation.
