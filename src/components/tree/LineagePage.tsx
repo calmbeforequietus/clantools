@@ -247,7 +247,7 @@ export function LineagePage() {
           <LegendRow color="var(--edge-mate)" label="Mates" toggle={options.showMates} onToggle={v => setOptions(o => ({ ...o, showMates: v }))} />
           <LegendRow color="var(--edge-foster)" label="Foster" dash="6 4" toggle={options.showFoster} onToggle={(v) => setOptions((o) => ({ ...o, showFoster: v }))} />
           <LegendRow color="var(--edge-mentor)" label="Mentor → apprentice" dash="2 4" toggle={options.showMentors} onToggle={(v) => setOptions((o) => ({ ...o, showMentors: v }))} />
-          <label className="flex items-center gap-2 border-t border-border pt-1.5"><Sparkles size={14} className="text-muted-foreground" /><span className="flex-1">Spirit realm</span><Switch checked={!!options.spiritRealm} onCheckedChange={v => setOptions(o => ({ ...o, spiritRealm: v }))} aria-label="Spirit realm glow" /></label>
+          <label className="flex items-center gap-2 border-t border-border pt-1.5"><Sparkles size={14} className="text-muted-foreground" /><span className="flex-1 text-muted-foreground">Spirit realm</span><Switch className="scale-75" checked={!!options.spiritRealm} onCheckedChange={v => setOptions(o => ({ ...o, spiritRealm: v }))} aria-label="Spirit realm glow" /></label>
         </div>
       )}
 
