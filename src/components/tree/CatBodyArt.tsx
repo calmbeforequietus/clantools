@@ -1,9 +1,18 @@
-import { catColor, normalizeIcon, type CatIconSettings } from '@/lib/tree/cat-icon';
+import { catColor, DEFAULT_CAT_ICON, normalizeIcon, type CatIconSettings } from '@/lib/tree/cat-icon';
+import { PELTS } from '@/lib/tree/pelts';
+
+const PELT_PATTERN = { solid: 'solid', tabby: 'tabby', white: 'bicolor', tortie: 'tortoiseshell' } as const;
+/** Full-body drawing for a built-in pelt, using the pelt's own palette. */
+export function PeltBodyArt({ pelt, className = '' }: { pelt: string; className?: string }) {
+  const p = PELTS[pelt] ?? Object.values(PELTS)[0]!;
+  return <CatBodyArt className={className} settings={{ ...DEFAULT_CAT_ICON, pattern: PELT_PATTERN[p.pattern] }} colors={{ coat: p.base, markings: p.mark, eye: p.eye }} />;
+}
 
 /** Full-body sitting cat drawn from the same saved settings as the face icon. */
-export function CatBodyArt({ settings, className = '' }: { settings: CatIconSettings; className?: string }) {
+export function CatBodyArt({ settings, className = '', colors }: { settings: CatIconSettings; className?: string; colors?: { coat: string; markings: string; eye: string } }) {
   const s = normalizeIcon(settings);
-  const coat = catColor(s.coat), mark = catColor(s.markings), white = catColor('snow');
+  const coat = colors?.coat ?? catColor(s.coat), mark = colors?.markings ?? catColor(s.markings), white = catColor('snow');
+  const eyeColor = (c: string) => colors?.eye ?? catColor(c as never);
   const base = s.pattern === 'calico' ? white : coat;
   const points = s.pattern === 'pointed' ? mark : base;
   const ink = 'var(--cat-ink)';
@@ -39,7 +48,7 @@ export function CatBodyArt({ settings, className = '' }: { settings: CatIconSett
       {(s.pattern === 'bicolor' || s.pattern === 'tuxedo') && <path d="M32 33Q27 42 23 48Q24 58 32 58Q40 58 41 48Q37 42 32 33" fill={white} />}
       {s.pattern === 'pointed' && <ellipse cx="32" cy="40" rx="14" ry="14" fill={mark} />}
       {(['left', 'right'] as const).map(side => { const cx = side === 'left' ? 24 : 40, blind = s.blind === side; return <g key={side}>
-        <ellipse cx={cx} cy="36" rx="4.5" ry="5" fill={blind ? 'var(--cat-cloud)' : catColor(side === 'left' ? s.leftEye : s.rightEye)} />
+        <ellipse cx={cx} cy="36" rx="4.5" ry="5" fill={blind ? 'var(--cat-cloud)' : eyeColor(side === 'left' ? s.leftEye : s.rightEye)} />
         {!blind && <ellipse cx={cx} cy="36" rx="1.4" ry="3.7" fill={ink} />}</g>; })}
       {s.scars?.includes('eye') && <path d="M18 29 30 43" {...scar} strokeWidth={1.6} />}
       {s.scars?.includes('brow') && <path d="M37 26 45 30" {...scar} strokeWidth={1.6} />}
