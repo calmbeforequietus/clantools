@@ -7,6 +7,6 @@ export const Route=createFileRoute('/about')({
 });
 function About(){return <InformationPage title="About">
   <section><h2>Hi, I’m DJ Maddox.</h2><p>I’m a freelance web developer who likes creating things for fun. Clantools is one of those projects: a Warrior Cats Clan planner for building family trees and keeping track of characters, Clan lore and territories.</p></section>
-  <section><h2>Get in touch</h2><p>For project ideas or freelance enquiries: <a href="mailto:hello@example.com">hello@example.com</a></p><p className="text-sm text-muted-foreground">Placeholder email — a real contact address is coming soon.</p></section>
+  <section><h2>Get in touch</h2><p>For project ideas or freelance enquiries: <a className="break-all" href="mailto:calmbeforequietus@gmail.com">calmbeforequietus@gmail.com</a></p></section>
   <section><h2>A fan-made project</h2><p>Clantools is an unofficial fan project, not affiliated with or endorsed by the Warrior Cats creators or publishers.</p></section>
 </InformationPage>;}
