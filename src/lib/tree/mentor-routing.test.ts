@@ -37,7 +37,6 @@ it('gives Cinderpelt distinct incoming and outgoing attachment points', () => {
 it('keeps every mentor arrow outside the left avatar edge and away from right-hand symbols', () => {
   const cats = canonTree('test').cats;
   const positions = computeLayout(cats);
-  const links = cats.flatMap(cat => (cat.mentors ?? []).map(mentor => ({mentor: mentor.catId, apprentice:cat.id})));
   // Exercise multiple incoming/outgoing approaches on the same cat.
   const routes = routeMentorConnections(positions, [
     {mentor:'firestar',apprentice:'cinderpelt'},
