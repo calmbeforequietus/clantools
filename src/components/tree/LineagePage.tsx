@@ -288,7 +288,7 @@ export function LineagePage() {
           cats={cats}
           affiliations={store.clans.map(c => c.affiliation)}
           otherLineages={store.trees.filter(t=>t.id!==tree.id && t.cats.some(c=>c.id===focused.id)).map(t=>({id:t.id,name:t.name,clanId:t.clanId??clanId}))}
-          onOpenLineage={(id,targetClan)=>{setStore(s=>s&&{...s,activeId:id});navigate({to:'/clan/$clanId/lineage',params:{clanId:targetClan},search:{tree:id,cat:focused.id}});}}
+          onOpenLineage={(id,targetClan)=>{rawSetStore(s=>s&&{...s,activeId:id});navigate({to:'/clan/$clanId/lineage',params:{clanId:targetClan},search:{tree:id,cat:focused.id}});}}
           relTags={kinship?.labels.get(focused.id)}
           onClose={() => setDrawer(false)}
           onSelect={(id) => select(id)}
