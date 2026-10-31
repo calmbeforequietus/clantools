@@ -54,6 +54,24 @@ export type Avatar =
   | { kind: "clan"; clan: Clan }
   | { kind: "image"; src: string };
 
+export interface LifeStage {
+  name: string;
+  avatar?: Avatar;
+  description?: string;
+  age?: string;
+  mentors?: string;
+  apprentices?: string;
+  rank?: Rank;
+}
+
+export interface Era { id: string; name: string; }
+export interface LoreSection { id: string; title: string; body: string; }
+export interface MapPin { id: string; x: number; y: number; name: string; body: string; }
+export interface ClanPage {
+  id: string; name: string; affiliation: Clan; crest: string; color: string;
+  sections: LoreSection[]; map?: string; pins: MapPin[]; eras: Era[];
+}
+
 export interface Cat {
   id: string;
   /** Name history; the last entry is the current name. */
@@ -63,6 +81,10 @@ export interface Cat {
   status: Status;
   gender: Gender;
   appearance: string;
+  summary?: string;
+  biography?: string;
+  stages?: LifeStage[];
+  birthEra?: string;
   avatar: Avatar;
   parents: string[];
   fosterParents: string[];
@@ -75,6 +97,7 @@ export interface Tree {
   name: string;
   cats: Cat[];
   updatedAt: number;
+  clanId?: string;
 }
 
 export const catName = (c: Cat) => c.names[c.names.length - 1] || "Unnamed";
