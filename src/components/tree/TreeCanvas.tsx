@@ -415,9 +415,9 @@ function Minimap({ positions, cats, b, view, size, onJump }: { positions: Positi
 function starsFor(id: string) {
   let h = 2166136261;
   for (const ch of id) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
-  const rnd = () => ((h = Math.imul(h ^ (h >>> 15), 2246822507) ^ Math.imul(h ^ (h >>> 13), 3266489909)) >>> 0) / 4294967296;
+  const rnd = () => { h = (h + 0x6d2b79f5) | 0; let t = Math.imul(h ^ (h >>> 15), 1 | h); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   return Array.from({ length: 9 }, () => {
-    const a = rnd() * Math.PI * 2, r = 22 + rnd() * 24;
+    const a = rnd() * Math.PI * 2, r = 14 + rnd() * 30;
     return { x: 34 + Math.cos(a) * r - 4, y: 34 + Math.sin(a) * r - 5, size: 6 + rnd() * 7, o: 0.55 + rnd() * 0.45, glyph: rnd() > 0.5 ? '✦' : '✧' };
   });
 }

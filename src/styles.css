@@ -210,9 +210,9 @@ html[data-text="xl"] { font-size: 20px; }
 /* Spirit realm filter */
 .spirit-starclan { filter: drop-shadow(0 0 6px var(--spirit-star)) drop-shadow(0 0 14px var(--spirit-star)); }
 .spirit-star { position: absolute; color: var(--spirit-star); pointer-events: none; line-height: 1; text-shadow: 0 0 4px var(--spirit-star); }
-.spirit-shadow { position: absolute; inset: 3px; border-radius: 9999px; pointer-events: none; background: linear-gradient(to top, color-mix(in oklab, var(--spirit-dark) 85%, transparent) 0%, color-mix(in oklab, var(--spirit-dark) 55%, transparent) 20%, transparent 33%); }
+.spirit-shadow { position: absolute; inset: 3px; border-radius: 9999px; pointer-events: none; background: linear-gradient(to top, color-mix(in oklab, var(--spirit-dark) 92%, transparent) 0%, color-mix(in oklab, var(--spirit-dark) 70%, transparent) 22%, transparent 33%); }
 .spirit-darkforest { filter: drop-shadow(0 0 8px var(--spirit-dark)) drop-shadow(0 0 16px var(--spirit-dark)); }
-:root { --spirit-star: oklch(0.8 0.12 260); --spirit-dark: oklch(0.3 0.08 20); }
+:root { --spirit-star: oklch(0.72 0.14 265); --spirit-dark: oklch(0.16 0.04 300); }
 
 /* Themes */
 html[data-theme="night"] {
