@@ -110,7 +110,10 @@ export function Devlog() {
                 Roadmap
               </h3>
               <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
-                Nothing planned at the moment!
+                - More options for clan crests, including icons and colors (and a color picker).
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                - Custom roles: medicine cat apprentices, mediators, etc.
               </p>
             </div>
           </div>
