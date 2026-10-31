@@ -25,6 +25,6 @@ export const APPLY_SCRIPT = `(function(){try{var s=JSON.parse(localStorage.getIt
 
 export function applySettings(s: Settings) {
   const d = document.documentElement;
-  d.dataset.theme = s.theme; d.dataset.text = s.text;
+  d.setAttribute('data-theme', s.theme); d.setAttribute('data-text', s.text);
   d.classList.toggle('dark', s.theme === 'night');
 }

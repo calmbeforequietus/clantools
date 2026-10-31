@@ -70,6 +70,8 @@ export function TreeCanvas({
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+    setSize({ w: el.clientWidth, h: el.clientHeight });
+    if (typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(() => setSize({ w: el.clientWidth, h: el.clientHeight }));
     ro.observe(el);
     return () => ro.disconnect();
