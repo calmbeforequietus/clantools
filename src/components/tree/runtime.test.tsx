@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { ForestProvider, useForest } from './ForestProvider';
 import { TreeCanvas } from './TreeCanvas';
 import { canonCats } from '@/lib/tree/canon';
-import { computeLayout } from '@/lib/tree/layout';
+import { AVATAR_TOP, computeLayout } from '@/lib/tree/layout';
 
 afterEach(() => { cleanup(); localStorage.clear(); });
 
@@ -54,4 +54,15 @@ it('selecting a mentor connection highlights exactly its two cats and can be cle
   expect(screen.getByRole('button',{name:'View Sandstorm'})).toHaveAttribute('data-relationship-highlighted','false');
   fireEvent.click(screen.getByRole('button',{name:'Clear relationship highlight'}));
   expect(screen.getByRole('button',{name:'View Firestar'})).toHaveAttribute('data-relationship-highlighted','false');
+});
+it('connects Princess parentage to the top of her avatar, not above it', () => {
+  const cats = canonCats(), positions = computeLayout(cats);
+  render(<TreeCanvas cats={cats} positions={positions} focusId={null} kinship={null}
+    options={{showParents:true,showMates:true,showFoster:false,showMentors:false,showEras:false,hideUnrelated:false}}
+    onSelect={vi.fn()} onZoom={vi.fn()} apiRef={{current:null}} treeKey="princess-parentage" />);
+  const princess = positions.get('princess');
+  expect(princess).toBeDefined();
+  if (!princess) return;
+  const path = screen.getByRole('button',{name:'Parentage connection: Jake and Nutmeg and Princess'}).getAttribute('d');
+  expect(path?.endsWith(`${princess.x},${princess.y+AVATAR_TOP}`)).toBe(true);
 });
