@@ -46,12 +46,17 @@ export function computeLayout(cats: Cat[]): Positions {
   const positions: Positions = new Map();
   const pack = (row: typeof units, targets?: Map<typeof units[number], number>) => {
     let cursor = 0;
+    const raw: { unit: typeof units[number]; start: number; width: number }[] = [];
     for (const unit of row) {
       const desired = targets?.get(unit);
-      let start = cursor;
-      for (const id of unit.ids) { positions.set(id, { x: start, y: unit.generation * (NODE_H + GAP_Y) }); start += W; }
-      unit.x = start - W - (unit.ids.length - 1) * W / 2;
-      cursor = start + GAP_X;
+      const start = Math.max(cursor, (desired ?? cursor) - (unit.ids.length - 1) * W / 2);
+      const width = (unit.ids.length - 1) * W;
+      raw.push({ unit, start, width }); cursor = start + width + W + GAP_X;
+    }
+    const offset = raw.length ? Math.min(...raw.map(v => v.start)) : 0;
+    for (const v of raw) {
+      v.unit.ids.forEach((id, i) => positions.set(id, { x: v.start - offset + i * W, y: v.unit.generation * (NODE_H + GAP_Y) }));
+      v.unit.x = v.start - offset + v.width / 2;
     }
   };
   levels.forEach(g => pack(rows.get(g) ?? []));
@@ -73,14 +78,24 @@ export function computeLayout(cats: Cat[]): Positions {
       pack(row, targets);
     }
   }
-  // Compact roots/ancestors above their children with separation constraints.
-  for (const g of [...levels].reverse()) {
+  // Final downward pass preserves sibling blocks and inheritance ordering.
+  for (const g of levels) {
     const row = rows.get(g) ?? [];
     const targets = new Map<typeof units[number], number>();
-    for (const unit of row) targets.set(unit, mean(unit.ids.flatMap(id => idx.children(id))) ?? unit.x);
-    row.sort((a, b) => (targets.get(a) ?? a.x) - (targets.get(b) ?? b.x));
+    const branchKeys = new Map<typeof units[number], string>();
+    for (const unit of row) {
+      targets.set(unit, mean(unit.ids.flatMap(parents)) ?? unit.x);
+      branchKeys.set(unit, unit.ids.flatMap(parents).sort().join('|'));
+    }
+    row.sort((a, b) => (targets.get(a) ?? a.x) - (targets.get(b) ?? b.x) || (branchKeys.get(a) ?? '').localeCompare(branchKeys.get(b) ?? ''));
     pack(row, targets);
   }
+  // Mentor-only roots sit beside the main founders, not far away at an old sweep position.
+  const roots = rows.get(0) ?? [];
+  const targets = new Map<typeof units[number], number>();
+  for (const unit of roots) targets.set(unit, mean(unit.ids.flatMap(id => [...idx.children(id), ...idx.apprentices(id)])) ?? unit.x);
+  roots.sort((a, b) => (targets.get(a) ?? a.x) - (targets.get(b) ?? b.x));
+  pack(roots);
   return positions;
 }
 
