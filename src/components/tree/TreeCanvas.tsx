@@ -299,7 +299,7 @@ export function TreeCanvas({
               style={{ transition: "opacity 200ms" }}
             />
             <path d={e.d} fill="none" stroke="transparent" strokeWidth={18} className="pointer-events-auto cursor-pointer" style={{pointerEvents:'stroke'}}
-              role="button" tabIndex={0} aria-label={`${e.kind === 'mentor' ? 'Mentor' : e.kind === 'mate' ? 'Mates' : e.kind === 'foster' ? 'Foster' : 'Parentage'} connection: ${e.ids.map(id=>catName(idx.byId.get(id) ?? {names:[]} as Cat)).join(' and ')}`}
+              role="button" tabIndex={0} aria-label={`${e.kind === 'mentor' ? 'Mentor' : e.kind === 'mate' ? 'Mates' : e.kind === 'foster' ? 'Foster' : 'Parentage'} connection: ${e.ids.map(id=>{const cat=idx.byId.get(id);return cat ? catName(cat) : 'Unknown cat';}).join(' and ')}`}
               aria-pressed={selectedEdge?.key === e.key}
               onPointerDown={event=>event.stopPropagation()}
               onClick={event=>{event.stopPropagation();onSelect(null);setSelectedEdge({key:e.key,ids:e.ids});}}
