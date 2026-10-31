@@ -1,5 +1,5 @@
 # Current Clan updates
-- [ ] Replace rejected global family detours with original flowing curves, local parent bends and unobscured labels; verify connections remain attached and selectable.
+- [x] Replace rejected global family detours with original flowing curves, local parent bends and unobscured labels; 14 tests passed and browser verified shared-parent/mate shapes, Princess attachment and selection.
 - [x] Keep mentor arrowheads clear of extra symbols and reconnect parentage at the avatar edge.
 - [x] Fill role symbols and strengthen deceased names to blue-gray.
 - [x] Verify endpoint geometry, line selection and visible artwork; 10 targeted tests passed and Princess endpoint matches her avatar top in the browser.
