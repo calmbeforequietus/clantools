@@ -92,7 +92,7 @@ export interface Store {
   presentationVersion?: number;
 }
 const KEY = "warrior-cats-trees-v1";
-const PRESENTATION_VERSION = 2;
+const PRESENTATION_VERSION = 3;
 
 export function factoryStore(): Store {
   const tree = canonTree(crypto.randomUUID());
@@ -123,6 +123,12 @@ export function refineStore(store: Store): Store {
   // The commissioned factory refresh replaces old local edits exactly once.
   // Later edits, imports and even an intentionally empty forest remain intact.
   if (store.presentationVersion === PRESENTATION_VERSION) return store;
+  if (store.presentationVersion === 2) {
+    const removed=new Set(['shadowclan','windclan','riverclan','skyclan','starclan','bloodclan']);
+    return { ...store,presentationVersion:PRESENTATION_VERSION,
+      clans:store.clans.filter(c=>!removed.has(c.id)),
+      trees:store.trees.map(t=>t.clanId && removed.has(t.clanId)?{...t,clanId:'thunderclan'}:t) };
+  }
   return factoryStore();
 }
 
