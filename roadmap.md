@@ -1,3 +1,13 @@
+# Creator, tools and settings
+- [ ] Expanded realistic cat creator with scars, ears, blind eye, accessories; tabbed layout.
+- [ ] Kinship checker for any two cats with shared-ancestor highlight.
+- [ ] Allegiances exporter (text, Discord markdown, image).
+- [ ] Spirit realm canvas filter for StarClan / Dark Forest.
+- [ ] Warrior name generator.
+- [ ] Tree minimap.
+- [ ] Full backup / restore; update Terms and Privacy.
+- [ ] Site-wide themes incl. colorblind and monochrome, plus text size; in a settings button (top-right of main page, next to Clantools elsewhere).
+
 # Shared lineage characters
 - [x] Ask for a name before creating any cat, including cats created through relationship buttons, then check duplicate names; browser verified and 12 targeted tests passed.
 - [x] Explain Clan member count versus lineage cat count from the actual calculation.
