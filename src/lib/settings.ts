@@ -4,7 +4,8 @@ export const THEMES = [
   { id: 'leafbare', label: 'Leaf-bare', swatch: ['oklch(0.96 0.008 240)', 'oklch(0.5 0.09 240)', 'oklch(0.55 0.06 200)'] },
   { id: 'cb-redgreen', label: 'Colorblind: red-green safe', swatch: ['oklch(0.97 0.004 90)', 'oklch(0.53 0.13 245)', 'oklch(0.76 0.16 75)'] },
   { id: 'cb-blueyellow', label: 'Colorblind: blue-yellow safe', swatch: ['oklch(0.97 0.004 90)', 'oklch(0.55 0.2 25)', 'oklch(0.5 0.08 200)'] },
-  { id: 'mono', label: 'Monochrome', swatch: ['oklch(0.97 0 0)', 'oklch(0.3 0 0)', 'oklch(0.6 0 0)'] },
+  { id: 'mono', label: 'Monochrome (cats in color)', swatch: ['oklch(0.97 0 0)', 'oklch(0.3 0 0)', 'oklch(0.65 0.15 50)'] },
+  { id: 'mono-full', label: 'Monochrome (full)', swatch: ['oklch(0.97 0 0)', 'oklch(0.3 0 0)', 'oklch(0.6 0 0)'] },
 ] as const;
 export type ThemeId = typeof THEMES[number]['id'];
 export const TEXT_SIZES = [{ id: 'sm', label: 'Smaller', px: 14 }, { id: 'md', label: 'Default', px: 16 }, { id: 'lg', label: 'Larger', px: 18 }, { id: 'xl', label: 'Largest', px: 20 }] as const;
