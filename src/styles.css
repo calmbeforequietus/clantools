@@ -269,7 +269,7 @@ html[data-theme="mono"], html[data-theme="mono-full"] {
 }
 /* Monochrome keeps cat artwork in color; the full option grays everything. */
 html[data-theme="mono"] .clan-crest, html[data-theme="mono"] svg.clan-symbol { filter: grayscale(1); }
-html[data-theme="mono-full"] body { filter: grayscale(1); }
+html[data-theme="mono-full"] { filter: grayscale(1); }
 
 /* File inputs: show only the "Choose File" button, sitting slightly lower. */
 input[type="file"] { color: transparent; padding-top: 0.4rem; }
