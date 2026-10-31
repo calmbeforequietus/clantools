@@ -360,7 +360,7 @@ export function TreeCanvas({
                   <CatAvatar avatar={c.avatar} className="h-[62px] w-[62px] border-2 border-card" />
                 </div>
                 {options.spiritRealm && c.status === "Dark Forest" && <span className="spirit-shadow" aria-hidden />}
-                {options.spiritRealm && c.status === "StarClan" && starsFor(c.id).map((st, i) => <span key={i} className="spirit-star" aria-hidden style={{ left: st.x, top: st.y, fontSize: st.size, opacity: st.o }}>{st.glyph}</span>)}
+                {options.spiritRealm && c.status === "StarClan" && starsFor(c.id).map((st, i) => <svg key={i} className="spirit-star" aria-hidden viewBox="0 0 10 10" width={st.size} height={st.size} style={{ left: st.x - st.size / 2, top: st.y - st.size / 2, opacity: st.o }}><path d={st.glyph === "✦" ? "M5 0L6.2 3.8 10 5 6.2 6.2 5 10 3.8 6.2 0 5 3.8 3.8Z" : "M5 1L5.8 4.2 9 5 5.8 5.8 5 9 4.2 5.8 1 5 4.2 4.2Z"} fill="currentColor" /></svg>)}
                 <StatusDot status={c.status} />
               </div>
               <div className={`mt-1.5 w-full shrink-0 truncate font-display text-[15px] font-semibold leading-tight ${c.status === 'Living' ? 'text-foreground' : 'deceased-name'}`}><span className="bg-canvas px-1">{catName(c)}</span></div>
@@ -416,8 +416,8 @@ function starsFor(id: string) {
   let h = 2166136261;
   for (const ch of id) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
   const rnd = () => { h = (h + 0x6d2b79f5) | 0; let t = Math.imul(h ^ (h >>> 15), 1 | h); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-  return Array.from({ length: 9 }, () => {
-    const a = rnd() * Math.PI * 2, r = 14 + rnd() * 30;
-    return { x: 34 + Math.cos(a) * r - 4, y: 34 + Math.sin(a) * r - 5, size: 6 + rnd() * 7, o: 0.55 + rnd() * 0.45, glyph: rnd() > 0.5 ? '✦' : '✧' };
+  return Array.from({ length: 9 }, (_, i) => {
+    const a = (i / 9) * Math.PI * 2 + rnd() * 0.6, r = i % 4 === 0 ? 12 + rnd() * 14 : 37 + rnd() * 14;
+    return { x: 34 + Math.cos(a) * r, y: 34 + Math.sin(a) * r, size: 7 + rnd() * 8, o: 0.55 + rnd() * 0.45, glyph: rnd() > 0.5 ? '✦' : '✧' };
   });
 }
