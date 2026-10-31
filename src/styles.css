@@ -105,7 +105,7 @@
   --status-living: oklch(0.66 0.14 145);
   --status-starclan: oklch(0.72 0.11 270);
   --status-darkforest: oklch(0.3 0.04 20);
-  --deceased-name: oklch(0.48 0 0);
+  --deceased-name: oklch(0.54 0.035 245);
 
   --clan-thunder: oklch(0.64 0.16 48);
   --clan-shadow: oklch(0.4 0.05 290);
@@ -142,7 +142,7 @@
   --ring: oklch(0.72 0.15 55);
   --canvas: oklch(0.2 0.02 50);
   --canvas-dot: oklch(0.32 0.02 50);
-  --deceased-name: oklch(0.72 0 0);
+  --deceased-name: oklch(0.68 0.035 245);
 }
 
 @theme inline {

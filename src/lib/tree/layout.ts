@@ -2,8 +2,10 @@ import { buildIndex } from './kinship';
 import type { Cat } from './types';
 
 export const NODE_W = 140;
-export const NODE_H = 128;
+export const NODE_H = 140;
 export const AVATAR = 68;
+export const AVATAR_TOP = 14;
+export const AVATAR_CY = AVATAR_TOP + AVATAR / 2;
 export const GAP_X = 60;
 export const GAP_Y = 140;
 const W = NODE_W + GAP_X;
