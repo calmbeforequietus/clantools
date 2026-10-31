@@ -2,7 +2,7 @@
 - [ ] Expanded realistic cat creator with scars, ears, blind eye, accessories; tabbed layout.
 - [ ] Kinship checker for any two cats with shared-ancestor highlight.
 - [ ] Allegiances exporter (text, Discord markdown, image).
-- [ ] Spirit realm canvas filter for StarClan / Dark Forest.
+- [ ] Spirit realm canvas filter for StarClan / Dark Forest; scattered stars, Dark Forest shadow over at most 1/3 of icon.
 - [ ] Warrior name generator.
 - [ ] Tree minimap.
 - [ ] Full backup / restore; update Terms and Privacy.
