@@ -1,7 +1,7 @@
 # Factory preset refresh
-- [ ] Reset existing local forests once to clean expanded Firestar data and ThunderClan only.
-- [ ] Center the Clan choices, retaining aligned New Clan tiles.
-- [ ] Verify canonical relatives, reset persistence and live navigation.
+- [x] Reset existing local forests once to clean expanded Firestar data and ThunderClan only.
+- [x] Center the Clan choices, retaining aligned New Clan tiles.
+- [x] Verify canonical relatives, reset persistence and live navigation; 37 tests passed and browser checks confirmed 54 preset cats, restored Princess artwork, removed custom cats, centered choices and subsequent edit persistence.
 
 # Current Clan updates
 - [x] Replace rejected global family detours with original flowing curves, local parent bends and unobscured labels; 14 tests passed and browser verified shared-parent/mate shapes, Princess attachment and selection.
