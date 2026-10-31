@@ -243,7 +243,11 @@ export function TreeCanvas({
           const sx = pp.x + AVATAR / 2 + 4, sy = pp.y + AV_CY;
           const tx = cp.x + AVATAR / 2 + 4, ty = cp.y + AV_CY;
           const bend = Math.max(sx, tx) + 42 + (out.filter(e => e.kind === "mentor").length % 5) * 18;
-          out.push({ d: `M${sx},${sy} C${bend},${sy} ${bend},${ty} ${tx},${ty}`, kind: "mentor", on: isOn(c.id) && isOn(p), key: "t" + c.id + p });
+          const laneY = sy - 72 - (out.filter(e => e.kind === "mentor").length % 5) * 16;
+          const d = Math.abs(sy - ty) < 1
+            ? `M${sx},${sy} C${sx},${laneY} ${tx},${laneY} ${tx},${ty}`
+            : `M${sx},${sy} C${bend},${sy} ${bend},${ty} ${tx},${ty}`;
+          out.push({ d, kind: "mentor", on: isOn(c.id) && isOn(p), key: "t" + c.id + p });
         });
     }
     return out;
