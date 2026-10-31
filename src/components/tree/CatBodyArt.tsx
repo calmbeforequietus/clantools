@@ -35,7 +35,7 @@ export function CatBodyArt({ settings, className = '', colors }: { settings: Cat
     <ellipse cx="80" cy="240" rx="14" ry="7" fill={s.pattern === 'tuxedo' || s.pattern === 'bicolor' ? white : points} />
     <ellipse cx="120" cy="240" rx="14" ry="7" fill={s.pattern === 'tuxedo' || s.pattern === 'bicolor' ? white : points} />
     {/* head */}
-    <g transform="translate(52 18) scale(1.5)">
+    <g transform="translate(52 36) scale(1.5)">
       <path d="M11 35 14 7 30 22 M53 35 50 7 34 22" fill={points} />
       <path d="M16 26 17 13 26 23 M48 26 47 13 38 23" fill="var(--cat-rose)" />
       {s.ears === 'torn left' && <path d="M10 6 22 20 14 22Z" fill="var(--card)" />}
@@ -59,7 +59,7 @@ export function CatBodyArt({ settings, className = '', colors }: { settings: Cat
       {s.accessory === 'feather' && <path d="M50 22Q60 10 58 3Q48 9 50 22Z" fill="var(--cat-feather)" />}
       {s.accessory === 'flower' && <circle cx="48" cy="18" r="4" fill="var(--cat-flower)" />}
     </g>
-    {(s.accessory === 'collar' || s.accessory === 'bell collar') && <path d="M72 120 Q100 136 128 120" fill="none" stroke="var(--cat-collar)" strokeWidth="7" strokeLinecap="round" />}
-    {s.accessory === 'bell collar' && <circle cx="100" cy="134" r="5" fill="var(--cat-gold)" stroke={ink} strokeWidth="1" />}
+    {(s.accessory === 'collar' || s.accessory === 'bell collar') && <path d="M72 132 Q100 148 128 132" fill="none" stroke="var(--cat-collar)" strokeWidth="7" strokeLinecap="round" />}
+    {s.accessory === 'bell collar' && <circle cx="100" cy="146" r="5" fill="var(--cat-gold)" stroke={ink} strokeWidth="1" />}
   </svg>;
 }
