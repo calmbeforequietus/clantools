@@ -35,6 +35,6 @@ describe('feedback batch rules', () => {
   });
   it('has a broad canon name pool', () => {
     expect(PREFIXES.length).toBeGreaterThan(200);
-    expect(SUFFIXES).toContain('star'.replace('star', 'heart'));
+    expect(SUFFIXES).toContain('heart');
   });
 });
