@@ -158,7 +158,7 @@ export function LineagePage() {
       {/* Top-left: brand + tree switcher */}
       <div className="absolute left-3 top-3 z-20 flex items-center gap-2 rounded-2xl border border-border bg-card/95 p-1.5 pl-3 shadow-float backdrop-blur">
         <Button size="icon" variant="ghost" title="Back to Clan" aria-label="Back to Clan" asChild><Link to="/clan/$clanId" params={{ clanId }}><ArrowLeft /></Link></Button>
-        <span className="hidden font-display text-lg font-bold text-primary">{clan.name}</span>
+        <span className="site-wordmark">Clantools</span>
         <span className="h-5 w-px bg-border" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
