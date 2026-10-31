@@ -82,7 +82,6 @@ export function canonCats(): Cat[] {
     c("snaptooth", ["Snapkit", "Snappaw", "Snaptooth"], "Kittypet", "None", "Living", "Tom", "golden", "Golden tabby tom.", { parents: ["lionblaze", "cinderheart"] }),
     c("spotfur", ["Spotkit", "Spotpaw", "Spotfur"], "ThunderClan", "Warrior", "Living", "She-cat", "gray", "Gray-and-white she-cat with gray spots.", { parents: ["lionblaze", "cinderheart"] }),
     c("flywhisker", ["Flykit", "Flypaw", "Flywhisker"], "Kittypet", "None", "Living", "She-cat", "gray", "Gray tabby she-cat.", { parents: ["lionblaze", "cinderheart"] }),
-    c("bristlefrost", ["Bristlekit", "Bristlepaw", "Bristlefrost"], "ThunderClan", "Warrior", "Dark Forest", "She-cat", "gray", "Gray she-cat with thick fur; her spirit was lost in the Dark Forest.", { parents: ["ivypool", "fernsong"] }),
     c("flipclaw", ["Flipkit", "Flippaw", "Flipclaw"], "ThunderClan", "Warrior", "Living", "Tom", "lightBrownTabby", "Brown tabby tom.", { parents: ["ivypool", "fernsong"] }),
     c("thriftear", ["Thriftkit", "Thriftpaw", "Thriftear"], "ThunderClan", "Warrior", "Living", "She-cat", "darkGray", "Dark gray she-cat.", { parents: ["ivypool", "fernsong"] }),
   ];
