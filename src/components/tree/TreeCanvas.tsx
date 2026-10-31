@@ -6,7 +6,7 @@ import { ClanCrest } from "./ClanCrest";
 import { CatAvatar } from "./CatAvatar";
 import { buildIndex, type Kinship } from "@/lib/tree/kinship";
 import { routeMentorConnections, roundedMentorPath } from '@/lib/tree/mentor-routing';
-import { parentPort, relationshipPath } from '@/lib/tree/relationship-routing';
+import { parentRelationshipPath, relationshipPath } from '@/lib/tree/relationship-routing';
 import { AVATAR, AVATAR_CY, AVATAR_TOP, bounds, NODE_H, NODE_W, type Positions } from "@/lib/tree/layout";
 import { CLAN_VAR, catName, type Cat, type ClanPage } from "@/lib/tree/types";
 
@@ -214,7 +214,7 @@ export function TreeCanvas({
         seenMate.add(k);
         const [l, r] = cp.x < mp.x ? [cp, mp] : [mp, cp];
         const y1 = l.y + AV_CY, y2 = r.y + AV_CY;
-        const d = curve(l.x + AVATAR / 2, y1, r.x - AVATAR / 2, y2, [c.id,m]);
+        const d = y1 === y2 ? `M${l.x + AVATAR / 2},${y1} H${r.x - AVATAR / 2}` : curve(l.x + AVATAR / 2, y1, r.x - AVATAR / 2, y2, [c.id,m]);
         out.push({ d, kind: "mate", on: isOn(c.id) && isOn(m), key: "m" + k, ids: [c.id,m] });
       }
       const ps = (options.showParents ? idx.parents(c.id) : []).filter((p) => positions.has(p) && visible(p));
@@ -227,7 +227,7 @@ export function TreeCanvas({
         ps.forEach((p) => {
           const pp = positions.get(p);
           if (!pp) return;
-          out.push({ d: relationshipPath(parentPort(pp), {x:ex,y:ey}, positions, [p,c.id]), kind: "blood", on: isOn(c.id) && isOn(p), key: "b" + c.id + p, ids: [p,c.id] });
+          out.push({ d: parentRelationshipPath(pp, {x:ex,y:ey}), kind: "blood", on: isOn(c.id) && isOn(p), key: "b" + c.id + p, ids: [p,c.id] });
         });
       }
       if (options.showFoster)
@@ -235,7 +235,7 @@ export function TreeCanvas({
           const pp = positions.get(p);
           if (!pp || !visible(p)) return;
           const fosterY = cp.y + AV_CY - Math.sqrt((AVATAR / 2) ** 2 - 18 ** 2);
-          out.push({ d: relationshipPath(parentPort(pp), {x:ex-18,y:fosterY}, positions, [p,c.id]), kind: "foster", on: isOn(c.id) && isOn(p), key: "f" + c.id + p, ids: [p,c.id] });
+          out.push({ d: parentRelationshipPath(pp, {x:ex-18,y:fosterY}), kind: "foster", on: isOn(c.id) && isOn(p), key: "f" + c.id + p, ids: [p,c.id] });
         });
       if (options.showMentors)
         idx.mentors(c.id).forEach((p) => {
@@ -347,7 +347,7 @@ export function TreeCanvas({
                 </div>
                 <StatusDot status={c.status} />
               </div>
-              <div className={`mt-1.5 w-full shrink-0 truncate font-display text-[15px] font-semibold leading-tight ${c.status === 'Living' ? 'text-foreground' : 'deceased-name'}`}>{catName(c)}</div>
+              <div className={`mt-1.5 w-full shrink-0 truncate font-display text-[15px] font-semibold leading-tight ${c.status === 'Living' ? 'text-foreground' : 'deceased-name'}`}><span className="bg-canvas px-1">{catName(c)}</span></div>
               <div className="mt-1 flex h-7 w-8 shrink-0 items-center justify-center rounded-full bg-canvas text-muted-foreground" title={`${c.rank} · ${c.status}`}><RoleIcon cat={c} /></div>
               {clan && c.clan !== clan.affiliation && <span title={c.clan} className="absolute -top-1 right-4 flex h-9 w-9 items-center justify-center" style={{ color: CLAN_VAR[c.clan] ?? clan.color }}><ClanCrest crest={c.clan} className="h-9 w-9" /></span>}
             </Button>
