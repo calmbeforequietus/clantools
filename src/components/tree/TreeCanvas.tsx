@@ -75,8 +75,8 @@ export function TreeCanvas({
     if (!el) return;
     const w = el.clientWidth, h = el.clientHeight;
     const bw = b.maxX - b.minX, bh = b.maxY - b.minY;
-    const k = clamp(Math.min(w / bw, (h - 80) / bh, 1.1));
-    setView({ k, x: (w - bw * k) / 2 - b.minX * k, y: (h - bh * k) / 2 - b.minY * k + 20 });
+    const k = clamp(Math.min((w - 230) / bw, (h - 140) / bh, 1.1));
+    setView({ k, x: (w - 220 - bw * k) / 2 - b.minX * k, y: (h - bh * k) / 2 - b.minY * k + 20 });
   }, [b]);
 
   useImperativeHandle(apiRef, () => ({

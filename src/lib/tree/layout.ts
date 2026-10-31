@@ -44,7 +44,7 @@ export function computeLayout(cats: Cat[]): Positions {
   units.forEach((u, i) => { u.generation = generation(i, new Set()); const row = rows.get(u.generation) ?? []; row.push(u); rows.set(u.generation, row); });
   const levels = [...rows.keys()].sort((a, b) => a - b);
   const positions: Positions = new Map();
-  const pack = (row: typeof units, targets?: Map<typeof units[number], number>) => {
+  const pack = (row: typeof units, targets?: Map<typeof units[number], number>, normalize = true) => {
     let cursor = 0;
     const raw: { unit: typeof units[number]; start: number; width: number }[] = [];
     for (const unit of row) {
@@ -53,7 +53,7 @@ export function computeLayout(cats: Cat[]): Positions {
       const width = (unit.ids.length - 1) * W;
       raw.push({ unit, start, width }); cursor = start + width + W + GAP_X;
     }
-    const offset = raw.length ? Math.min(...raw.map(v => v.start)) : 0;
+    const offset = normalize && raw.length ? Math.min(...raw.map(v => v.start)) : 0;
     for (const v of raw) {
       v.unit.ids.forEach((id, i) => positions.set(id, { x: v.start - offset + i * W, y: v.unit.generation * (NODE_H + GAP_Y) }));
       v.unit.x = v.start - offset + v.width / 2;
@@ -88,7 +88,7 @@ export function computeLayout(cats: Cat[]): Positions {
       branchKeys.set(unit, unit.ids.flatMap(parents).sort().join('|'));
     }
     row.sort((a, b) => (targets.get(a) ?? a.x) - (targets.get(b) ?? b.x) || (branchKeys.get(a) ?? '').localeCompare(branchKeys.get(b) ?? ''));
-    pack(row, targets);
+    pack(row, targets, false);
   }
   // Mentor-only roots sit beside the main founders, not far away at an old sweep position.
   const roots = rows.get(0) ?? [];

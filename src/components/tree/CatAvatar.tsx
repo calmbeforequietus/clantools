@@ -20,7 +20,7 @@ export function PeltFace({ pelt }: { pelt: string }) {
   const p = PELTS[pelt] ?? PELTS["gray"];
   if (!p) return null;
   return (
-    <svg viewBox="0 0 64 64" className="h-full w-full">
+    <svg viewBox="0 0 64 64" className="h-full! w-full!">
       <rect width="64" height="64" fill="var(--muted)" />
       <path d="M12 34 L16 9 L30 22 Z" fill={p.base} />
       <path d="M52 34 L48 9 L34 22 Z" fill={p.base} />

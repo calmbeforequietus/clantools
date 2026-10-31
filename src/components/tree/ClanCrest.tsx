@@ -11,7 +11,7 @@ const symbols: Record<string, typeof Leaf> = { SkyClan: Cloud, BloodClan: Drople
 export function ClanCrest({ crest, className = '' }: { crest: string; className?: string }) {
   const image = images[crest];
   const path = CREST_PATHS[crest];
-  if (path) return <svg viewBox="0 0 64 64" className={className} aria-hidden><path d={path} fill="currentColor" fillRule="evenodd" /></svg>;
+  if (path) return <svg viewBox="0 0 64 64" className={`clan-symbol ${className}`} aria-hidden><path d={path} fill="currentColor" fillRule="evenodd" /></svg>;
   if (image) return <img src={image} alt="Clan crest" className={className} />;
   if (/^(data:image\/|https?:\/\/)/.test(crest)) return <img src={crest} alt="Clan crest" className={`object-contain ${className}`} />;
   const Icon = symbols[crest] ?? PawPrint;
