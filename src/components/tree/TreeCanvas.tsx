@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ClanCrest } from "./ClanCrest";
 import { CatAvatar } from "./CatAvatar";
 import { buildIndex, type Kinship } from "@/lib/tree/kinship";
-import { routeMentor, roundedMentorPath } from '@/lib/tree/mentor-routing';
+import { routeMentorConnections, roundedMentorPath } from '@/lib/tree/mentor-routing';
 import { AVATAR, bounds, NODE_H, NODE_W, type Positions } from "@/lib/tree/layout";
 import { CLAN_VAR, catName, type Cat, type ClanPage } from "@/lib/tree/types";
 
@@ -199,7 +199,7 @@ export function TreeCanvas({
   const edges = useMemo(() => {
     const out: { d: string; kind: "blood" | "mate" | "foster" | "mentor"; on: boolean; key: string }[] = [];
     const seenMate = new Set<string>();
-    const mentorKeys = cats.flatMap(c => idx.mentors(c.id).map(p => `${p}~${c.id}`)).sort();
+    const mentorRoutes = options.showMentors ? routeMentorConnections(positions, cats.flatMap(c => visible(c.id) ? idx.mentors(c.id).filter(visible).map(p => ({ mentor:p, apprentice:c.id })) : [])) : new Map();
     const curve = (sx: number, sy: number, ex: number, ey: number) => {
       const my = sy + (ey - sy) / 2;
       return `M${sx},${sy} C${sx},${my} ${ex},${my} ${ex},${ey}`;
@@ -242,7 +242,7 @@ export function TreeCanvas({
         idx.mentors(c.id).forEach((p) => {
           const pp = positions.get(p);
           if (!pp || !visible(p)) return;
-          const d = roundedMentorPath(routeMentor(positions, p, c.id, mentorKeys.indexOf(`${p}~${c.id}`)));
+          const d = roundedMentorPath(mentorRoutes.get(`${p}~${c.id}`) ?? []);
           out.push({ d, kind: "mentor", on: isOn(c.id) && isOn(p), key: "t" + c.id + p });
         });
     }
