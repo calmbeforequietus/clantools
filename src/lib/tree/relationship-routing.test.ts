@@ -8,7 +8,7 @@ it('preserves the original smooth shared-parent curve without long grid detours'
   expect(path).not.toBe('');
   expect(path).toBe('M0,48 C0,171 0,171 0,294');
 });
-it('keeps Princess outgoing connection attached to her ring with a label-clearing detour',()=>{
+it('keeps Princess outgoing connection attached to her ring with one short direct curve',()=>{
   const positions=computeLayout(canonCats());
   const princess=positions.get('princess'),kit=positions.get('cloudtail');
   expect(princess).toBeDefined();expect(kit).toBeDefined();
@@ -16,7 +16,7 @@ it('keeps Princess outgoing connection attached to her ring with a label-clearin
   const start=parentPort(princess);
   expect(Math.hypot(start.x-princess.x,start.y-princess.y-AVATAR_CY)).toBeCloseTo(AVATAR/2);
   const path=parentRelationshipPath(princess,{x:kit.x,y:kit.y+AVATAR_TOP});
-  expect(path.split(' C')).toHaveLength(3);
+  expect(path.split(' C')).toHaveLength(2);
   expect(path.endsWith(`${kit.x},${kit.y+AVATAR_TOP}`)).toBe(true);
 });
 it('keeps a foster connection visible by approaching opposite the foreign Clan crest',()=>{
