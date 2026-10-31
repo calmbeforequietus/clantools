@@ -36,7 +36,7 @@ export function CatDrawer({
 }: {
   cat: Cat;
   cats: Cat[];
-  relTags?: string[];
+  relTags?: string[] | undefined;
   eras?: Era[];
   onClose: () => void;
   onUpdate: (patch: Partial<Cat>) => void;

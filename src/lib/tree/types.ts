@@ -84,7 +84,7 @@ export interface Cat {
   summary?: string;
   biography?: string;
   stages?: LifeStage[];
-  birthEra?: string;
+  birthEra?: string | undefined;
   avatar: Avatar;
   parents: string[];
   fosterParents: string[];
