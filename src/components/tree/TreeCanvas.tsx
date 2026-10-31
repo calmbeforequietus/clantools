@@ -100,6 +100,8 @@ export function TreeCanvas({
   // Fit when a tree is opened
   useEffect(() => {
     fit();
+    const r = requestAnimationFrame(() => fit());
+    return () => cancelAnimationFrame(r);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [treeKey]);
 
@@ -262,7 +264,7 @@ export function TreeCanvas({
               strokeWidth={e.kind === "mate" ? 3 : e.kind === "mentor" ? 2.2 : 2}
               strokeDasharray={dash[e.kind]}
               strokeLinecap="round"
-              opacity={hl ? (e.on ? 0.95 : 0.12) : 0.8}
+              opacity={hl ? (e.on ? 0.95 : 0.1) : e.kind === "mentor" || e.kind === "foster" ? 0.45 : 0.85}
               style={{ transition: "opacity 200ms" }}
             />
           ))}
@@ -307,10 +309,10 @@ export function TreeCanvas({
                 </div>
                 <StatusDot status={c.status} />
               </div>
-              <div className="mt-1.5 w-full truncate font-display text-[15px] font-semibold leading-tight text-foreground">{catName(c)}</div>
-              <div className="mt-1 flex items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
+              <div className="mt-1.5 w-full shrink-0 truncate font-display text-[15px] font-semibold leading-tight text-foreground">{catName(c)}</div>
+              <div className="mt-1 flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-border bg-card px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
                 <span className="h-2 w-2 rounded-full" style={{ background: CLAN_VAR[c.clan] }} />
-                {c.clan} · {c.rank === "None" ? "—" : c.rank}
+                {c.clan} · {c.rank === "None" ? "—" : c.rank === "Medicine Cat" ? "Med Cat" : c.rank}
               </div>
             </button>
           );
