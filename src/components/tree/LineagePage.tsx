@@ -31,6 +31,7 @@ export function LineagePage() {
   const navigate = useNavigate();
   const [moving, setMoving] = useState(false);
   const [addingCat,setAddingCat]=useState(false);
+  const [creatingRelation,setCreatingRelation]=useState<RelKind|null>(null);
   const [nameMatches,setNameMatches]=useState<Cat[]>([]);
   const [combining,setCombining]=useState<Cat|null>(null);
   const newIds=useRef(new Set<string>());
@@ -259,13 +260,7 @@ export function LineagePage() {
           onAddRel={(k, o) => { const issue = checkRelation(cats, focused.id, k, o); if (issue) setWarning({ ...issue, kind: k, other: o }); else setCats(cs => addRelation(cs, focused.id, k, o)); }}
           onRemoveRel={(k, o) => setCats((cs) => removeRelation(cs, focused.id, k, o))}
           onCreateRel={(k: RelKind) => {
-            const isKit = k === "kits" || k === "fosterKits" || k === "apprentices";
-            const c = newCat({ clan: focused.clan, names: [isKit ? "New Kit" : "New Cat"], rank: k === "apprentices" ? "Apprentice" : isKit ? "Kit" : "Warrior" });
-            newIds.current.add(c.id);
-            const issue = checkRelation([...cats, c], focused.id, k, c.id);
-            if (issue) { setWarning({ ...issue, kind: k, other: c.id, pendingCat: c }); return; }
-            setCats(cs => addRelation([...cs, c], focused.id, k, c.id));
-            toast.success(`Added a new cat linked to ${catName(focused)}`);
+            setCreatingRelation(k);
           }}
           onDelete={() => {
             if (!window.confirm(`Remove ${catName(focused)} from this tree?`)) return;
@@ -277,6 +272,18 @@ export function LineagePage() {
       {warning && <Dialog open onOpenChange={v => !v && setWarning(null)}><DialogContent><DialogHeader><DialogTitle>{warning.title}</DialogTitle></DialogHeader><p className="text-sm leading-relaxed text-muted-foreground">{warning.message}</p><DialogFooter><Button variant="outline" onClick={() => setWarning(null)}>{warning.blocked ? 'Close' : 'Cancel'}</Button>{!warning.blocked && <Button onClick={() => { if (focusId) setCats(cs => addRelation(warning.pendingCat ? [...cs, warning.pendingCat] : cs, focusId, warning.kind, warning.other)); setWarning(null); }}>Connect anyway</Button>}</DialogFooter></DialogContent></Dialog>}
       {moving && <Dialog open onOpenChange={setMoving}><DialogContent><DialogHeader><DialogTitle>Move lineage</DialogTitle></DialogHeader><p className="text-sm text-muted-foreground">Move “{tree.name}” and all its cats to another Clan. Cat affiliations and relationships stay unchanged.</p><Select value={destination} onValueChange={setDestination}><SelectTrigger aria-label="Destination Clan"><SelectValue placeholder="Choose a Clan" /></SelectTrigger><SelectContent>{store.clans.filter(c=>c.id!==clanId).map(c=><SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select><DialogFooter><Button variant="outline" onClick={()=>setMoving(false)}>Cancel</Button><Button disabled={!destination} onClick={()=>{setStore(s=>s && moveLineage(s,tree.id,destination));setMoving(false);navigate({to:'/clan/$clanId/lineage',params:{clanId:destination},search:{}});}}>Move lineage</Button></DialogFooter></DialogContent></Dialog>}
       {addingCat && <ExistingCatPicker all={sharedCats(store.trees)} available={sharedCats(store.trees).filter(c=>!cats.some(local=>local.id===c.id))} onClose={()=>setAddingCat(false)} onNew={(name)=>{setAddingCat(false);actions.addCat(name);}} onAdd={(id,selected)=>{setCats(cs=>reuseCat(cs,sharedCats(store.trees),id,selected));setAddingCat(false);select(id);}}/>}
+      {creatingRelation&&focused&&<ExistingCatPicker nameFirst all={sharedCats(store.trees)} available={[]} onClose={()=>setCreatingRelation(null)} onNew={name=>{
+        const kind=creatingRelation,isKit=kind==='kits'||kind==='fosterKits';
+        const c=newCat({names:[name],clan:focused.clan,rank:kind==='apprentices'?'Apprentice':isKit?'Kit':'Warrior'});
+        newIds.current.add(c.id);setCreatingRelation(null);
+        const issue=checkRelation([...cats,c],focused.id,kind,c.id);
+        if(issue)setWarning({...issue,kind,other:c.id,pendingCat:c});else setCats(cs=>addRelation([...cs,c],focused.id,kind,c.id));
+      }} onAdd={(id,selected)=>{
+        const kind=creatingRelation,next=reuseCat(cats,sharedCats(store.trees),id,selected);
+        setCreatingRelation(null);const issue=checkRelation(next,focused.id,kind,id);
+        if(issue){if(!issue.blocked)setCats(()=>next);setWarning({...issue,kind,other:id});}
+        else setCats(()=>addRelation(next,focused.id,kind,id));
+      }}/>} 
       {nameMatches.length>0&&focused&&<Dialog open onOpenChange={v=>!v&&setNameMatches([])}><DialogContent><DialogHeader><DialogTitle>Is this the same character?</DialogTitle></DialogHeader>{nameMatches.map(c=><Button key={c.id} variant="outline" className="h-auto whitespace-normal" onClick={()=>{setNameMatches([]);setCombining(c);}}>Same character: {catName(c)} · {c.clan}</Button>)}<Button variant="secondary" onClick={()=>{separateIds.current.add(focused.id);setNameMatches([]);}}>No, this is a separate character</Button></DialogContent></Dialog>}
       {combining&&focused&&<ExistingCatPicker initialCat={combining} available={[]} all={sharedCats(store.trees)} onClose={()=>setCombining(null)} onNew={()=>setCombining(null)} onAdd={(id,selected)=>{setCats(cs=>combineCat(cs,sharedCats(store.trees),focused.id,id,selected));newIds.current.delete(focused.id);setCombining(null);select(id);}}/>}
     </main>

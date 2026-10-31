@@ -7,9 +7,9 @@ import { catName,type Cat } from '@/lib/tree/types';
 import { knownRelationships,matchingNames } from '@/lib/tree/shared-cats';
 import { CatAvatar } from './CatAvatar';
 
-export function ExistingCatPicker({available,all,onClose,onNew,onAdd,initialCat}:{available:Cat[];all:Cat[];onClose:()=>void;onNew:(name:string)=>void;onAdd:(id:string,selected:string[])=>void;initialCat?:Cat}){
+export function ExistingCatPicker({available,all,onClose,onNew,onAdd,initialCat,nameFirst=false}:{available:Cat[];all:Cat[];onClose:()=>void;onNew:(name:string)=>void;onAdd:(id:string,selected:string[])=>void;initialCat?:Cat;nameFirst?:boolean}){
   const [query,setQuery]=useState(''),[chosen,setChosen]=useState<Cat|null>(initialCat??null),[selected,setSelected]=useState<string[]>([]);
-  const [creating,setCreating]=useState(false),[name,setName]=useState(''),[duplicates,setDuplicates]=useState<Cat[]>([]);
+  const [creating,setCreating]=useState(nameFirst),[name,setName]=useState(''),[duplicates,setDuplicates]=useState<Cat[]>([]);
   const matches=useMemo(()=>available.filter(c=>c.names.some(n=>n.toLowerCase().includes(query.toLowerCase()))),[available,query]);
   const relationships=chosen?knownRelationships(all,chosen.id):[];
   return <Dialog open onOpenChange={v=>!v&&onClose()}><DialogContent className="max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>{chosen?`Add ${catName(chosen)}`:'Add cat'}</DialogTitle></DialogHeader>
