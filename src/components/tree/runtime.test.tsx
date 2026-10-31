@@ -7,6 +7,14 @@ import { computeLayout } from '@/lib/tree/layout';
 
 afterEach(() => { cleanup(); localStorage.clear(); });
 
+it('shares context identity across separately evaluated preview modules', async () => {
+  const original = await import('./forest-context');
+  const first = original.getForestContext();
+  vi.resetModules();
+  const refreshed = await import('./forest-context');
+  expect(refreshed.getForestContext()).toBe(first);
+});
+
 it('keeps the saved store available when provider children update', async () => {
   function Reader({ revision }: { revision: number }) {
     const { store } = useForest();

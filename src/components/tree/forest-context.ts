@@ -3,8 +3,17 @@ import type { Store } from '@/lib/tree/ops';
 
 export type ForestContextValue = { store: Store | null; setStore: Dispatch<SetStateAction<Store | null>> };
 
-// Keep the context identity when Vite updates the provider independently from
-// route chunks. A mounted provider and refreshed consumer must use one context.
-const cached: Context<ForestContextValue | null> | undefined = import.meta.hot?.data?.['forestContext'];
-export const ForestContext = cached ?? createContext<ForestContextValue | null>(null);
-if (import.meta.hot?.data) import.meta.hot.data['forestContext'] = ForestContext;
+const serverContext = createContext<ForestContextValue | null>(null);
+type ForestRegistry = typeof globalThis & {
+  __warriorForestContext?: Context<ForestContextValue | null>;
+};
+
+// Timestamped preview imports may coexist: hot.data belongs to a module URL,
+// not the browser. Resolve one context per browser even across module copies.
+// Only the context identity is shared; saved state remains in React's provider.
+export function getForestContext(): Context<ForestContextValue | null> {
+  if (typeof window === 'undefined') return serverContext;
+  const registry = globalThis as ForestRegistry;
+  registry.__warriorForestContext ??= createContext<ForestContextValue | null>(null);
+  return registry.__warriorForestContext;
+}
