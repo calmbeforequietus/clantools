@@ -1,3 +1,8 @@
+# Policy clarity and contact
+- [x] Strengthen plain-language Terms and Privacy without making unverifiable privacy promises.
+- [x] Replace placeholder email and remove placeholder explanation.
+- [x] Verify policy readability and working email links; all three pages load with correct email links, mobile layouts checked and build OK.
+
 # Site information and Clan cleanup
 - [x] Add copyright footer, simple Terms, Privacy and About with placeholder contact.
 - [x] Remove lingering original Clan pages while preserving expanded ThunderClan data.
