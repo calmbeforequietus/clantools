@@ -1,9 +1,11 @@
 # Current Clan updates
-- [ ] Center gateway heading and unify bold wordmark; align Clan actions and separate medicine cats.
-- [ ] Living-only Allegiances with off-by-default StarClan switch and bold rank labels.
-- [ ] Custom cat icon creator for new and existing cats with saved editable settings.
-- [ ] Obstacle-aware, separated mentor paths.
-- [ ] Test filters and routing; verify editing and saved icons in the browser.
+- [x] Center gateway heading and unify bold wordmark; align Clan actions and separate medicine cats.
+- [x] Living-only Allegiances with off-by-default StarClan switch and bold rank labels.
+- [x] Custom cat icon creator for new and existing cats with saved editable settings.
+- [x] Obstacle-aware, separated mentor paths.
+- [x] Test filters and routing; verify editing and saved icons in the browser.
+
+Verified: 27 tests passed; StarClan switch excludes deceased cats initially; custom tortoiseshell coat, different eye colors and mouth settings persist and reopen editable; desktop and narrow Clan layouts inspected without horizontal overflow.
 
 # Clantools refinements
 - [x] Match official and custom crest visual sizes.
