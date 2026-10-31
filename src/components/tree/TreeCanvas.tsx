@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type Ref } from "react";
 import { toPng } from "html-to-image";
-import { Leaf, Moon, PawPrint, Shield, Sparkles, Star } from "lucide-react";
+import { Leaf, Moon, PawPrint, Shield, Sparkles, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ClanCrest } from "./ClanCrest";
 import { CatAvatar } from "./CatAvatar";
@@ -53,6 +53,8 @@ export function TreeCanvas({
   const containerRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ x: 0, y: 0, k: 1 });
+  const [selectedEdge, setSelectedEdge] = useState<{ key: string; ids: string[] } | null>(null);
+  useEffect(() => setSelectedEdge(null), [treeKey, options, cats]);
   const viewRef = useRef(view);
   viewRef.current = view;
   const moved = useRef(false);
@@ -191,13 +193,13 @@ export function TreeCanvas({
   };
 
   const idx = useMemo(() => buildIndex(cats), [cats]);
-  const hl = kinship?.highlight;
+  const hl = selectedEdge ? new Set(selectedEdge.ids) : kinship?.highlight;
   const isOn = (id: string) => !hl || hl.has(id);
   const visible = (id: string) => !(options.hideUnrelated && hl && !hl.has(id));
 
   // Edges
   const edges = useMemo(() => {
-    const out: { d: string; kind: "blood" | "mate" | "foster" | "mentor"; on: boolean; key: string }[] = [];
+    const out: { d: string; kind: "blood" | "mate" | "foster" | "mentor"; on: boolean; key: string; ids: string[] }[] = [];
     const seenMate = new Set<string>();
     const mentorRoutes = options.showMentors ? routeMentorConnections(positions, cats.flatMap(c => visible(c.id) ? idx.mentors(c.id).filter(visible).map(p => ({ mentor:p, apprentice:c.id })) : [])) : new Map();
     const curve = (sx: number, sy: number, ex: number, ey: number) => {
@@ -217,33 +219,33 @@ export function TreeCanvas({
         const d = y1 === y2
           ? `M${l.x + AVATAR / 2},${y1} H${r.x - AVATAR / 2}`
           : curve(l.x, l.y + NODE_H, r.x, r.y);
-        out.push({ d, kind: "mate", on: isOn(c.id) && isOn(m), key: "m" + k });
+        out.push({ d, kind: "mate", on: isOn(c.id) && isOn(m), key: "m" + k, ids: [c.id,m] });
       }
       const ps = (options.showParents ? idx.parents(c.id) : []).filter((p) => positions.has(p) && visible(p));
       const ex = cp.x, ey = cp.y + 6;
       const [pa, pb] = ps;
       const a = pa ? positions.get(pa) : undefined, bb = pb ? positions.get(pb) : undefined;
       if (ps.length === 2 && pa && pb && a && bb && idx.mates(pa).includes(pb) && a.y === bb.y) {
-        out.push({ d: curve((a.x + bb.x) / 2, a.y + AV_CY, ex, ey), kind: "blood", on: isOn(c.id) && isOn(pa), key: "b" + c.id });
+        out.push({ d: curve((a.x + bb.x) / 2, a.y + AV_CY, ex, ey), kind: "blood", on: isOn(c.id) && isOn(pa), key: "b" + c.id, ids: [pa,pb,c.id] });
       } else {
         ps.forEach((p) => {
           const pp = positions.get(p);
           if (!pp) return;
-          out.push({ d: curve(pp.x, pp.y + NODE_H - 4, ex, ey), kind: "blood", on: isOn(c.id) && isOn(p), key: "b" + c.id + p });
+          out.push({ d: curve(pp.x, pp.y + NODE_H - 4, ex, ey), kind: "blood", on: isOn(c.id) && isOn(p), key: "b" + c.id + p, ids: [p,c.id] });
         });
       }
       if (options.showFoster)
         idx.fosterParents(c.id).forEach((p) => {
           const pp = positions.get(p);
           if (!pp || !visible(p)) return;
-          out.push({ d: curve(pp.x + 18, pp.y + NODE_H - 4, ex + 18, ey), kind: "foster", on: isOn(c.id) && isOn(p), key: "f" + c.id + p });
+          out.push({ d: curve(pp.x + 18, pp.y + NODE_H - 4, ex + 18, ey), kind: "foster", on: isOn(c.id) && isOn(p), key: "f" + c.id + p, ids: [p,c.id] });
         });
       if (options.showMentors)
         idx.mentors(c.id).forEach((p) => {
           const pp = positions.get(p);
           if (!pp || !visible(p)) return;
-          const d = roundedMentorPath(mentorRoutes.get(`${p}~${c.id}`) ?? []);
-          out.push({ d, kind: "mentor", on: isOn(c.id) && isOn(p), key: "t" + c.id + p });
+          const d = roundedMentorPath(mentorRoutes.get(`${p}~${c.id}`) ?? [], positions);
+          out.push({ d, kind: "mentor", on: isOn(c.id) && isOn(p), key: "t" + c.id + p, ids: [p,c.id] });
         });
     }
     return out;
@@ -263,8 +265,12 @@ export function TreeCanvas({
         backgroundPosition: `${view.x}px ${view.y}px`,
       }}
       onPointerDown={onPointerDown}
-      onClick={() => !moved.current && onSelect(null)}
+      onClick={() => { if (!moved.current) { setSelectedEdge(null); onSelect(null); } }}
     >
+      {selectedEdge && <div className="absolute left-3 top-20 z-20 flex max-w-[calc(100%-24px)] flex-wrap items-center gap-2 rounded-md border border-border bg-card p-2 shadow-float" onPointerDown={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()}>
+        {selectedEdge.ids.map(id => { const cat=idx.byId.get(id); return cat && <Button key={id} variant="ghost" size="sm" onClick={()=>{setSelectedEdge(null);onSelect(id);}}>{catName(cat)}</Button>; })}
+        <Button variant="ghost" size="icon" className="size-8" aria-label="Clear relationship highlight" onClick={()=>setSelectedEdge(null)}><X /></Button>
+      </div>}
       <div
         ref={worldRef}
         className="absolute left-0 top-0"
@@ -279,8 +285,8 @@ export function TreeCanvas({
         >
           <defs><marker id="mentor-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10" fill="var(--edge-mentor)" /></marker></defs>
           {edges.map((e) => (
+            <g key={e.key}>
             <path
-              key={e.key}
               d={e.d}
               fill="none"
               stroke={stroke[e.kind]}
@@ -289,25 +295,34 @@ export function TreeCanvas({
               markerEnd={e.kind === "mentor" ? "url(#mentor-arrow)" : undefined}
               strokeLinejoin="round"
               strokeLinecap="round"
-              opacity={hl ? (e.on ? 0.95 : 0.1) : e.kind === "mentor" ? 0.9 : e.kind === "foster" ? 0.45 : 0.85}
+              opacity={selectedEdge ? (selectedEdge.key === e.key ? 1 : 0.12) : hl ? (e.on ? 0.95 : 0.1) : e.kind === "mentor" ? 0.9 : e.kind === "foster" ? 0.45 : 0.85}
               style={{ transition: "opacity 200ms" }}
             />
+            <path d={e.d} fill="none" stroke="transparent" strokeWidth={18} className="pointer-events-auto cursor-pointer" style={{pointerEvents:'stroke'}}
+              role="button" tabIndex={0} aria-label={`${e.kind === 'mentor' ? 'Mentor' : e.kind === 'mate' ? 'Mates' : e.kind === 'foster' ? 'Foster' : 'Parentage'} connection: ${e.ids.map(id=>catName(idx.byId.get(id) ?? {names:[]} as Cat)).join(' and ')}`}
+              aria-pressed={selectedEdge?.key === e.key}
+              onPointerDown={event=>event.stopPropagation()}
+              onClick={event=>{event.stopPropagation();onSelect(null);setSelectedEdge({key:e.key,ids:e.ids});}}
+              onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();onSelect(null);setSelectedEdge({key:e.key,ids:e.ids});}}}
+            />
+            </g>
           ))}
         </svg>
         {cats.map((c) => {
           const p = positions.get(c.id);
           if (!p || !visible(c.id)) return null;
-          const focused = c.id === focusId;
-          const tags = kinship?.labels.get(c.id);
+          const focused = selectedEdge ? selectedEdge.ids.includes(c.id) : c.id === focusId;
+          const tags = selectedEdge ? undefined : kinship?.labels.get(c.id);
           return (
             <Button variant="ghost"
               key={c.id}
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                if (!moved.current) onSelect(c.id);
+                if (!moved.current) { setSelectedEdge(null); onSelect(c.id); }
               }}
               aria-label={`View ${catName(c)}`}
+              data-relationship-highlighted={selectedEdge?.ids.includes(c.id) ?? false}
               className="group absolute flex flex-col gap-0 rounded-none p-0 items-center whitespace-normal text-center outline-none hover:bg-transparent"
               style={{
                 left: p.x - NODE_W / 2,
@@ -323,7 +338,7 @@ export function TreeCanvas({
                   {tags.slice(0, 2).join(" · ")}
                 </span>
               )}
-              {focused && (
+              {focused && !selectedEdge && (
                 <span className="absolute -top-5 rounded-full bg-foreground px-2 py-0.5 text-[11px] font-semibold text-background">Focused</span>
               )}
               <div className="relative mt-3.5">

@@ -41,7 +41,9 @@ export function routeMentor(positions: Positions, mentor: string, apprentice: st
           ? Math.min(Math.max(ax,bx),Math.max(p.x,q.x)) > Math.max(Math.min(ax,bx),Math.min(p.x,q.x))
           : ax === bx && p.x === q.x && ax === p.x && Math.min(Math.max(ay,by),Math.max(p.y,q.y)) > Math.max(Math.min(ay,by),Math.min(p.y,q.y));
       }));
-      const nk = key(nx,ny), cost = (costs.get(k) ?? 0)+Math.abs(bx-ax)+Math.abs(by-ay)+(shared ? 10000 : 0);
+      const prior = previous.get(k)?.split(':').map(Number);
+      const turn = prior && (prior[0] === current.x ? nx !== current.x : ny !== current.y);
+      const nk = key(nx,ny), cost = (costs.get(k) ?? 0)+Math.abs(bx-ax)+Math.abs(by-ay)+(shared ? 10000 : 0)+(turn ? 60 : 0);
       if (cost >= (costs.get(nk) ?? Infinity)) continue;
       costs.set(nk,cost); previous.set(nk,k);
       open.push({x:nx,y:ny,score:cost+Math.abs(bx-end.x)+Math.abs(by-end.y)});
@@ -77,7 +79,7 @@ export function routeMentorConnections(positions: Positions, links: { mentor: st
   });
   return routes;
 }
-export function roundedMentorPath(points: Point[]) {
+export function roundedMentorPath(points: Point[], positions: Positions = new Map()) {
   const start = points[0];
   if (!start) return '';
   let path = `M${start.x},${start.y}`;
@@ -85,8 +87,20 @@ export function roundedMentorPath(points: Point[]) {
     const p = points[i], before = points[i-1], after = points[i+1];
     if (!p || !before) continue;
     if (!after) { path += ` L${p.x},${p.y}`; continue; }
-    const a = Math.hypot(p.x-before.x,p.y-before.y), b = Math.hypot(after.x-p.x,after.y-p.y), radius = Math.min(12,a/2,b/2);
+    const a = Math.hypot(p.x-before.x,p.y-before.y), b = Math.hypot(after.x-p.x,after.y-p.y);
     if (!a || !b) continue;
+    let radius = Math.min(120,a/2,b/2);
+    // Wide quadratic bends soften each detour, but never cut through a cat.
+    const unsafe = (r: number) => {
+      const from = { x:p.x+(before.x-p.x)*r/a, y:p.y+(before.y-p.y)*r/a };
+      const to = { x:p.x+(after.x-p.x)*r/b, y:p.y+(after.y-p.y)*r/b };
+      for (let j=0;j<=24;j++) {
+        const t=j/24, u=1-t, x=u*u*from.x+2*u*t*p.x+t*t*to.x, y=u*u*from.y+2*u*t*p.y+t*t*to.y;
+        if ([...positions.values()].some(node => x>node.x-NODE_W/2-6 && x<node.x+NODE_W/2+6 && y>node.y-6 && y<node.y+NODE_H+6)) return true;
+      }
+      return false;
+    };
+    while (radius>8 && unsafe(radius)) radius/=2;
     path += ` L${p.x+(before.x-p.x)*radius/a},${p.y+(before.y-p.y)*radius/a} Q${p.x},${p.y} ${p.x+(after.x-p.x)*radius/b},${p.y+(after.y-p.y)*radius/b}`;
   }
   return path;
