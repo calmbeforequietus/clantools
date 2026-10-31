@@ -208,7 +208,7 @@ html[data-text="lg"] { font-size: 18px; }
 html[data-text="xl"] { font-size: 20px; }
 
 /* Spirit realm filter */
-.spirit-starclan { filter: drop-shadow(0 0 6px var(--spirit-star)) drop-shadow(0 0 14px var(--spirit-star)); }
+.spirit-starclan { filter: drop-shadow(0 0 7px color-mix(in oklab, var(--spirit-star) 70%, transparent)); }
 .spirit-star { position: absolute; color: var(--spirit-star); pointer-events: none; line-height: 1; filter: drop-shadow(0 0 2px var(--spirit-star)); }
 .spirit-shadow { position: absolute; inset: 3px; border-radius: 9999px; pointer-events: none; background: linear-gradient(to top, color-mix(in oklab, var(--spirit-dark) 92%, transparent) 0%, color-mix(in oklab, var(--spirit-dark) 70%, transparent) 22%, transparent 33%); }
 .spirit-darkforest { filter: drop-shadow(0 0 8px var(--spirit-dark)) drop-shadow(0 0 16px var(--spirit-dark)); }
