@@ -1,4 +1,8 @@
-import type { ClanPage, Tree } from './types';
+import type { Cat, ClanPage, Tree } from './types';
+
+export function allegianceCats(cats: Cat[], includeStarClan = false) {
+  return cats.filter(c => c.status === 'Living' || (includeStarClan && c.status === 'StarClan'));
+}
 
 export const CRESTS = ['ThunderClan', 'ShadowClan', 'WindClan', 'RiverClan', 'SkyClan', 'StarClan', 'BloodClan', 'Leaf', 'Feather', 'Flame', 'Mountain', 'Flower', 'Fish', 'Sun', 'Snow', 'Paw'];
 export const CLAN_COLORS = ['var(--clan-thunder)', 'var(--clan-shadow)', 'var(--clan-wind)', 'var(--clan-river)', 'var(--clan-sky)', 'var(--clan-star)', 'var(--clan-blood)', 'var(--clan-kittypet)'];

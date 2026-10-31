@@ -1,3 +1,5 @@
+import type { CatIconSettings } from './cat-icon';
+
 export const CLANS = [
   "ThunderClan",
   "ShadowClan",
@@ -50,6 +52,7 @@ export const GENDERS = ["She-cat", "Tom", "Other"] as const;
 export type Gender = (typeof GENDERS)[number];
 
 export type Avatar =
+  | { kind: "custom"; settings: CatIconSettings }
   | { kind: "pelt"; pelt: string }
   | { kind: "clan"; clan: Clan }
   | { kind: "image"; src: string };

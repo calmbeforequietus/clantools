@@ -1,3 +1,16 @@
+# Current Clan updates
+- [x] Align New Clan tile bottom edge with Clan tiles.
+- [x] Move lineage, edit and arrange controls higher on Clan pages.
+- [x] Make the small cat mouth an upside-down V.
+- [x] Remove main-page Clan count and give shared mentor connections unique approaches at each cat.
+- [x] Center gateway heading and unify bold wordmark; align Clan actions and separate medicine cats.
+- [x] Living-only Allegiances with off-by-default StarClan switch and bold rank labels.
+- [x] Custom cat icon creator for new and existing cats with saved editable settings.
+- [x] Obstacle-aware, separated mentor paths.
+- [x] Test filters and routing; verify editing and saved icons in the browser.
+
+Verified: 28 tests passed; StarClan switch excludes deceased cats initially; custom tortoiseshell coat, different eye colors and mouth settings persist and reopen editable; desktop and narrow Clan layouts inspected without horizontal overflow.
+
 # Clantools refinements
 - [x] Match official and custom crest visual sizes.
 - [x] Confirmed Clan deletion and lineage transfer with persistence tests.

@@ -158,7 +158,7 @@ export function LineagePage() {
       {/* Top-left: brand + tree switcher */}
       <div className="absolute left-3 top-3 z-20 flex items-center gap-2 rounded-2xl border border-border bg-card/95 p-1.5 pl-3 shadow-float backdrop-blur">
         <Button size="icon" variant="ghost" title="Back to Clan" aria-label="Back to Clan" asChild><Link to="/clan/$clanId" params={{ clanId }}><ArrowLeft /></Link></Button>
-        <span className="hidden font-display text-lg font-bold text-primary">{clan.name}</span>
+        <span className="site-wordmark">Clantools</span>
         <span className="h-5 w-px bg-border" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -187,7 +187,7 @@ export function LineagePage() {
 
       {/* Top-center: focus banner */}
       {focused && (
-        <div className={`absolute top-3 z-20 hidden -translate-x-1/2 ${drawer ? "left-[calc((100%-416px)/2)] " : "left-1/2"} items-center gap-3 rounded-full border border-border bg-card/95 py-1.5 pl-4 pr-1.5 text-sm shadow-float backdrop-blur xl:flex`}>
+        <div className={`absolute top-20 z-20 hidden -translate-x-1/2 ${drawer ? "left-[calc((100%-416px)/2)] " : "left-1/2"} items-center gap-3 rounded-full border border-border bg-card/95 py-1.5 pl-4 pr-1.5 text-sm shadow-float backdrop-blur xl:flex`}>
           <Focus size={15} className="text-primary" />
           <span>Focused on <b>{catName(focused)}</b> · {relCount} relatives</span>
           <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -199,7 +199,7 @@ export function LineagePage() {
       )}
 
       {/* Top-right: actions */}
-      <div className={`absolute top-3 z-20 flex items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-float backdrop-blur transition-all right-3 ${drawer ? "hidden" : ""}`}>
+      <div className={`absolute top-20 sm:top-3 z-20 flex items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-float backdrop-blur transition-all right-3 ${drawer ? "hidden" : ""}`}>
         <Button size="sm" onClick={actions.addCat}><Plus size={15} /> Add cat</Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
