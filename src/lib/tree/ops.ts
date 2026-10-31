@@ -151,3 +151,18 @@ export function isTree(x: unknown): x is Tree {
   const t = x as Tree;
   return !!t && typeof t.name === "string" && Array.isArray(t.cats);
 }
+
+// ---------- full backup ----------
+export interface Backup { app: 'clantools'; kind: 'backup'; version: 1; exportedAt: string; store: Store }
+export function makeBackup(store: Store, now = new Date()): Backup {
+  return { app: 'clantools', kind: 'backup', version: 1, exportedAt: now.toISOString(), store };
+}
+/** Returns the restorable store, or null when the file is not a Clantools backup. */
+export function parseBackup(x: unknown): Store | null {
+  const b = x as Backup;
+  if (!b || b.app !== 'clantools' || b.kind !== 'backup' || !b.store) return null;
+  const s = b.store;
+  if (!Array.isArray(s.trees) || !Array.isArray(s.clans) || !s.trees.every(isTree)) return null;
+  const activeId = s.trees.some(t => t.id === s.activeId) ? s.activeId : s.trees[0]?.id ?? '';
+  return { ...s, activeId, presentationVersion: PRESENTATION_VERSION };
+}
