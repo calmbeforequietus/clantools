@@ -146,7 +146,7 @@ export function CatDrawer({
               <Textarea rows={2} value={cat.appearance} onChange={(e) => onUpdate({ appearance: e.target.value })} placeholder="Flame-colored tom with green eyes…" />
             </Field>
           </div>
-          <div className="col-span-2"><Field label="Born under leadership"><Select value={cat.birthEra ?? "unknown"} onValueChange={v => onUpdate({ birthEra: v === "unknown" ? undefined : v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unknown">Not recorded</SelectItem>{eras.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}</SelectContent></Select></Field></div>
+<div className="col-span-2"><Field label="Born under leadership"><Select value={cat.birthEra ?? "unknown"} onValueChange={v => onUpdate({ birthEra: v === "unknown" ? undefined : v })}><SelectTrigger aria-label="Born under leadership"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unknown">Not recorded</SelectItem>{eras.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}</SelectContent></Select></Field></div>
         </section> : <section className="space-y-2 border-y border-border py-4"><p className="text-sm">{cat.gender} · {cat.rank} · {STATUS_LABEL[cat.status]}</p><p className="whitespace-pre-wrap text-sm text-muted-foreground">{cat.appearance}</p>{cat.birthEra && <p className="text-xs text-muted-foreground">Born under: {eras.find(e => e.id === cat.birthEra)?.name ?? "Unknown era"}</p>}</section>}
 
         <section>

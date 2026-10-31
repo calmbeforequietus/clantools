@@ -20,7 +20,7 @@ import { canonTree } from "@/lib/tree/canon";
 import { computeKinship } from "@/lib/tree/kinship";
 import { computeLayout } from "@/lib/tree/layout";
 import {
-  addRelation, deleteCat, isTree, loadStore, mutate, newCat, removeRelation, saveStore, type RelKind, type Store,
+  addRelation, deleteCat, isTree, newCat, removeRelation, type RelKind,
 } from "@/lib/tree/ops";
 import { catName, type Cat, type Tree } from "@/lib/tree/types";
 
