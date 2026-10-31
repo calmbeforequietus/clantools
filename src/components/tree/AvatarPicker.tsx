@@ -11,7 +11,7 @@ import { CatAvatar, ClanBadge, PeltFace } from "./CatAvatar";
 import { CatIconCreator } from './CatIconCreator';
 import { DEFAULT_CAT_ICON } from '@/lib/tree/cat-icon';
 
-export function AvatarPicker({ value, onChange }: { value: Avatar; onChange: (a: Avatar) => void }) {
+export function AvatarPicker({ value, onChange, className }: { value: Avatar; onChange: (a: Avatar) => void; className?: string }) {
   const [url, setUrl] = useState("");
   const onFile = (f: File | undefined) => {
     if (!f) return;
@@ -23,8 +23,8 @@ export function AvatarPicker({ value, onChange }: { value: Avatar; onChange: (a:
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" type="button" className="group relative h-auto rounded-full p-0 ring-2 ring-border transition hover:ring-primary" aria-label="Change avatar">
-          <CatAvatar avatar={value} className="h-20 w-20" />
+        <Button variant="ghost" type="button" className={`group relative h-auto rounded-full p-0 ring-2 ring-border transition hover:ring-primary ${className ?? ""}`} aria-label="Change avatar">
+          <CatAvatar avatar={value} className={className ?? "h-20 w-20 sm:h-24 sm:w-24 shrink-0"} />
           <span className="absolute inset-x-0 bottom-0 rounded-b-full bg-foreground/60 py-0.5 text-[10px] font-semibold text-background opacity-0 transition group-hover:opacity-100">
             Change
           </span>

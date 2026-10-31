@@ -14,10 +14,10 @@ export function CustomCatFace({ settings }: { settings: CatIconSettings }) {
   const scar = { stroke: 'var(--cat-scar)', strokeWidth: 1.6, strokeLinecap: 'round' as const, fill: 'none' };
   return <svg viewBox="0 0 64 64" role="img" aria-label="Custom cat icon" className="h-full! w-full!">
     <rect width="64" height="64" fill="var(--muted)" />
-    <path d="M11 35 14 7 30 22 M53 35 50 7 34 22" fill={earFill} />
+    <path d="M11 35 14 7 30 22 M53 35 50 7 34 22" fill={earFill} stroke="var(--cat-ink)" strokeWidth="0.8" strokeOpacity=".25" />
     <path d="M16 26 17 13 26 23 M48 26 47 13 38 23" fill="var(--cat-rose)" />
     {s.ears !== 'whole' && EAR_CUT[s.ears ?? ''] && <path d={EAR_CUT[s.ears ?? '']} fill="var(--muted)" />}
-    <ellipse cx="32" cy="38" rx="22" ry="20" fill={base} />
+    <ellipse cx="32" cy="38" rx="22" ry="20" fill={base} stroke="var(--cat-ink)" strokeWidth="0.8" strokeOpacity=".25" />
     {s.pattern === 'tabby' && <g stroke={mark} strokeWidth="3" strokeLinecap="round"><path d="M32 20v9 M25 22l3 7 M39 22l-3 7 M12 39l7 2 M13 46l7 1 M52 39l-7 2 M51 46l-7 1" /></g>}
     {s.pattern === 'marbled' && <g stroke={mark} strokeWidth="3" fill="none" strokeLinecap="round"><path d="M24 21Q32 28 40 21 M13 38Q19 33 18 44 M51 38Q45 33 46 44 M28 25Q32 31 36 25" /></g>}
     {s.pattern === 'tortoiseshell' && <g fill={mark}><path d="M11 36Q15 20 30 20L27 36 17 45Z" /><path d="M37 46Q50 36 53 40Q51 55 39 57Z" /></g>}

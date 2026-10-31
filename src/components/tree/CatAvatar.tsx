@@ -23,11 +23,11 @@ export function PeltFace({ pelt }: { pelt: string }) {
   return (
     <svg viewBox="0 0 64 64" className="h-full! w-full!">
       <rect width="64" height="64" fill="var(--muted)" />
-      <path d="M12 34 L16 9 L30 22 Z" fill={p.base} />
-      <path d="M52 34 L48 9 L34 22 Z" fill={p.base} />
+      <path d="M12 34 L16 9 L30 22 Z" fill={p.base} stroke="#1a1412" strokeWidth="0.8" strokeOpacity="0.25" />
+      <path d="M52 34 L48 9 L34 22 Z" fill={p.base} stroke="#1a1412" strokeWidth="0.8" strokeOpacity="0.25" />
       <path d="M16 28 L18 14 L26 22 Z" fill={p.mark} opacity="0.55" />
       <path d="M48 28 L46 14 L38 22 Z" fill={p.mark} opacity="0.55" />
-      <ellipse cx="32" cy="38" rx="21" ry="19" fill={p.base} />
+      <ellipse cx="32" cy="38" rx="21" ry="19" fill={p.base} stroke="#1a1412" strokeWidth="0.8" strokeOpacity="0.25" />
       {p.pattern === "tabby" && (
         <g stroke={p.mark} strokeWidth="2.4" strokeLinecap="round" fill="none">
           <path d="M32 21 V28" />

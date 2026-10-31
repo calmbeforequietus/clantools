@@ -25,39 +25,38 @@ export function Devlog() {
       </header>
 
       <div className="mx-auto max-w-3xl py-10 sm:py-14">
-        <div className="mb-10 border-b border-border pb-8">
+        <div className="mb-8">
           <h1 className="clan-heading text-4xl sm:text-5xl">Devlog</h1>
         </div>
 
-        <article className="rounded-2xl border border-border bg-card p-6 sm:p-9 shadow-sm">
-          {/* Post Meta */}
-          <div className="border-b border-border pb-5">
-            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+        <article className="space-y-6">
+          <div>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
                 <Calendar size={14} className="text-primary" />
                 October 31, 2026
               </span>
+              <span>·</span>
               <span className="inline-flex items-center gap-1.5">
                 <Tag size={14} />
                 Version 1.0
               </span>
             </div>
-            <h2 className="mt-3 font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            <h2 className="mt-2 font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
               Version 1.0 — Initial Release
             </h2>
           </div>
 
-          {/* Post Content */}
-          <div className="mt-6 space-y-5 text-sm sm:text-base leading-relaxed text-foreground">
+          <div className="space-y-5 text-sm sm:text-base leading-relaxed text-foreground">
             <p>
               Clantools is live! I built this because I wanted a dedicated place to plan Warrior Cats stories — somewhere to track family trees, keep character histories, and manage Clan lore without juggling spreadsheets and Discord docs. Here's everything that's in it:
             </p>
 
-            <div className="rounded-xl border border-border bg-muted/30 p-4 sm:p-5">
+            <div className="pt-2">
               <h3 className="mb-3 font-display text-base sm:text-lg font-semibold text-foreground">
                 Features
               </h3>
-              <ul className="space-y-3 pl-5 list-disc text-sm sm:text-[15px] leading-relaxed text-muted-foreground">
+              <ul className="space-y-2.5 pl-5 list-disc text-sm sm:text-[15px] leading-relaxed text-muted-foreground">
                 <li>
                   <strong className="text-foreground">Interactive Lineage Canvas:</strong> Drag to pan, scroll or pinch to zoom, fit-to-view, and a minimap for big trees. Cats can be repositioned by hand with optional grid snapping.
                 </li>
@@ -106,12 +105,11 @@ export function Devlog() {
               </ul>
             </div>
 
-            {/* Roadmap Section */}
-            <div className="mt-8 border-t border-border pt-6">
-              <h3 className="font-display text-xl font-bold tracking-tight text-foreground">
+            <div className="pt-4 border-t border-border">
+              <h3 className="font-display text-lg font-semibold text-foreground">
                 Roadmap
               </h3>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+              <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
                 Nothing planned at the moment!
               </p>
             </div>

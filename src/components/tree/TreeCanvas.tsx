@@ -130,11 +130,11 @@ export function TreeCanvas({
         x: (ev.clientX - rect.left - v.x) / v.k - grab.dx,
         y: (ev.clientY - rect.top - v.y) / v.k - grab.dy,
       };
-      // Optional lattice: columns of NODE_W + GAP_X on generation rows of NODE_H + GAP_Y.
+      // Fine-grained grid slots (20px) for flexible customization and clean alignment.
       const pos = options.snapToGrid ? {
         id: c.id,
-        x: Math.round(raw.x / (NODE_W + GAP_X)) * (NODE_W + GAP_X),
-        y: Math.round(raw.y / (NODE_H + GAP_Y)) * (NODE_H + GAP_Y),
+        x: Math.round(raw.x / 20) * 20,
+        y: Math.round(raw.y / 20) * 20,
       } : raw;
       dragPosRef.current = pos;
       setDragPos(pos);
@@ -309,8 +309,8 @@ export function TreeCanvas({
       const ex = cp.x, ey = cp.y + AVATAR_TOP;
       const [pa, pb] = ps;
       const a = pa ? positions.get(pa) : undefined, bb = pb ? positions.get(pb) : undefined;
-      if (ps.length === 2 && pa && pb && a && bb && idx.mates(pa).includes(pb) && a.y === bb.y) {
-        out.push({ d: curve((a.x + bb.x) / 2, a.y + AV_CY, ex, ey, [pa,pb,c.id]), kind: "blood", on: isOn(c.id) && isOn(pa), key: "b" + c.id, ids: [pa,pb,c.id] });
+      if (ps.length === 2 && pa && pb && a && bb && idx.mates(pa).includes(pb)) {
+        out.push({ d: curve((a.x + bb.x) / 2, (a.y + bb.y) / 2 + AV_CY, ex, ey, [pa,pb,c.id]), kind: "blood", on: isOn(c.id) && isOn(pa), key: "b" + c.id, ids: [pa,pb,c.id] });
       } else {
         ps.forEach((p) => {
           const pp = positions.get(p);
@@ -322,8 +322,8 @@ export function TreeCanvas({
       const [fa, fb] = fps, fpa = fa ? positions.get(fa) : undefined, fpb = fb ? positions.get(fb) : undefined;
       const fosterY = cp.y + AV_CY - Math.sqrt((AVATAR / 2) ** 2 - 18 ** 2);
       // A foster couple raises a kit together: one family line from the pair, like parentage.
-      if (fps.length === 2 && fa && fb && fpa && fpb && idx.mates(fa).includes(fb) && fpa.y === fpb.y) {
-        out.push({ d: curve((fpa.x + fpb.x) / 2, fpa.y + AV_CY, ex - 18, fosterY, [fa, fb, c.id]), kind: "foster", on: isOn(c.id) && isOn(fa), key: "f" + c.id, ids: [fa, fb, c.id] });
+      if (fps.length === 2 && fa && fb && fpa && fpb && idx.mates(fa).includes(fb)) {
+        out.push({ d: curve((fpa.x + fpb.x) / 2, (fpa.y + fpb.y) / 2 + AV_CY, ex - 18, fosterY, [fa, fb, c.id]), kind: "foster", on: isOn(c.id) && isOn(fa), key: "f" + c.id, ids: [fa, fb, c.id] });
       } else if (options.showFoster)
         fps.forEach((p) => {
           const pp = positions.get(p);

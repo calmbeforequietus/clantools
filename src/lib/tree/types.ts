@@ -103,6 +103,8 @@ export interface Cat {
   mentors: string[];
   /** Manual canvas position from dragging; layout picks it up and keeps it anchored. */
   pos?: { x: number; y: number } | undefined;
+  customSections?: { id: string; title: string; body: string }[];
+  sectionOrder?: string[];
 }
 
 export interface Tree {

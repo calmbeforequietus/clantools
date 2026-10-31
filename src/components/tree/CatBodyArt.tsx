@@ -20,12 +20,12 @@ export function CatBodyArt({ settings, className = '', colors, kit = false }: { 
   return <svg viewBox="0 0 200 260" role="img" aria-label={kit ? "Mini kit cat drawing" : "Full-body cat drawing"} className={className}>
     <g transform={kit ? "translate(25 32.5) scale(.75)" : undefined}>
     {/* tail */}
-    <path d="M140 232 Q190 225 186 180 Q183 150 168 140" fill="none" stroke={points} strokeWidth="16" strokeLinecap="round" />
+    <path d="M140 232 Q190 225 186 180 Q183 150 168 140" fill="none" stroke={ink} strokeWidth="18" strokeLinecap="round" strokeOpacity=".25" /><path d="M140 232 Q190 225 186 180 Q183 150 168 140" fill="none" stroke={points} strokeWidth="16" strokeLinecap="round" />
     {s.pattern === 'tabby' && <path d="M178 196l10-4 M184 172l10 0 M172 150l8-6" stroke={mark} strokeWidth="5" strokeLinecap="round" />}
     {/* body */}
-    <path d="M60 240 Q48 170 72 128 Q100 105 128 128 Q152 170 140 240 Z" fill={base} />
+    <path d="M60 240 Q48 170 72 128 Q100 105 128 128 Q152 170 140 240 Z" fill={base} stroke={ink} strokeWidth="1.6" strokeOpacity=".25" />
     {/* neck joins head to body */}
-    <path d="M76 96 H124 L130 132 Q100 140 70 132 Z" fill={base} />
+    <path d="M76 96 H124 L130 132 Q100 140 70 132 Z" fill={base} stroke={ink} strokeWidth="1.6" strokeOpacity=".25" />
     {s.pattern === 'tabby' && <g stroke={mark} strokeWidth="6" strokeLinecap="round" fill="none"><path d="M64 160q10 4 14 14 M60 190q12 4 16 14 M136 160q-10 4-14 14 M140 190q-12 4-16 14" /></g>}
     {s.pattern === 'marbled' && <g stroke={mark} strokeWidth="6" fill="none" strokeLinecap="round"><path d="M64 165q18-6 16 16 q-2 16 -14 20 M136 165q-18-6-16 16 q2 16 14 20" /></g>}
     {s.pattern === 'spotted' && <g fill={mark}><circle cx="70" cy="170" r="6" /><circle cx="130" cy="176" r="7" /><circle cx="66" cy="205" r="5" /><circle cx="134" cy="210" r="6" /><circle cx="80" cy="225" r="4" /></g>}
@@ -35,16 +35,16 @@ export function CatBodyArt({ settings, className = '', colors, kit = false }: { 
     {s.pattern === 'pointed' && <path d="M60 240 Q56 225 66 222 H86 Q90 232 88 240 Z M140 240 Q144 225 134 222 H114 Q110 232 112 240 Z" fill={mark} />}
     {/* front legs and paws */}
     <path d="M80 175 V238 M120 175 V238" stroke={ink} strokeOpacity=".25" strokeWidth="2" />
-    <ellipse cx="80" cy="240" rx="14" ry="7" fill={s.pattern === 'tuxedo' || s.pattern === 'bicolor' ? white : points} />
-    <ellipse cx="120" cy="240" rx="14" ry="7" fill={s.pattern === 'tuxedo' || s.pattern === 'bicolor' ? white : points} />
+    <ellipse cx="80" cy="240" rx="14" ry="7" fill={s.pattern === 'tuxedo' || s.pattern === 'bicolor' ? white : points} stroke={ink} strokeWidth="1.2" strokeOpacity=".25" />
+    <ellipse cx="120" cy="240" rx="14" ry="7" fill={s.pattern === 'tuxedo' || s.pattern === 'bicolor' ? white : points} stroke={ink} strokeWidth="1.2" strokeOpacity=".25" />
     {/* head */}
     <g transform={kit ? "translate(44 26.5) scale(1.75)" : "translate(52 36) scale(1.5)"}>
-      <path d="M11 35 14 7 30 22 M53 35 50 7 34 22" fill={points} />
+      <path d="M11 35 14 7 30 22 M53 35 50 7 34 22" fill={points} stroke={ink} strokeWidth="1.2" strokeOpacity=".25" />
       <path d="M16 26 17 13 26 23 M48 26 47 13 38 23" fill="var(--cat-rose)" />
       {s.ears === 'torn left' && <path d="M10 6 22 20 14 22Z" fill="var(--card)" />}
       {s.ears === 'torn right' && <path d="M54 6 42 20 50 22Z" fill="var(--card)" />}
       {s.ears === 'notched' && <path d="M47 8 52 12 49 15Z" fill="var(--card)" />}
-      <ellipse cx="32" cy="38" rx="22" ry="20" fill={base} />
+      <ellipse cx="32" cy="38" rx="22" ry="20" fill={base} stroke={ink} strokeWidth="1.2" strokeOpacity=".25" />
       {s.pattern === 'tabby' && <g stroke={mark} strokeWidth="3" strokeLinecap="round"><path d="M32 20v9 M25 22l3 7 M39 22l-3 7 M12 39l7 2 M52 39l-7 2" /></g>}
       {s.pattern === 'tortoiseshell' && <path d="M11 36Q15 20 30 20L27 36 17 45Z" fill={mark} />}
       {s.pattern === 'calico' && <><path d="M11 36Q15 20 30 20L27 34 16 42Z" fill={coat} /><path d="M36 20Q50 20 53 36L44 38Z" fill={mark} /></>}
