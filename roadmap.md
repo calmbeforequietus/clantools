@@ -1,3 +1,11 @@
+# Shared lineage characters
+- [x] Ask for a name before creating any cat, including cats created through relationship buttons, then check duplicate names; browser verified and 12 targeted tests passed.
+- [x] Explain Clan member count versus lineage cat count from the actual calculation.
+- [x] Prompt on matching names for new cats across Clans: reuse the existing character and data, or keep separate identity.
+- [x] Add existing-cat picker with selectable known relatives when adding to a lineage.
+- [x] Link character profiles across their saved lineages and retain shared identity.
+- [x] Test selected relationship imports and verify create, reuse and switching in the app; 43 tests passed, browser verified cross-Clan duplicates, separate IDs, rename/combine, imported artwork and chosen relatives, profile links and refresh persistence.
+
 # Policy clarity and contact
 - [x] Strengthen plain-language Terms and Privacy without making unverifiable privacy promises.
 - [x] Replace placeholder email and remove placeholder explanation.
