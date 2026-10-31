@@ -74,7 +74,7 @@ export interface ClanPage {
   id: string; name: string; affiliation: Clan; crest: string; color: string;
   sections: LoreSection[]; map?: string; pins: MapPin[]; eras: Era[];
   sectionOrder?: string[];
-  motto?: string;
+  motto?: string | undefined;
   /** Extra top-level text sections, ordered through sectionOrder as `custom:<id>`. */
   customSections?: LoreSection[];
   /** Sections shown at half width; two adjacent half sections share a row. */
