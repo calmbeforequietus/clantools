@@ -177,7 +177,7 @@ function Index() {
 
       {/* Top-center: focus banner */}
       {focused && (
-        <div className={`absolute top-3 z-20 hidden -translate-x-1/2 ${drawer ? "left-[calc((100%-416px)/2)] max-xl:top-[68px] max-xl:left-[220px] max-xl:translate-x-0" : "left-1/2"} items-center gap-3 rounded-full border border-border bg-card/95 py-1.5 pl-4 pr-1.5 text-sm shadow-float backdrop-blur md:flex">
+        <div className={`absolute top-3 z-20 hidden -translate-x-1/2 ${drawer ? "left-[calc((100%-416px)/2)] " : "left-1/2"} items-center gap-3 rounded-full border border-border bg-card/95 py-1.5 pl-4 pr-1.5 text-sm shadow-float backdrop-blur md:flex`}>
           <Focus size={15} className="text-primary" />
           <span>Focused on <b>{catName(focused)}</b> · {relCount} relatives</span>
           <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
