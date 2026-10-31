@@ -22,6 +22,7 @@ export interface CanvasOptions {
   showMentors: boolean;
   showFoster: boolean;
   hideUnrelated: boolean;
+  spiritRealm?: boolean;
 }
 
 const MIN = 0.15, MAX = 2.5;
@@ -39,6 +40,7 @@ export function TreeCanvas({
   onZoom,
   apiRef,
   treeKey,
+  highlightIds,
 }: {
   clan?: ClanPage | undefined;
   cats: Cat[];
@@ -50,6 +52,7 @@ export function TreeCanvas({
   onZoom: (k: number) => void;
   apiRef: Ref<CanvasApi>;
   treeKey: string;
+  highlightIds?: Set<string> | null;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
@@ -63,6 +66,14 @@ export function TreeCanvas({
   const gesture = useRef<{ view: typeof view; x: number; y: number; dist?: number } | null>(null);
 
   useEffect(() => onZoom(view.k), [view.k, onZoom]);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setSize({ w: el.clientWidth, h: el.clientHeight }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const b = useMemo(() => bounds(positions), [positions]);
 
@@ -194,7 +205,7 @@ export function TreeCanvas({
   };
 
   const idx = useMemo(() => buildIndex(cats), [cats]);
-  const hl = selectedEdge ? new Set(selectedEdge.ids) : kinship?.highlight;
+  const hl = selectedEdge ? new Set(selectedEdge.ids) : highlightIds ?? kinship?.highlight;
   const isOn = (id: string) => !hl || hl.has(id);
   const visible = (id: string) => !(options.hideUnrelated && hl && !hl.has(id));
 
@@ -268,6 +279,7 @@ export function TreeCanvas({
         {selectedEdge.ids.map(id => { const cat=idx.byId.get(id); return cat && <Button key={id} variant="ghost" size="sm" onClick={()=>{setSelectedEdge(null);onSelect(id);}}>{catName(cat)}</Button>; })}
         <Button variant="ghost" size="icon" className="size-8" aria-label="Clear relationship highlight" onClick={()=>setSelectedEdge(null)}><X /></Button>
       </div>}
+      {size.w > 0 && positions.size > 0 && <Minimap positions={positions} cats={cats} b={b} view={view} size={size} onJump={(x, y) => setView(v => ({ ...v, x: size.w / 2 - x * v.k, y: size.h / 2 - y * v.k }))} />}
       <div
         ref={worldRef}
         className="absolute left-0 top-0"
@@ -338,7 +350,7 @@ export function TreeCanvas({
               {focused && !selectedEdge && (
                 <span className="absolute -top-5 rounded-full bg-foreground px-2 py-0.5 text-[11px] font-semibold text-background">Focused</span>
               )}
-              <div className="relative mt-3.5 shrink-0">
+              <div className={`relative mt-3.5 shrink-0 ${options.spiritRealm && c.status === "StarClan" ? "spirit-starclan" : options.spiritRealm && c.status === "Dark Forest" ? "spirit-darkforest" : ""}`}>
                 <div
                   className={`rounded-full p-[3px] transition-transform group-hover:scale-105 ${focused ? "ring-4 ring-primary ring-offset-2 ring-offset-canvas" : ""}`}
                   style={{ background: c.gender === "She-cat" ? "var(--gender-she)" : c.gender === "Tom" ? "var(--gender-tom)" : "var(--gender-other)", boxShadow: "var(--shadow-float)" }}
@@ -375,4 +387,22 @@ function StatusDot({ status }: { status: Cat["status"] }) {
 function RoleIcon({ cat }: { cat: Cat }) {
   const Icon = cat.rank === 'Leader' ? Star : cat.rank === 'Deputy' ? Shield : cat.rank === 'Medicine Cat' ? Leaf : cat.rank === 'Elder' ? Moon : PawPrint;
   return <Icon className="!size-6 fill-current" aria-label={cat.rank} />;
+}
+
+function Minimap({ positions, cats, b, view, size, onJump }: { positions: Positions; cats: Cat[]; b: ReturnType<typeof bounds>; view: { x: number; y: number; k: number }; size: { w: number; h: number }; onJump: (x: number, y: number) => void }) {
+  const W = 180, H = 120, bw = b.maxX - b.minX, bh = b.maxY - b.minY;
+  const s = Math.min(W / bw, H / bh), ox = (W - bw * s) / 2, oy = (H - bh * s) / 2;
+  const toMap = (x: number, y: number) => [ox + (x - b.minX) * s, oy + (y - b.minY) * s] as const;
+  const [vx, vy] = toMap(-view.x / view.k, -view.y / view.k);
+  const jump = (e: React.PointerEvent<SVGSVGElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    onJump((e.clientX - r.left - ox) / s + b.minX, (e.clientY - r.top - oy) / s + b.minY);
+  };
+  return <div className="absolute bottom-16 left-3 z-20 hidden rounded-xl border border-border bg-card/95 p-1.5 shadow-float backdrop-blur sm:block" onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
+    <svg width={W} height={H} role="img" aria-label="Tree overview. Click to jump." className="cursor-pointer" onPointerDown={e => { jump(e); e.currentTarget.setPointerCapture(e.pointerId); }} onPointerMove={e => { if (e.buttons) jump(e); }}>
+      {cats.map(c => { const p = positions.get(c.id); if (!p) return null; const [x, y] = toMap(p.x, p.y + AVATAR_CY);
+        return <circle key={c.id} cx={x} cy={y} r={2.2} fill={c.gender === 'She-cat' ? 'var(--gender-she)' : c.gender === 'Tom' ? 'var(--gender-tom)' : 'var(--gender-other)'} />; })}
+      <rect x={vx} y={vy} width={size.w / view.k * s} height={size.h / view.k * s} fill="var(--primary)" fillOpacity={0.08} stroke="var(--primary)" strokeWidth={1.2} rx={2} />
+    </svg>
+  </div>;
 }
