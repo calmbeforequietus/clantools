@@ -2,6 +2,21 @@ import { buildIndex } from './kinship';
 import type { Cat, Tree } from './types';
 
 const fields=['parents','fosterParents','mates','mentors'] as const;
+export function matchingNames(cats:Cat[],names:string[],exclude?:string){
+  const normalized=new Set(names.map(n=>n.trim().toLowerCase()).filter(Boolean));
+  return cats.filter(c=>c.id!==exclude&&c.names.some(n=>normalized.has(n.trim().toLowerCase())));
+}
+export function combineCat(target:Cat[],source:Cat[],localId:string,existingId:string,selected:string[]):Cat[]{
+  const existing=source.find(c=>c.id===existingId);if(!existing)return target;
+  const remapped=target.map(c=>{
+    const copy=c.id===localId?{...existing,id:existingId,parents:[...c.parents],fosterParents:[...c.fosterParents],mates:[...c.mates],mentors:[...c.mentors]}:{...c};
+    for(const key of fields)copy[key]=[...new Set(copy[key].map(id=>id===localId?existingId:id).filter(id=>id!==copy.id))];
+    return copy;
+  });
+  const unique=new Map<string,Cat>();
+  for(const c of remapped){const previous=unique.get(c.id);const merged={...c};for(const key of fields)merged[key]=[...new Set([...(previous?.[key]??[]),...c[key]])];unique.set(c.id,merged);}
+  return reuseCat([...unique.values()],source,existingId,selected);
+}
 export function sharedCats(trees:Tree[]):Cat[]{
   const cats=new Map<string,Cat>();
   for(const tree of [...trees].sort((a,b)=>a.updatedAt-b.updatedAt))for(const cat of tree.cats){
