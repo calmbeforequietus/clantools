@@ -23,11 +23,14 @@ import {
   addRelation, deleteCat, isTree, moveLineage, newCat, removeRelation, type RelKind,
 } from "@/lib/tree/ops";
 import { catName, type Cat, type Tree } from "@/lib/tree/types";
+import { sharedCats, reuseCat } from '@/lib/tree/shared-cats';
+import { ExistingCatPicker } from './ExistingCatPicker';
 
 export function LineagePage() {
   const { store, setStore } = useForest();
   const navigate = useNavigate();
   const [moving, setMoving] = useState(false);
+  const [addingCat,setAddingCat]=useState(false);
   const [destination, setDestination] = useState('');
   const { clanId } = useParams({ from: '/clan/$clanId/lineage' });
   const search = useSearch({ from: '/clan/$clanId/lineage' });
@@ -42,15 +45,15 @@ export function LineagePage() {
 
   useEffect(() => {
     if (!store || !clan) return;
-    const existing = store.trees.find(t => t.clanId === clanId);
+    const existing = store.trees.find(t=>t.id===search.tree && t.clanId===clanId) ?? store.trees.find(t=>t.clanId===clanId && search.cat && t.cats.some(c=>c.id===search.cat)) ?? store.trees.find(t => t.clanId === clanId);
     if (!existing) {
       const shared = store.trees.flatMap(t => t.cats).filter((c, i, all) => all.findIndex(v => v.id === c.id) === i);
       const t: Tree = { id: crypto.randomUUID(), name: `${clan.name} Lineage`, cats: clanTreeCats({ id: '', name: '', cats: shared, updatedAt: 0 }, clan.affiliation), clanId, updatedAt: Date.now() };
       setStore(s => s && { ...s, trees: [...s.trees, t], activeId: t.id });
-    } else if (store.trees.find(t => t.id === store.activeId)?.clanId !== clanId) {
+    } else if (((search.tree || search.cat) && existing.id!==store.activeId) || store.trees.find(t => t.id === store.activeId)?.clanId !== clanId) {
       setStore(s => s && { ...s, activeId: existing.id });
     }
-  }, [clanId, clan, store, setStore]);
+  }, [clanId, clan, store, setStore, search.tree, search.cat]);
   useEffect(() => { if (search.cat) { setFocusId(search.cat); setDrawer(true); } }, [search.cat]);
   const tree = store?.trees.find(t => t.id === store.activeId && t.clanId === clanId) ?? store?.trees.find(t => t.clanId === clanId);
   const cats = tree?.cats ?? [];
@@ -69,11 +72,13 @@ export function LineagePage() {
   }, [tree?.id]);
   const switchTo = (id: string) => {
     setStore((s) => s && { ...s, activeId: id });
+    navigate({to:'/clan/$clanId/lineage',params:{clanId},search:{tree:id}});
     setFocusId(null);
     setDrawer(false);
   };
   const addTree = (t: Tree) => {
     setStore((s) => s && { ...s, trees: [...s.trees, { ...t, clanId }], activeId: t.id });
+    navigate({to:'/clan/$clanId/lineage',params:{clanId},search:{tree:t.id}});
     setFocusId(null);
     setDrawer(false);
   };
@@ -200,7 +205,7 @@ export function LineagePage() {
 
       {/* Top-right: actions */}
       <div className={`absolute top-20 sm:top-3 z-20 flex items-center gap-1 rounded-2xl border border-border bg-card/95 p-1.5 shadow-float backdrop-blur transition-all right-3 ${drawer ? "hidden" : ""}`}>
-        <Button size="sm" onClick={actions.addCat}><Plus size={15} /> Add cat</Button>
+        <Button size="sm" onClick={()=>setAddingCat(true)}><Plus size={15} /> Add cat</Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button size="sm" variant="ghost"><Download size={15} /> Share</Button>
@@ -239,10 +244,12 @@ export function LineagePage() {
           cat={focused}
           cats={cats}
           affiliations={store.clans.map(c => c.affiliation)}
+          otherLineages={store.trees.filter(t=>t.id!==tree.id && t.cats.some(c=>c.id===focused.id)).map(t=>({id:t.id,name:t.name,clanId:t.clanId??clanId}))}
+          onOpenLineage={(id,targetClan)=>{setStore(s=>s&&{...s,activeId:id});navigate({to:'/clan/$clanId/lineage',params:{clanId:targetClan},search:{tree:id,cat:focused.id}});}}
           relTags={kinship?.labels.get(focused.id)}
           onClose={() => setDrawer(false)}
           onSelect={(id) => select(id)}
-          onUpdate={(patch) => setStore(s => s && { ...s, trees: s.trees.map(t => ({ ...t, cats: t.cats.map(c => c.id === focused.id ? { ...c, ...patch } : c) })) })}
+          onUpdate={(patch) => setStore(s => s && { ...s, trees: s.trees.map(t => t.cats.some(c=>c.id===focused.id)?{ ...t,updatedAt:Date.now(),cats: t.cats.map(c => c.id === focused.id ? { ...c, ...patch } : c) }:t) })}
           onAddRel={(k, o) => { const issue = checkRelation(cats, focused.id, k, o); if (issue) setWarning({ ...issue, kind: k, other: o }); else setCats(cs => addRelation(cs, focused.id, k, o)); }}
           onRemoveRel={(k, o) => setCats((cs) => removeRelation(cs, focused.id, k, o))}
           onCreateRel={(k: RelKind) => {
@@ -262,6 +269,7 @@ export function LineagePage() {
       )}
       {warning && <Dialog open onOpenChange={v => !v && setWarning(null)}><DialogContent><DialogHeader><DialogTitle>{warning.title}</DialogTitle></DialogHeader><p className="text-sm leading-relaxed text-muted-foreground">{warning.message}</p><DialogFooter><Button variant="outline" onClick={() => setWarning(null)}>{warning.blocked ? 'Close' : 'Cancel'}</Button>{!warning.blocked && <Button onClick={() => { if (focusId) setCats(cs => addRelation(warning.pendingCat ? [...cs, warning.pendingCat] : cs, focusId, warning.kind, warning.other)); setWarning(null); }}>Connect anyway</Button>}</DialogFooter></DialogContent></Dialog>}
       {moving && <Dialog open onOpenChange={setMoving}><DialogContent><DialogHeader><DialogTitle>Move lineage</DialogTitle></DialogHeader><p className="text-sm text-muted-foreground">Move “{tree.name}” and all its cats to another Clan. Cat affiliations and relationships stay unchanged.</p><Select value={destination} onValueChange={setDestination}><SelectTrigger aria-label="Destination Clan"><SelectValue placeholder="Choose a Clan" /></SelectTrigger><SelectContent>{store.clans.filter(c=>c.id!==clanId).map(c=><SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select><DialogFooter><Button variant="outline" onClick={()=>setMoving(false)}>Cancel</Button><Button disabled={!destination} onClick={()=>{setStore(s=>s && moveLineage(s,tree.id,destination));setMoving(false);navigate({to:'/clan/$clanId/lineage',params:{clanId:destination},search:{}});}}>Move lineage</Button></DialogFooter></DialogContent></Dialog>}
+      {addingCat && <ExistingCatPicker all={sharedCats(store.trees)} available={sharedCats(store.trees).filter(c=>!cats.some(local=>local.id===c.id))} onClose={()=>setAddingCat(false)} onNew={()=>{setAddingCat(false);actions.addCat();}} onAdd={(id,selected)=>{setCats(cs=>reuseCat(cs,sharedCats(store.trees),id,selected));setAddingCat(false);select(id);}}/>}
     </main>
   );
 }

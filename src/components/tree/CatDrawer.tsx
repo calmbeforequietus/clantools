@@ -33,6 +33,8 @@ export function CatDrawer({
   onCreateRel,
   onDelete,
   onSelect,
+  otherLineages=[],
+  onOpenLineage,
 }: {
   cat: Cat;
   cats: Cat[];
@@ -45,6 +47,8 @@ export function CatDrawer({
   onCreateRel: (kind: RelKind) => void;
   onDelete: () => void;
   onSelect: (id: string) => void;
+  otherLineages?: {id:string;name:string;clanId:string}[];
+  onOpenLineage?: (id:string,clanId:string)=>void;
 }) {
   const idx = useMemo(() => buildIndex(cats), [cats]);
   const [editing, setEditing] = useState(false);
@@ -85,6 +89,7 @@ export function CatDrawer({
       </div>
 
       <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
+        {otherLineages.length>0 && <section><h3 className="mb-2 text-xs font-bold uppercase text-muted-foreground">Other lineages</h3><div className="space-y-1">{otherLineages.map(t=><Button key={t.id} variant="outline" size="sm" className="h-auto w-full justify-between whitespace-normal text-left" onClick={()=>onOpenLineage?.(t.id,t.clanId)}>{t.name}<ArrowRight className="shrink-0" size={14}/></Button>)}</div></section>}
         {stage && <section className="space-y-3 border-b border-border pb-5"><Button variant="ghost" size="sm" onClick={() => setStageIndex(null)}><ArrowLeft />Full profile</Button><h3 className="font-display text-xl">{stage.name}</h3>{editing ? <AvatarPicker value={stage.avatar ?? cat.avatar} onChange={avatar => updateStage({ avatar })} /> : <CatAvatar avatar={stage.avatar ?? cat.avatar} className="h-32 w-32" />}{editing ? <><Field label="Stage rank"><Select value={stage.rank ?? cat.rank} onValueChange={v => updateStage({ rank: v as Cat['rank'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{RANKS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent></Select></Field><Field label="Age / moons"><Input aria-label="Stage age" value={stage.age ?? ''} onChange={e => updateStage({ age: e.target.value })} /></Field><Field label="Stage history"><Textarea aria-label="Stage history" value={stage.description ?? ''} onChange={e => updateStage({ description: e.target.value })} /></Field><Field label="Stage mentors"><Input aria-label="Stage mentors" value={stage.mentors ?? ''} onChange={e => updateStage({ mentors: e.target.value })} /></Field><Field label="Stage apprentices"><Input aria-label="Stage apprentices" value={stage.apprentices ?? ''} onChange={e => updateStage({ apprentices: e.target.value })} /></Field></> : <><p className="text-sm text-muted-foreground">{stage.rank ?? cat.rank}{stage.age ? ` · ${stage.age}` : ''}</p><p className="whitespace-pre-wrap text-sm">{stage.description || 'No history recorded for this name.'}</p>{stage.mentors && <p className="text-sm">Mentors: {stage.mentors}</p>}{stage.apprentices && <p className="text-sm">Apprentices: {stage.apprentices}</p>}</>}</section>}
 
         <section className="space-y-3">{editing ? <Textarea aria-label="TL;DR history" value={cat.summary ?? ''} onChange={e => onUpdate({ summary: e.target.value })} placeholder="TL;DR history" /> : <p className="whitespace-pre-wrap text-sm leading-relaxed">{cat.summary || 'No summary recorded.'}</p>}</section>
