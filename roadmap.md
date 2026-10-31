@@ -1,3 +1,8 @@
+# Factory preset refresh
+- [ ] Reset existing local forests once to clean expanded Firestar data and ThunderClan only.
+- [ ] Center the Clan choices, retaining aligned New Clan tiles.
+- [ ] Verify canonical relatives, reset persistence and live navigation.
+
 # Current Clan updates
 - [x] Replace rejected global family detours with original flowing curves, local parent bends and unobscured labels; 14 tests passed and browser verified shared-parent/mate shapes, Princess attachment and selection.
 - [x] Keep mentor arrowheads clear of extra symbols and reconnect parentage at the avatar edge.

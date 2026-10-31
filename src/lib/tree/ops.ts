@@ -92,6 +92,13 @@ export interface Store {
   presentationVersion?: number;
 }
 const KEY = "warrior-cats-trees-v1";
+const PRESENTATION_VERSION = 2;
+
+export function factoryStore(): Store {
+  const tree = canonTree(crypto.randomUUID());
+  return { trees: [{ ...tree, clanId: 'thunderclan' }], activeId: tree.id,
+    clans: initialClans(tree.id), presentationVersion: PRESENTATION_VERSION };
+}
 
 export function loadStore(): Store {
   try {
@@ -109,14 +116,14 @@ export function loadStore(): Store {
   } catch {
     /* ignore */
   }
-  const t = canonTree(crypto.randomUUID());
-  return refineStore({ trees: [{ ...t, clanId: "thunderclan" }], activeId: t.id, clans: initialClans(t.id) });
+  return factoryStore();
 }
 
 export function refineStore(store: Store): Store {
-  if (store.presentationVersion === 1) return store;
-  const removed = new Set(['skyclan', 'starclan', 'bloodclan']);
-  return { ...store, presentationVersion: 1, clans: store.clans.filter(c => !removed.has(c.id)) };
+  // The commissioned factory refresh replaces old local edits exactly once.
+  // Later edits, imports and even an intentionally empty forest remain intact.
+  if (store.presentationVersion === PRESENTATION_VERSION) return store;
+  return factoryStore();
 }
 
 export function saveStore(s: Store) {
