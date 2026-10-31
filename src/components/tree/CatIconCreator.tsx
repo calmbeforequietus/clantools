@@ -26,8 +26,8 @@ export function CatIconCreator({ value: raw, onChange }: { value: CatIconSetting
   const set = (patch: Partial<CatIconSettings>) => onChange({ ...value, ...patch });
   const matching = value.leftEye === value.rightEye;
   const usesMarkings = !['solid', 'bicolor'].includes(value.pattern);
-  return <div className="grid gap-4 pt-3 sm:grid-cols-[112px_minmax(0,1fr)]">
-    <div className="mx-auto size-28 overflow-hidden rounded-full border border-border sm:sticky sm:top-0"><CustomCatFace settings={value} /></div>
+  return <div className="space-y-3 pt-3">
+    <div className="mx-auto size-24 overflow-hidden rounded-full border border-border"><CustomCatFace settings={value} /></div>
     <Tabs defaultValue="coat">
       <TabsList className="grid w-full grid-cols-3"><TabsTrigger value="coat">Coat</TabsTrigger><TabsTrigger value="face">Face</TabsTrigger><TabsTrigger value="extras">Extras</TabsTrigger></TabsList>
       <TabsContent value="coat" className="space-y-4 pt-2">

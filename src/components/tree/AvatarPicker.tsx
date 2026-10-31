@@ -30,7 +30,7 @@ export function AvatarPicker({ value, onChange }: { value: Avatar; onChange: (a:
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="max-h-[80dvh] w-80 overflow-y-auto" align="start">
+      <PopoverContent className="max-h-[80dvh] w-[22rem] overflow-y-auto" align="start">
         <Tabs defaultValue={value.kind === 'custom' ? 'creator' : 'pelts'}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="creator">Create</TabsTrigger>
