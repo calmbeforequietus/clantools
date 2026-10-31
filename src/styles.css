@@ -268,7 +268,7 @@ html[data-theme="mono"], html[data-theme="mono-full"] {
   --spirit-star: oklch(0.85 0 0); --spirit-dark: oklch(0.2 0 0);
 }
 /* Monochrome keeps cat artwork in color; the full option grays everything. */
-html[data-theme="mono"] .clan-crest, html[data-theme="mono"] svg.clan-symbol { filter: grayscale(1); }
+html[data-theme="mono"] .clan-crest, html[data-theme="mono"] img[alt="Clan crest"], html[data-theme="mono"] svg.clan-symbol { filter: grayscale(1); }
 html[data-theme="mono-full"] { filter: grayscale(1); }
 
 /* File inputs: show only the "Choose File" button, sitting slightly lower. */
