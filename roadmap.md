@@ -1,3 +1,10 @@
+# Clantools refinements
+- [ ] Simplify gateway, branding and default Clans.
+- [ ] Book-style Allegiances and reorderable Clan sections.
+- [ ] Clean symbols, equal lines and mentor paths; remove era controls.
+- [ ] Profile order and horizontal territory landmarks.
+- [ ] Verify saved-data migration and editing flows.
+
 # Commission changes
 - [x] Clan gateway, editable crests and Clan overview with leadership, roster and reorderable lore.
 - [x] Uploaded territory map with editable pins.
