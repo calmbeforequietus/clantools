@@ -1,4 +1,5 @@
 # Current Clan updates
+- [ ] Move lineage, edit and arrange controls higher on Clan pages.
 - [ ] Make the small cat mouth an upside-down V.
 - [ ] Remove main-page Clan count and give shared mentor connections unique approaches at each cat.
 - [x] Center gateway heading and unify bold wordmark; align Clan actions and separate medicine cats.
