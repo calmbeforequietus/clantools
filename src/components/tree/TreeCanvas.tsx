@@ -234,8 +234,8 @@ export function TreeCanvas({
           if (!pp || !visible(p)) return;
           const sx = pp.x + AVATAR / 2 + 4, sy = pp.y + AV_CY;
           const tx = cp.x + AVATAR / 2 + 4, ty = cp.y + AV_CY;
-          const bend = 60 + Math.abs(tx - sx) * 0.1;
-          out.push({ d: `M${sx},${sy} C${sx + bend},${sy} ${tx + bend},${ty} ${tx},${ty}`, kind: "mentor", on: isOn(c.id) && isOn(p), key: "t" + c.id + p });
+          const bend = Math.max(sx, tx) + 42 + (out.filter(e => e.kind === "mentor").length % 5) * 18;
+          out.push({ d: `M${sx},${sy} H${bend} V${ty} H${tx}`, kind: "mentor", on: isOn(c.id) && isOn(p), key: "t" + c.id + p });
         });
     }
     return out;
@@ -269,21 +269,17 @@ export function TreeCanvas({
           height={b.maxY - b.minY}
           viewBox={`${b.minX} ${b.minY} ${b.maxX - b.minX} ${b.maxY - b.minY}`}
         >
-          {options.showEras && clan?.eras.map((era, i) => {
-            const born = cats.filter(c => c.birthEra === era.id).map(c => positions.get(c.id)).filter((p): p is { x: number; y: number } => !!p);
-            if (!born.length) return null;
-            const y = Math.min(...born.map(p => p.y)) - 32;
-            const end = Math.max(...born.map(p => p.y)) + NODE_H + 28;
-            return <g key={era.id}><rect x={b.minX} y={y} width={b.maxX - b.minX} height={end-y} fill={i % 2 ? "var(--clan-river)" : "var(--clan-thunder)"} opacity="0.08" /><path d={`M${b.minX},${y}H${b.maxX}`} stroke={clan.color} opacity="0.3" /><text x={b.minX+12} y={y-8} fill="var(--muted-foreground)" fontSize="13">{era.name}</text></g>;
-          })}
+          <defs><marker id="mentor-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10" fill="var(--edge-mentor)" /></marker></defs>
           {edges.map((e) => (
             <path
               key={e.key}
               d={e.d}
               fill="none"
               stroke={stroke[e.kind]}
-              strokeWidth={e.kind === "mate" ? 3 : e.kind === "mentor" ? 2.2 : 2}
+              strokeWidth={2}
               strokeDasharray={dash[e.kind]}
+              markerEnd={e.kind === "mentor" ? "url(#mentor-arrow)" : undefined}
+              strokeLinejoin="round"
               strokeLinecap="round"
               opacity={hl ? (e.on ? 0.95 : 0.1) : e.kind === "mentor" || e.kind === "foster" ? 0.45 : 0.85}
               style={{ transition: "opacity 200ms" }}
@@ -332,8 +328,8 @@ export function TreeCanvas({
                 <StatusDot status={c.status} />
               </div>
               <div className="mt-1.5 w-full shrink-0 truncate font-display text-[15px] font-semibold leading-tight text-foreground">{catName(c)}</div>
-              <div className="mt-1 flex h-5 items-center justify-center text-muted-foreground" title={`${c.rank} · ${c.status}`}><RoleIcon cat={c} /></div>
-              {clan && c.clan !== clan.affiliation && <span title={c.clan} className="absolute -top-3 right-6 flex h-7 w-7 items-center justify-center rounded-full border-2 border-card bg-card shadow-float" style={{ color: CLAN_VAR[c.clan] ?? clan.color }}><ClanCrest crest={c.clan} className="h-5 w-5" /></span>}
+              <div className="mt-1 flex h-7 items-center justify-center text-muted-foreground" title={`${c.rank} · ${c.status}`}><RoleIcon cat={c} /></div>
+              {clan && c.clan !== clan.affiliation && <span title={c.clan} className="absolute -top-1 right-4 flex h-9 w-9 items-center justify-center" style={{ color: CLAN_VAR[c.clan] ?? clan.color }}><ClanCrest crest={c.clan} className="h-9 w-9" /></span>}
             </Button>
           );
         })}
@@ -358,5 +354,5 @@ function StatusDot({ status }: { status: Cat["status"] }) {
 
 function RoleIcon({ cat }: { cat: Cat }) {
   const Icon = cat.rank === 'Leader' ? Star : cat.rank === 'Deputy' ? Shield : cat.rank === 'Medicine Cat' ? Leaf : cat.rank === 'Elder' ? Moon : PawPrint;
-  return <Icon size={15} aria-label={cat.rank} />;
+  return <Icon className="size-6" aria-label={cat.rank} />;
 }

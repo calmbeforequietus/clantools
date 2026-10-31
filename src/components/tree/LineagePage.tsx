@@ -30,11 +30,10 @@ export function LineagePage() {
   const search = useSearch({ from: '/clan/$clanId/lineage' });
   const clan = store?.clans.find(c => c.id === clanId);
   const [warning, setWarning] = useState<(RelationWarning & { kind: RelKind; other: string; pendingCat?: Cat }) | null>(null);
-  const [eraEdit, setEraEdit] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [options, setOptions] = useState<CanvasOptions>({ showMentors: false, showFoster: false, showParents: true, showMates: true, showEras: true, hideUnrelated: false });
+  const [options, setOptions] = useState<CanvasOptions>({ showMentors: false, showFoster: false, showParents: true, showMates: true, showEras: false, hideUnrelated: false });
   const api = useRef<CanvasApi>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -168,7 +167,7 @@ export function LineagePage() {
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={actions.newTree}><FilePlus2 /> New blank tree</DropdownMenuItem>
-            <DropdownMenuItem onClick={actions.canon}><RotateCcw /> Add Firestar's lineage</DropdownMenuItem>
+            <DropdownMenuItem onClick={actions.canon}><RotateCcw /> Add a copy of Firestar's lineage</DropdownMenuItem>
             <DropdownMenuItem onClick={actions.rename}><Pencil /> Rename</DropdownMenuItem>
             <DropdownMenuItem onClick={actions.duplicate}><Copy /> Duplicate</DropdownMenuItem>
             <DropdownMenuItem onClick={actions.remove} className="text-destructive"><Trash2 /> Delete tree</DropdownMenuItem>
@@ -218,9 +217,7 @@ export function LineagePage() {
       {!drawer && (
         <div className="absolute bottom-3 right-3 z-20 space-y-1.5 rounded-2xl border border-border bg-card/95 p-3 text-xs shadow-float backdrop-blur">
           <LegendRow color="var(--edge-blood)" label="Parentage" toggle={options.showParents} onToggle={v => setOptions(o => ({ ...o, showParents: v }))} />
-          <LegendRow color="var(--edge-mate)" label="Mates" thick toggle={options.showMates} onToggle={v => setOptions(o => ({ ...o, showMates: v }))} />
-          <label className="flex items-center justify-between gap-3 text-muted-foreground">Leadership eras<Switch checked={options.showEras} onCheckedChange={v => setOptions(o => ({ ...o, showEras: v }))} /></label>
-          <Button size="sm" variant="ghost" onClick={() => setEraEdit(true)}>Edit eras</Button>
+          <LegendRow color="var(--edge-mate)" label="Mates" toggle={options.showMates} onToggle={v => setOptions(o => ({ ...o, showMates: v }))} />
           <LegendRow color="var(--edge-foster)" label="Foster" dash="6 4" toggle={options.showFoster} onToggle={(v) => setOptions((o) => ({ ...o, showFoster: v }))} />
           <LegendRow color="var(--edge-mentor)" label="Mentor → apprentice" dash="2 4" toggle={options.showMentors} onToggle={(v) => setOptions((o) => ({ ...o, showMentors: v }))} />
         </div>
@@ -231,7 +228,6 @@ export function LineagePage() {
           key={focused.id}
           cat={focused}
           cats={cats}
-          eras={clan.eras}
           affiliations={store.clans.map(c => c.affiliation)}
           relTags={kinship?.labels.get(focused.id)}
           onClose={() => setDrawer(false)}
@@ -255,7 +251,6 @@ export function LineagePage() {
         />
       )}
       {warning && <Dialog open onOpenChange={v => !v && setWarning(null)}><DialogContent><DialogHeader><DialogTitle>{warning.title}</DialogTitle></DialogHeader><p className="text-sm leading-relaxed text-muted-foreground">{warning.message}</p><DialogFooter><Button variant="outline" onClick={() => setWarning(null)}>{warning.blocked ? 'Close' : 'Cancel'}</Button>{!warning.blocked && <Button onClick={() => { if (focusId) setCats(cs => addRelation(warning.pendingCat ? [...cs, warning.pendingCat] : cs, focusId, warning.kind, warning.other)); setWarning(null); }}>Connect anyway</Button>}</DialogFooter></DialogContent></Dialog>}
-      {eraEdit && <Dialog open onOpenChange={v => !v && setEraEdit(false)}><DialogContent><DialogHeader><DialogTitle>Leadership eras</DialogTitle></DialogHeader>{clan.eras.map(era => <div key={era.id} className="flex gap-2"><Input aria-label="Era name" value={era.name} onChange={e => setStore(s => s && { ...s, clans: s.clans.map(c => c.id === clanId ? { ...c, eras: c.eras.map(v => v.id === era.id ? { ...v, name: e.target.value } : v) } : c) })} /><Button variant="ghost" size="icon" aria-label="Remove era" onClick={() => setStore(s => s && { ...s, clans: s.clans.map(c => c.id === clanId ? { ...c, eras: c.eras.filter(v => v.id !== era.id) } : c) })}><Trash2 /></Button></div>)}<Button variant="outline" onClick={() => setStore(s => s && { ...s, clans: s.clans.map(c => c.id === clanId ? { ...c, eras: [...c.eras, { id: crypto.randomUUID(), name: 'New leadership era' }] } : c) })}><Plus />Add era</Button><Button onClick={() => setEraEdit(false)}>Done</Button></DialogContent></Dialog>}
     </main>
   );
 }
@@ -265,7 +260,7 @@ function LegendRow({ color, label, dash, thick, toggle, onToggle }: {
 }) {
   return (
     <div className="flex items-center gap-2">
-      <svg width="28" height="8"><path d="M2 4 H26" stroke={color} strokeWidth={thick ? 3 : 2} strokeDasharray={dash} strokeLinecap="round" /></svg>
+      <svg width="28" height="8"><path d="M2 4 H26" stroke={color} strokeWidth={2} strokeDasharray={dash} strokeLinecap="round" /></svg>
       <span className="flex-1 text-muted-foreground">{label}</span>
       {onToggle && <Switch aria-label={`Show ${label}`} checked={!!toggle} onCheckedChange={onToggle} className="scale-75" />}
     </div>
