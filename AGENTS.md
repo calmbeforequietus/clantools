@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Family-tree logic (types, canon preset, kinship, layout, edits, localStorage) lives in pure modules under src/lib/tree; UI in src/components/tree. Why: keeps rules testable without the canvas.
+- Tree layout is fully automatic (generation by parentage, mates aligned); no manual node positions are stored. Why: trees stay tidy as cats are added.
