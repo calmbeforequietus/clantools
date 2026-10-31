@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ClanClanIdRouteImport } from './routes/clan.$clanId'
 import { Route as ClanClanIdIndexRouteImport } from './routes/clan.$clanId.index'
 import { Route as ClanClanIdLineageRouteImport } from './routes/clan.$clanId.lineage'
@@ -17,6 +19,16 @@ import { Route as ClanClanIdLineageRouteImport } from './routes/clan.$clanId.lin
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClanClanIdRoute = ClanClanIdRouteImport.update({
@@ -37,30 +49,44 @@ const ClanClanIdLineageRoute = ClanClanIdLineageRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/terms': typeof TermsRoute
   '/clan/$clanId': typeof ClanClanIdRouteWithChildren
   '/clan/$clanId/lineage': typeof ClanClanIdLineageRoute
   '/clan/$clanId/': typeof ClanClanIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/terms': typeof TermsRoute
   '/clan/$clanId/lineage': typeof ClanClanIdLineageRoute
   '/clan/$clanId': typeof ClanClanIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/terms': typeof TermsRoute
   '/clan/$clanId': typeof ClanClanIdRouteWithChildren
   '/clan/$clanId/lineage': typeof ClanClanIdLineageRoute
   '/clan/$clanId/': typeof ClanClanIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/clan/$clanId' | '/clan/$clanId/lineage' | '/clan/$clanId/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/terms'
+    | '/clan/$clanId'
+    | '/clan/$clanId/lineage'
+    | '/clan/$clanId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/clan/$clanId/lineage' | '/clan/$clanId'
+  to: '/' | '/about' | '/terms' | '/clan/$clanId/lineage' | '/clan/$clanId'
   id:
     | '__root__'
     | '/'
+    | '/about'
+    | '/terms'
     | '/clan/$clanId'
     | '/clan/$clanId/lineage'
     | '/clan/$clanId/'
@@ -68,6 +94,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  TermsRoute: typeof TermsRoute
   ClanClanIdRoute: typeof ClanClanIdRouteWithChildren
 }
 
@@ -78,6 +106,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clan/$clanId': {
@@ -120,6 +162,8 @@ const ClanClanIdRouteWithChildren = ClanClanIdRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  TermsRoute: TermsRoute,
   ClanClanIdRoute: ClanClanIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
