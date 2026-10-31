@@ -66,7 +66,7 @@ export function computeLayout(cats: Cat[]): Positions {
     for (const c of row)
       if (!key.has(c.id)) {
         const mk = idx.mates(c.id).map((m) => key.get(m)).filter((v): v is number => v !== undefined);
-        key.set(c.id, mk.length ? mk[0] + 0.1 : 1e9 + order.get(c.id)!);
+        key.set(c.id, mk.length ? mk[0]! + 0.1 : 1e9 + order.get(c.id)!);
       }
     const sorted = [...row].sort((a, b) => key.get(a.id)! - key.get(b.id)! || order.get(a.id)! - order.get(b.id)!);
 

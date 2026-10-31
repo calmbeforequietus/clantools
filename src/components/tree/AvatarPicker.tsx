@@ -13,7 +13,7 @@ export function AvatarPicker({ value, onChange }: { value: Avatar; onChange: (a:
   const [url, setUrl] = useState("");
   const onFile = (f: File | undefined) => {
     if (!f) return;
-    if (f.size > 1.5 * 1024 * 1024) return toast.error("Please choose an image under 1.5 MB.");
+    if (f.size > 1.5 * 1024 * 1024) { toast.error("Please choose an image under 1.5 MB."); return; }
     const r = new FileReader();
     r.onload = () => onChange({ kind: "image", src: String(r.result) });
     r.readAsDataURL(f);

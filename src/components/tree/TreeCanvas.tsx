@@ -127,10 +127,10 @@ export function TreeCanvas({
     pointers.current.set(e.pointerId, { x: e.clientX - rect.left, y: e.clientY - rect.top });
     const pts = [...pointers.current.values()];
     moved.current = false;
-    if (pts.length === 1) gesture.current = { view: viewRef.current, x: pts[0].x, y: pts[0].y };
+    if (pts.length === 1) gesture.current = { view: viewRef.current, x: pts[0]!.x, y: pts[0]!.y };
     else if (pts.length === 2) {
-      const cx = (pts[0].x + pts[1].x) / 2, cy = (pts[0].y + pts[1].y) / 2;
-      gesture.current = { view: viewRef.current, x: cx, y: cy, dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) };
+      const cx = (pts[0]!.x + pts[1]!.x) / 2, cy = (pts[0]!.y + pts[1]!.y) / 2;
+      gesture.current = { view: viewRef.current, x: cx, y: cy, dist: Math.hypot(pts[0]!.x - pts[1]!.x, pts[0]!.y - pts[1]!.y) };
     }
     const move = (ev: PointerEvent) => {
       if (!pointers.current.has(ev.pointerId)) return;
@@ -139,13 +139,13 @@ export function TreeCanvas({
       if (!g) return;
       const ps = [...pointers.current.values()];
       if (ps.length === 1) {
-        const dx = ps[0].x - g.x, dy = ps[0].y - g.y;
+        const dx = ps[0]!.x - g.x, dy = ps[0]!.y - g.y;
         if (Math.abs(dx) + Math.abs(dy) > 4) moved.current = true;
         if (moved.current) setView({ ...g.view, x: g.view.x + dx, y: g.view.y + dy });
       } else if (ps.length >= 2 && g.dist) {
         moved.current = true;
-        const cx = (ps[0].x + ps[1].x) / 2, cy = (ps[0].y + ps[1].y) / 2;
-        const k = clamp(g.view.k * (Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y) / g.dist));
+        const cx = (ps[0]!.x + ps[1]!.x) / 2, cy = (ps[0]!.y + ps[1]!.y) / 2;
+        const k = clamp(g.view.k * (Math.hypot(ps[0]!.x - ps[1]!.x, ps[0]!.y - ps[1]!.y) / g.dist));
         const r = k / g.view.k;
         setView({ k, x: cx - (g.x - g.view.x) * r, y: cy - (g.y - g.view.y) * r });
       }
@@ -158,7 +158,7 @@ export function TreeCanvas({
         window.removeEventListener("pointerup", up);
         window.removeEventListener("pointercancel", up);
       } else {
-        const p = [...pointers.current.values()][0];
+        const p = [...pointers.current.values()][0]!;
         gesture.current = { view: viewRef.current, x: p.x, y: p.y };
       }
     };
@@ -199,9 +199,9 @@ export function TreeCanvas({
       }
       const ps = idx.parents(c.id).filter((p) => positions.has(p) && visible(p));
       const ex = cp.x, ey = cp.y + 6;
-      if (ps.length === 2 && idx.mates(ps[0]).includes(ps[1]) && positions.get(ps[0])!.y === positions.get(ps[1])!.y) {
-        const a = positions.get(ps[0])!, bb = positions.get(ps[1])!;
-        out.push({ d: curve((a.x + bb.x) / 2, a.y + AV_CY, ex, ey), kind: "blood", on: isOn(c.id) && isOn(ps[0]), key: "b" + c.id });
+      if (ps.length === 2 && idx.mates(ps[0]!).includes(ps[1]!) && positions.get(ps[0]!)!.y === positions.get(ps[1]!)!.y) {
+        const a = positions.get(ps[0]!)!, bb = positions.get(ps[1]!)!;
+        out.push({ d: curve((a.x + bb.x) / 2, a.y + AV_CY, ex, ey), kind: "blood", on: isOn(c.id) && isOn(ps[0]!), key: "b" + c.id });
       } else {
         ps.forEach((p) => {
           const pp = positions.get(p)!;

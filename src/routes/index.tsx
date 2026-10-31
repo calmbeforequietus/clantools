@@ -89,10 +89,10 @@ function Index() {
     },
     duplicate: () => addTree({ ...structuredClone(tree), id: crypto.randomUUID(), name: `${tree.name} (copy)` }),
     remove: () => {
-      if (store.trees.length === 1) return toast.error("You need at least one tree.");
+      if (store.trees.length === 1) { toast.error("You need at least one tree."); return; }
       if (!window.confirm(`Delete "${tree.name}"?`)) return;
       const rest = store.trees.filter((t) => t.id !== tree.id);
-      setStore({ trees: rest, activeId: rest[0].id });
+      setStore({ trees: rest, activeId: rest[0]!.id });
       select(null);
     },
     canon: () => addTree(canonTree(crypto.randomUUID())),
@@ -228,7 +228,6 @@ function Index() {
           key={focused.id}
           cat={focused}
           cats={cats}
-          relTags={undefined}
           onClose={() => setDrawer(false)}
           onSelect={(id) => select(id)}
           onUpdate={(patch) => setCats((cs) => cs.map((c) => (c.id === focused.id ? { ...c, ...patch } : c)))}
@@ -258,7 +257,7 @@ function LegendRow({ color, label, dash, thick, toggle, onToggle }: {
     <div className="flex items-center gap-2">
       <svg width="28" height="8"><path d="M2 4 H26" stroke={color} strokeWidth={thick ? 3 : 2} strokeDasharray={dash} strokeLinecap="round" /></svg>
       <span className="flex-1 text-muted-foreground">{label}</span>
-      {onToggle && <Switch checked={toggle} onCheckedChange={onToggle} className="scale-75" />}
+      {onToggle && <Switch checked={!!toggle} onCheckedChange={onToggle} className="scale-75" />}
     </div>
   );
 }

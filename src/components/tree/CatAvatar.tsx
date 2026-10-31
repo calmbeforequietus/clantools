@@ -15,7 +15,7 @@ export const CLAN_ICON: Record<Clan, typeof Zap> = {
 };
 
 export function PeltFace({ pelt }: { pelt: string }) {
-  const p = PELTS[pelt] ?? PELTS.gray;
+  const p = (PELTS[pelt] ?? PELTS["gray"])!;
   return (
     <svg viewBox="0 0 64 64" className="h-full w-full">
       <rect width="64" height="64" fill="var(--muted)" />
