@@ -112,7 +112,7 @@ export function Devlog() {
                 Roadmap
               </h3>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                Nothing planned at the moment — have an idea? Feel free to reach out on the <Link to="/about" className="underline underline-offset-2 text-foreground hover:text-primary">About page</Link>.
+                Nothing planned at the moment!
               </p>
             </div>
           </div>

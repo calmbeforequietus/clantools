@@ -3,13 +3,13 @@ import { PELTS } from '@/lib/tree/pelts';
 
 const PELT_PATTERN = { solid: 'solid', tabby: 'tabby', white: 'bicolor', tortie: 'tortoiseshell' } as const;
 /** Full-body drawing for a built-in pelt, using the pelt's own palette. */
-export function PeltBodyArt({ pelt, className = '' }: { pelt: string; className?: string }) {
+export function PeltBodyArt({ pelt, className = '', kit = false }: { pelt: string; className?: string; kit?: boolean }) {
   const p = PELTS[pelt] ?? Object.values(PELTS)[0]!;
-  return <CatBodyArt className={className} settings={{ ...DEFAULT_CAT_ICON, pattern: PELT_PATTERN[p.pattern] }} colors={{ coat: p.base, markings: p.mark, eye: p.eye }} />;
+  return <CatBodyArt className={className} kit={kit} settings={{ ...DEFAULT_CAT_ICON, pattern: PELT_PATTERN[p.pattern] }} colors={{ coat: p.base, markings: p.mark, eye: p.eye }} />;
 }
 
 /** Full-body sitting cat drawn from the same saved settings as the face icon. */
-export function CatBodyArt({ settings, className = '', colors }: { settings: CatIconSettings; className?: string; colors?: { coat: string; markings: string; eye: string } }) {
+export function CatBodyArt({ settings, className = '', colors, kit = false }: { settings: CatIconSettings; className?: string; colors?: { coat: string; markings: string; eye: string }; kit?: boolean }) {
   const s = normalizeIcon(settings);
   const coat = colors?.coat ?? catColor(s.coat), mark = colors?.markings ?? catColor(s.markings), white = catColor('snow');
   const eyeColor = (c: string) => colors?.eye ?? catColor(c as never);
@@ -17,16 +17,8 @@ export function CatBodyArt({ settings, className = '', colors }: { settings: Cat
   const points = s.pattern === 'pointed' ? mark : base;
   const ink = 'var(--cat-ink)';
   const scar = { stroke: 'var(--cat-scar)', strokeWidth: 2.4, strokeLinecap: 'round' as const, fill: 'none' };
-  return <svg viewBox="34 34 172 220" role="img" aria-label="Full-body cat drawing" className={className} filter="url(#cat-body-outline)">
-    <defs>
-      {/* Dark ring cut from the artwork's own silhouette so light coats stay visible on light backgrounds. */}
-      <filter id="cat-body-outline" x="-10%" y="-10%" width="120%" height="120%">
-        <feMorphology in="SourceAlpha" operator="dilate" radius="4" result="ring" />
-        <feFlood style={{ floodColor: 'var(--cat-ink)' }} result="ink" />
-        <feComposite in="ink" in2="ring" operator="in" result="outline" />
-        <feMerge><feMergeNode in="outline" /><feMergeNode in="SourceGraphic" /></feMerge>
-      </filter>
-    </defs>
+  return <svg viewBox="0 0 200 260" role="img" aria-label={kit ? "Mini kit cat drawing" : "Full-body cat drawing"} className={className}>
+    <g transform={kit ? "translate(25 32.5) scale(.75)" : undefined}>
     {/* tail */}
     <path d="M140 232 Q190 225 186 180 Q183 150 168 140" fill="none" stroke={points} strokeWidth="16" strokeLinecap="round" />
     {s.pattern === 'tabby' && <path d="M178 196l10-4 M184 172l10 0 M172 150l8-6" stroke={mark} strokeWidth="5" strokeLinecap="round" />}
@@ -46,7 +38,7 @@ export function CatBodyArt({ settings, className = '', colors }: { settings: Cat
     <ellipse cx="80" cy="240" rx="14" ry="7" fill={s.pattern === 'tuxedo' || s.pattern === 'bicolor' ? white : points} />
     <ellipse cx="120" cy="240" rx="14" ry="7" fill={s.pattern === 'tuxedo' || s.pattern === 'bicolor' ? white : points} />
     {/* head */}
-    <g transform="translate(52 36) scale(1.5)">
+    <g transform={kit ? "translate(44 26.5) scale(1.75)" : "translate(52 36) scale(1.5)"}>
       <path d="M11 35 14 7 30 22 M53 35 50 7 34 22" fill={points} />
       <path d="M16 26 17 13 26 23 M48 26 47 13 38 23" fill="var(--cat-rose)" />
       {s.ears === 'torn left' && <path d="M10 6 22 20 14 22Z" fill="var(--card)" />}
@@ -59,8 +51,9 @@ export function CatBodyArt({ settings, className = '', colors }: { settings: Cat
       {(s.pattern === 'bicolor' || s.pattern === 'tuxedo') && <path d="M32 33Q27 42 23 48Q24 58 32 58Q40 58 41 48Q37 42 32 33" fill={white} />}
       {s.pattern === 'pointed' && <ellipse cx="32" cy="40" rx="14" ry="14" fill={mark} />}
       {(['left', 'right'] as const).map(side => { const cx = side === 'left' ? 24 : 40, blind = s.blind === side; return <g key={side}>
-        <ellipse cx={cx} cy="36" rx="4.5" ry="5" fill={blind ? 'var(--cat-cloud)' : eyeColor(side === 'left' ? s.leftEye : s.rightEye)} />
-        {!blind && <ellipse cx={cx} cy="36" rx="1.4" ry="3.7" fill={ink} />}</g>; })}
+        <ellipse cx={cx} cy="36" rx={kit ? 6 : 4.5} ry={kit ? 6.5 : 5} fill={blind ? 'var(--cat-cloud)' : eyeColor(side === 'left' ? s.leftEye : s.rightEye)} />
+        {!blind && <><ellipse cx={cx} cy="36" rx={kit ? 1.8 : 1.4} ry={kit ? 4.3 : 3.7} fill={ink} />{kit && <circle cx={cx - 1.8} cy="33.5" r="1.5" fill="white" />}</>}</g>; })}
+      {kit && <g fill="var(--cat-rose)" opacity=".38"><ellipse cx="15" cy="46" rx="4" ry="2.2" /><ellipse cx="49" cy="46" rx="4" ry="2.2" /></g>}
       {s.scars?.includes('eye') && <path d="M18 29 30 43" {...scar} strokeWidth={1.6} />}
       {s.scars?.includes('brow') && <path d="M37 26 45 30" {...scar} strokeWidth={1.6} />}
       {s.scars?.includes('cheek') && <path d="M46 40 52 46" {...scar} strokeWidth={1.6} />}
@@ -72,5 +65,6 @@ export function CatBodyArt({ settings, className = '', colors }: { settings: Cat
     </g>
     {(s.accessory === 'collar' || s.accessory === 'bell collar') && <path d="M72 132 Q100 148 128 132" fill="none" stroke="var(--cat-collar)" strokeWidth="7" strokeLinecap="round" />}
     {s.accessory === 'bell collar' && <circle cx="100" cy="146" r="5" fill="var(--cat-gold)" stroke={ink} strokeWidth="1" />}
+    </g>
   </svg>;
 }
