@@ -48,7 +48,7 @@ export function computeLayout(cats: Cat[]): Positions {
     let cursor = 0;
     for (const unit of row) {
       const desired = targets?.get(unit);
-      let start = Math.max(cursor, (desired ?? cursor) - (unit.ids.length - 1) * W / 2);
+      let start = cursor;
       for (const id of unit.ids) { positions.set(id, { x: start, y: unit.generation * (NODE_H + GAP_Y) }); start += W; }
       unit.x = start - W - (unit.ids.length - 1) * W / 2;
       cursor = start + GAP_X;
