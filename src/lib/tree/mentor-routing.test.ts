@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { computeLayout, NODE_H, NODE_W } from './layout';
+import { AVATAR, AVATAR_CY, computeLayout, NODE_H, NODE_W } from './layout';
 import { canonTree } from './canon';
 import { routeMentor, routeMentorConnections, roundedMentorPath } from './mentor-routing';
 it('routes Firestar to Cloudtail around Sandstorm and other cats', () => {
@@ -33,4 +33,22 @@ it('gives Cinderpelt distinct incoming and outgoing attachment points', () => {
   const starts = links.filter(l=>l.mentor === 'firestar').map(l=>routes.get(`firestar~${l.apprentice}`)?.[0]?.y);
   expect(new Set(starts).size).toBe(3);
   expect(routeMentorConnections(positions,[...links].reverse())).toEqual(routes);
+});
+it('keeps every mentor arrow outside the left avatar edge and away from right-hand symbols', () => {
+  const cats = canonTree('test').cats;
+  const positions = computeLayout(cats);
+  // Exercise multiple incoming/outgoing approaches on the same cat.
+  const routes = routeMentorConnections(positions, [
+    {mentor:'firestar',apprentice:'cinderpelt'},
+    {mentor:'cinderpelt',apprentice:'leafpool'},
+    {mentor:'firestar',apprentice:'cloudtail'},
+  ]);
+  for (const [key, points] of routes) {
+    const target = positions.get(key.split('~')[1] ?? '');
+    const tip = points.at(-1);
+    expect(target).toBeDefined(); expect(tip).toBeDefined();
+    if (!target || !tip) continue;
+    expect(tip.x).toBeLessThan(target.x);
+    expect(Math.hypot(tip.x-target.x,tip.y-target.y-AVATAR_CY)).toBeGreaterThan(AVATAR/2+4);
+  }
 });

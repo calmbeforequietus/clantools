@@ -1,14 +1,15 @@
-import { AVATAR, NODE_H, NODE_W, type Positions } from './layout';
+import { AVATAR, AVATAR_CY, NODE_H, NODE_W, type Positions } from './layout';
 export interface Point { x: number; y: number }
 interface RoutingOptions { sourceOffset?: number; targetOffset?: number; occupied?: Point[][] }
 export function routeMentor(positions: Positions, mentor: string, apprentice: string, lane = 0, options: RoutingOptions = {}): Point[] {
   const source = positions.get(mentor), target = positions.get(apprentice);
   if (!source || !target) return [];
   const pad = 16 + lane * 6;
-  const cy = 14 + AVATAR / 2;
+  const cy = AVATAR_CY;
   const sourceOffset = options.sourceOffset ?? -12, targetOffset = options.targetOffset ?? 12;
-  const start = { x: source.x + NODE_W / 2 + pad, y: source.y + cy + sourceOffset };
-  const end = { x: target.x + NODE_W / 2 + pad, y: target.y + cy + targetOffset };
+  // Approach the left cheek: Clan crests and status symbols occupy the right.
+  const start = { x: source.x - NODE_W / 2 - pad, y: source.y + cy + sourceOffset };
+  const end = { x: target.x - NODE_W / 2 - pad, y: target.y + cy + targetOffset };
   const rects = [...positions.values()].map(p => ({ left: p.x - NODE_W / 2 - 10, right: p.x + NODE_W / 2 + 10, top: p.y - 10, bottom: p.y + NODE_H + 10 }));
   const xs = [...new Set([start.x, end.x, ...rects.flatMap(r => [r.left - pad, r.right + pad])])].sort((a,b) => a-b);
   const ys = [...new Set([start.y, end.y, ...rects.flatMap(r => [r.top - pad, r.bottom + pad])])].sort((a,b) => a-b);
@@ -58,8 +59,8 @@ export function routeMentor(positions: Positions, mentor: string, apprentice: st
     cursor = previous.get(cursor);
   }
   const reduced = points.filter((p,i) => !points[i-1] || !points[i+1] || !(points[i-1]?.x === p.x && points[i+1]?.x === p.x || points[i-1]?.y === p.y && points[i+1]?.y === p.y));
-  const portX = (offset: number) => Math.sqrt(Math.max(0, (AVATAR/2+4)**2-offset**2));
-  return [{x:source.x+portX(sourceOffset),y:start.y}, ...reduced, {x:target.x+portX(targetOffset),y:end.y}];
+  const portX = (offset: number) => Math.sqrt(Math.max(0, (AVATAR/2)**2-offset**2));
+  return [{x:source.x-portX(sourceOffset)-6,y:start.y}, ...reduced, {x:target.x-portX(targetOffset)-6,y:end.y}];
 }
 export function routeMentorConnections(positions: Positions, links: { mentor: string; apprentice: string }[]) {
   const sorted = [...links].sort((a,b) => `${a.mentor}~${a.apprentice}`.localeCompare(`${b.mentor}~${b.apprentice}`));
@@ -67,7 +68,7 @@ export function routeMentorConnections(positions: Positions, links: { mentor: st
   const offset = (cat: string, link: typeof sorted[number]) => {
     const related = incident(cat), i = related.indexOf(link);
     if (related.length === 1) return link.mentor === cat ? -12 : 12;
-    const value = -26 + i * 52/(related.length-1);
+    const value = -20 + i * 40/(related.length-1);
     return Math.abs(value) < 6 ? 6 : value;
   };
   const routes = new Map<string,Point[]>(), occupied: Point[][] = [];
