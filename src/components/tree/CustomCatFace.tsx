@@ -15,6 +15,6 @@ export function CustomCatFace({ settings: s }: { settings: CatIconSettings }) {
     <ellipse cx="24" cy="36" rx="4.5" ry="5" fill={catColor(s.leftEye)} /><ellipse cx="40" cy="36" rx="4.5" ry="5" fill={catColor(s.rightEye)} />
     <g fill="var(--cat-ink)"><ellipse cx="24" cy="36" rx="1.4" ry="3.7" /><ellipse cx="40" cy="36" rx="1.4" ry="3.7" /></g>
     <path d="M29 44H35L32 47Z" fill={catColor(s.nose)} />
-    <path d={s.mouth === 'smile' ? 'M32 47Q29 52 26 49M32 47Q35 52 38 49' : s.mouth === 'neutral' ? 'M32 47V50M27 50H37' : 'M32 47V50'} fill="none" stroke="var(--cat-ink)" strokeWidth="1.2" strokeLinecap="round" />
+    <path d={s.mouth === 'smile' ? 'M32 47Q29 52 26 49M32 47Q35 52 38 49' : s.mouth === 'neutral' ? 'M32 47V50M27 50H37' : 'M29 51L32 48L35 51'} fill="none" stroke="var(--cat-ink)" strokeWidth="1.2" strokeLinecap="round" />
   </svg>;
 }
