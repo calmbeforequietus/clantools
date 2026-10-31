@@ -1,4 +1,7 @@
 # Current Clan updates
+- [ ] Keep mentor arrowheads clear of extra symbols and reconnect parentage at the avatar edge.
+- [ ] Fill role symbols and strengthen deceased names to blue-gray.
+- [ ] Verify endpoint geometry, line selection and visible artwork.
 - [x] Broad smooth mentor curves with distinct paths and safe node clearance.
 - [x] Clickable relationship lines highlight and name connected cats; verify selection and clearing.
 - [x] Align New Clan tile bottom edge with Clan tiles.
