@@ -10,6 +10,7 @@ import type { RelKind } from "@/lib/tree/ops";
 import { CLAN_VAR, CLANS, GENDERS, RANKS, STATUS_LABEL, STATUSES, catName, type Cat, type LifeStage } from "@/lib/tree/types";
 import { AvatarPicker } from "./AvatarPicker";
 import { CatAvatar } from "./CatAvatar";
+import { NameIdeas } from "./NameIdeas";
 
 const SECTIONS: { kind: RelKind; label: string }[] = [
   { kind: "parents", label: "Parents" },
@@ -119,6 +120,7 @@ export function CatDrawer({
               <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Add a newer name (e.g. Firestar)" className="h-8" />
               <Button type="submit" size="sm" variant="secondary" className="h-8">Add</Button>
             </form>
+            <NameIdeas hint={cat.appearance} onPick={setNewName} />
           </div>}
         </section>
 
