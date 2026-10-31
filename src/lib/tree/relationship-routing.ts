@@ -10,11 +10,9 @@ export function parentPort(p: Point): Point {
   return { x: p.x - 24, y: p.y + AVATAR_CY + Math.sqrt((AVATAR / 2) ** 2 - 24 ** 2) };
 }
 export function parentRelationshipPath(parent: Point, end: Point): string {
+  // Short, direct generational curve from the lower-left of the parent's ring.
+  // Names carry canvas backplates, so no side detour is needed.
   const start = parentPort(parent);
-  const side = parent.x - NODE_W / 2 - 12;
-  const below = parent.y + NODE_H;
-  const mid = below + (end.y - below) / 2;
-  // One short local bend clears the parent's own name/role, then rejoins the
-  // original smooth generational curve; never follows a global grid lane.
-  return `M${start.x},${start.y} C${side},${start.y + 16} ${side},${below - 24} ${side},${below} C${side},${mid} ${end.x},${mid} ${end.x},${end.y}`;
+  const mid = start.y + Math.max(30, (end.y - start.y) / 2);
+  return `M${start.x},${start.y} C${start.x},${mid} ${end.x},${mid} ${end.x},${end.y}`;
 }
