@@ -1,4 +1,6 @@
 # Current Clan updates
+- [x] Broad smooth mentor curves with distinct paths and safe node clearance.
+- [x] Clickable relationship lines highlight and name connected cats; verify selection and clearing.
 - [x] Align New Clan tile bottom edge with Clan tiles.
 - [x] Move lineage, edit and arrange controls higher on Clan pages.
 - [x] Make the small cat mouth an upside-down V.
