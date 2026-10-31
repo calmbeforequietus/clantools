@@ -89,6 +89,7 @@ export interface Store {
   trees: Tree[];
   activeId: string;
   clans: ClanPage[];
+  presentationVersion?: number;
 }
 const KEY = "warrior-cats-trees-v1";
 
@@ -101,14 +102,20 @@ export function loadStore(): Store {
         const first = s.trees[0];
         if (!first) throw new Error("No trees");
         const clans = s.clans ?? initialClans(first.id);
-        return { ...s, clans, trees: s.trees.map(t => ({ ...t, clanId: t.clanId ?? "thunderclan" })) };
+        return refineStore({ ...s, clans, trees: s.trees.map(t => ({ ...t, clanId: t.clanId ?? "thunderclan" })) });
       }
     }
   } catch {
     /* ignore */
   }
   const t = canonTree(crypto.randomUUID());
-  return { trees: [{ ...t, clanId: "thunderclan" }], activeId: t.id, clans: initialClans(t.id) };
+  return refineStore({ trees: [{ ...t, clanId: "thunderclan" }], activeId: t.id, clans: initialClans(t.id) });
+}
+
+export function refineStore(store: Store): Store {
+  if (store.presentationVersion === 1) return store;
+  const removed = new Set(['skyclan', 'starclan', 'bloodclan']);
+  return { ...store, presentationVersion: 1, clans: store.clans.filter(c => !removed.has(c.id)) };
 }
 
 export function saveStore(s: Store) {

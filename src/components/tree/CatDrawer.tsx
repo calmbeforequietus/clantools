@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { buildIndex } from "@/lib/tree/kinship";
 import type { RelKind } from "@/lib/tree/ops";
-import { CLAN_VAR, CLANS, GENDERS, RANKS, STATUS_LABEL, STATUSES, catName, type Cat, type Era, type LifeStage } from "@/lib/tree/types";
+import { CLAN_VAR, CLANS, GENDERS, RANKS, STATUS_LABEL, STATUSES, catName, type Cat, type LifeStage } from "@/lib/tree/types";
 import { AvatarPicker } from "./AvatarPicker";
 import { CatAvatar } from "./CatAvatar";
 
@@ -25,7 +25,6 @@ export function CatDrawer({
   cat,
   cats,
   relTags,
-  eras = [],
   affiliations = [],
   onClose,
   onUpdate,
@@ -38,7 +37,6 @@ export function CatDrawer({
   cat: Cat;
   cats: Cat[];
   relTags?: string[] | undefined;
-  eras?: Era[];
   affiliations?: string[];
   onClose: () => void;
   onUpdate: (patch: Partial<Cat>) => void;
@@ -88,7 +86,8 @@ export function CatDrawer({
 
       <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
         {stage && <section className="space-y-3 border-b border-border pb-5"><Button variant="ghost" size="sm" onClick={() => setStageIndex(null)}><ArrowLeft />Full profile</Button><h3 className="font-display text-xl">{stage.name}</h3>{editing ? <AvatarPicker value={stage.avatar ?? cat.avatar} onChange={avatar => updateStage({ avatar })} /> : <CatAvatar avatar={stage.avatar ?? cat.avatar} className="h-32 w-32" />}{editing ? <><Field label="Stage rank"><Select value={stage.rank ?? cat.rank} onValueChange={v => updateStage({ rank: v as Cat['rank'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{RANKS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent></Select></Field><Field label="Age / moons"><Input aria-label="Stage age" value={stage.age ?? ''} onChange={e => updateStage({ age: e.target.value })} /></Field><Field label="Stage history"><Textarea aria-label="Stage history" value={stage.description ?? ''} onChange={e => updateStage({ description: e.target.value })} /></Field><Field label="Stage mentors"><Input aria-label="Stage mentors" value={stage.mentors ?? ''} onChange={e => updateStage({ mentors: e.target.value })} /></Field><Field label="Stage apprentices"><Input aria-label="Stage apprentices" value={stage.apprentices ?? ''} onChange={e => updateStage({ apprentices: e.target.value })} /></Field></> : <><p className="text-sm text-muted-foreground">{stage.rank ?? cat.rank}{stage.age ? ` · ${stage.age}` : ''}</p><p className="whitespace-pre-wrap text-sm">{stage.description || 'No history recorded for this name.'}</p>{stage.mentors && <p className="text-sm">Mentors: {stage.mentors}</p>}{stage.apprentices && <p className="text-sm">Apprentices: {stage.apprentices}</p>}</>}</section>}
-        <section className="space-y-3"><h3 className="text-xs font-bold uppercase text-muted-foreground">At a glance</h3>{editing ? <Textarea aria-label="TL;DR history" value={cat.summary ?? ''} onChange={e => onUpdate({ summary: e.target.value })} placeholder="TL;DR history" /> : <p className="whitespace-pre-wrap text-sm leading-relaxed">{cat.summary || 'No summary recorded.'}</p>}<h3 className="text-xs font-bold uppercase text-muted-foreground">History & personality</h3>{editing ? <Textarea aria-label="Biography" rows={4} value={cat.biography ?? ''} onChange={e => onUpdate({ biography: e.target.value })} /> : <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{cat.biography || 'No biography recorded.'}</p>}</section>
+
+        <section className="space-y-3">{editing ? <Textarea aria-label="TL;DR history" value={cat.summary ?? ''} onChange={e => onUpdate({ summary: e.target.value })} placeholder="TL;DR history" /> : <p className="whitespace-pre-wrap text-sm leading-relaxed">{cat.summary || 'No summary recorded.'}</p>}</section>
         <section>
           <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Name history</h3>
           <div className="mb-3 flex flex-wrap items-center gap-1 text-sm">
@@ -116,6 +115,7 @@ export function CatDrawer({
           </div>}
         </section>
 
+        <section className="space-y-3"><h3 className="text-xs font-bold uppercase text-muted-foreground">History & personality</h3>{editing ? <Textarea aria-label="Biography" rows={4} value={cat.biography ?? ''} onChange={e => onUpdate({ biography: e.target.value })} /> : <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{cat.biography || 'No biography recorded.'}</p>}</section>
         {editing ? <section className="grid grid-cols-2 gap-3">
           <Field label="Clan / affiliation">
             <Select value={cat.clan} onValueChange={(v) => onUpdate({ clan: v as Cat["clan"] })}>
@@ -146,8 +146,7 @@ export function CatDrawer({
               <Textarea rows={2} value={cat.appearance} onChange={(e) => onUpdate({ appearance: e.target.value })} placeholder="Flame-colored tom with green eyes…" />
             </Field>
           </div>
-<div className="col-span-2"><Field label="Born under leadership"><Select value={cat.birthEra ?? "unknown"} onValueChange={v => onUpdate({ birthEra: v === "unknown" ? undefined : v })}><SelectTrigger aria-label="Born under leadership"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unknown">Not recorded</SelectItem>{eras.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}</SelectContent></Select></Field></div>
-        </section> : <section className="space-y-2 border-y border-border py-4"><p className="text-sm">{cat.gender} · {cat.rank} · {STATUS_LABEL[cat.status]}</p><p className="whitespace-pre-wrap text-sm text-muted-foreground">{cat.appearance}</p>{cat.birthEra && <p className="text-xs text-muted-foreground">Born under: {eras.find(e => e.id === cat.birthEra)?.name ?? "Unknown era"}</p>}</section>}
+        </section> : <section className="space-y-2 border-y border-border py-4"><p className="text-sm">{cat.gender} · {cat.rank} · {STATUS_LABEL[cat.status]}</p><p className="whitespace-pre-wrap text-sm text-muted-foreground">{cat.appearance}</p></section>}
 
         <section>
           <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Relationships</h3>

@@ -70,6 +70,7 @@ export interface MapPin { id: string; x: number; y: number; name: string; body: 
 export interface ClanPage {
   id: string; name: string; affiliation: Clan; crest: string; color: string;
   sections: LoreSection[]; map?: string; pins: MapPin[]; eras: Era[];
+  sectionOrder?: string[];
 }
 
 export interface Cat {

@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react';
 import { toast } from 'sonner';
-import { loadStore, saveStore, type Store } from '@/lib/tree/ops';
+import { loadStore, refineStore, saveStore, type Store } from '@/lib/tree/ops';
 
 type ForestStore = { value: Store | null; listeners: Set<() => void> };
 type Registry = typeof globalThis & { __warriorForestStore?: ForestStore };
@@ -36,4 +36,5 @@ export const setForestStore: Dispatch<SetStateAction<Store | null>> = update => 
 export function initializeForestStore() {
   const state = browserStore();
   if (state && !state.value) setForestStore(loadStore());
+  else if (state?.value) setForestStore(refineStore(state.value));
 }
