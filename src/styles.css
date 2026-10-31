@@ -161,3 +161,17 @@
     color: var(--color-foreground);
   }
 }
+
+:root {
+  --clan-blood: oklch(0.5 0.18 25);
+  --gender-she: oklch(0.77 0.12 355);
+  --gender-tom: oklch(0.74 0.11 235);
+  --gender-other: oklch(0.65 0.02 250);
+  --edge-blood: oklch(0.52 0.11 150);
+  --edge-mate: oklch(0.6 0.13 305);
+  --edge-mentor: oklch(0.7 0.13 85);
+}
+.clan-crest { display: inline-block; background: currentColor; mask-size: contain; mask-repeat: no-repeat; mask-position: center; }
+.clan-page { max-width: 1320px; margin-inline: auto; padding: 28px 32px 64px; }
+.clan-heading { font-family: var(--font-display); font-size: 48px; line-height: 1.1; }
+@media (max-width: 640px) { .clan-page { padding: 20px 18px 48px; } .clan-heading { font-size: 36px; } }
