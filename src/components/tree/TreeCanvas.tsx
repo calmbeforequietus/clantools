@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type Ref } from "react";
 import { toPng } from "html-to-image";
-import { Moon, Sparkles } from "lucide-react";
+import { Leaf, Moon, PawPrint, Shield, Sparkles, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ClanCrest } from "./ClanCrest";
 import { CatAvatar } from "./CatAvatar";
 import { buildIndex, type Kinship } from "@/lib/tree/kinship";
 import { AVATAR, bounds, NODE_H, NODE_W, type Positions } from "@/lib/tree/layout";
-import { CLAN_VAR, catName, type Cat } from "@/lib/tree/types";
+import { CLAN_VAR, catName, type Cat, type ClanPage } from "@/lib/tree/types";
 
 export interface CanvasApi {
   fit: () => void;
@@ -12,6 +14,9 @@ export interface CanvasApi {
   exportPng: (name: string) => Promise<void>;
 }
 export interface CanvasOptions {
+  showParents: boolean;
+  showMates: boolean;
+  showEras: boolean;
   showMentors: boolean;
   showFoster: boolean;
   hideUnrelated: boolean;
@@ -22,6 +27,7 @@ const clamp = (v: number) => Math.min(MAX, Math.max(MIN, v));
 const AV_CY = 14 + AVATAR / 2; // avatar center from node top
 
 export function TreeCanvas({
+  clan,
   cats,
   positions,
   focusId,
@@ -32,6 +38,7 @@ export function TreeCanvas({
   apiRef,
   treeKey,
 }: {
+  clan: ClanPage;
   cats: Cat[];
   positions: Positions;
   focusId: string | null;
@@ -75,19 +82,20 @@ export function TreeCanvas({
   useImperativeHandle(apiRef, () => ({
     fit,
     zoomBy: (f) => {
-      const el = containerRef.current!;
+      const el = containerRef.current;
+      if (!el) return;
       zoomAt(el.clientWidth / 2, el.clientHeight / 2, viewRef.current.k * f);
     },
     exportPng: async (name) => {
       const node = worldRef.current;
-      if (!node) return;
+      if (!node || !containerRef.current) return;
       const bw = b.maxX - b.minX, bh = b.maxY - b.minY;
       const ratio = Math.min(3, 8000 / Math.max(bw, bh));
       const url = await toPng(node, {
         width: bw,
         height: bh,
         pixelRatio: ratio,
-        backgroundColor: getComputedStyle(containerRef.current!).backgroundColor,
+        backgroundColor: getComputedStyle(containerRef.current).backgroundColor,
         style: { transform: `translate(${-b.minX}px, ${-b.minY}px)`, transformOrigin: "0 0" },
       });
       const a = document.createElement("a");
@@ -122,7 +130,8 @@ export function TreeCanvas({
   }, [zoomAt]);
 
   const onPointerDown = (e: React.PointerEvent) => {
-    const el = containerRef.current!;
+    const el = containerRef.current;
+      if (!el) return;
     const rect = el.getBoundingClientRect();
     pointers.current.set(e.pointerId, { x: e.clientX - rect.left, y: e.clientY - rect.top });
     const pts = [...pointers.current.values()];
@@ -185,7 +194,7 @@ export function TreeCanvas({
     for (const c of cats) {
       const cp = positions.get(c.id);
       if (!cp || !visible(c.id)) continue;
-      for (const m of idx.mates(c.id)) {
+      for (const m of options.showMates ? idx.mates(c.id) : []) {
         const k = [c.id, m].sort().join("~");
         const mp = positions.get(m);
         if (seenMate.has(k) || !mp || !visible(m)) continue;
@@ -197,7 +206,7 @@ export function TreeCanvas({
           : curve(l.x, l.y + NODE_H, r.x, r.y);
         out.push({ d, kind: "mate", on: isOn(c.id) && isOn(m), key: "m" + k });
       }
-      const ps = idx.parents(c.id).filter((p) => positions.has(p) && visible(p));
+      const ps = (options.showParents ? idx.parents(c.id) : []).filter((p) => positions.has(p) && visible(p));
       const ex = cp.x, ey = cp.y + 6;
       if (ps.length === 2 && idx.mates(ps[0]!).includes(ps[1]!) && positions.get(ps[0]!)!.y === positions.get(ps[1]!)!.y) {
         const a = positions.get(ps[0]!)!, bb = positions.get(ps[1]!)!;
@@ -255,6 +264,13 @@ export function TreeCanvas({
           height={b.maxY - b.minY}
           viewBox={`${b.minX} ${b.minY} ${b.maxX - b.minX} ${b.maxY - b.minY}`}
         >
+          {options.showEras && clan.eras.map((era, i) => {
+            const born = cats.filter(c => c.birthEra === era.id).map(c => positions.get(c.id)).filter((p): p is { x: number; y: number } => !!p);
+            if (!born.length) return null;
+            const y = Math.min(...born.map(p => p.y)) - 32;
+            const end = Math.max(...born.map(p => p.y)) + NODE_H + 28;
+            return <g key={era.id}><rect x={b.minX} y={y} width={b.maxX - b.minX} height={end-y} fill={i % 2 ? "var(--clan-river)" : "var(--clan-thunder)"} opacity="0.08" /><path d={`M${b.minX},${y}H${b.maxX}`} stroke={clan.color} opacity="0.3" /><text x={b.minX+12} y={y-8} fill="var(--muted-foreground)" fontSize="13">{era.name}</text></g>;
+          })}
           {edges.map((e) => (
             <path
               key={e.key}
@@ -275,14 +291,15 @@ export function TreeCanvas({
           const focused = c.id === focusId;
           const tags = kinship?.labels.get(c.id);
           return (
-            <button
+            <Button variant="ghost"
               key={c.id}
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 if (!moved.current) onSelect(c.id);
               }}
-              className="group absolute flex flex-col items-center text-center outline-none"
+              aria-label={`View ${catName(c)}`}
+              className="group absolute flex flex-col gap-0 rounded-none p-0 items-center whitespace-normal text-center outline-none hover:bg-transparent"
               style={{
                 left: p.x - NODE_W / 2,
                 top: p.y,
@@ -303,18 +320,16 @@ export function TreeCanvas({
               <div className="relative mt-3.5">
                 <div
                   className={`rounded-full p-[3px] transition-transform group-hover:scale-105 ${focused ? "ring-4 ring-primary ring-offset-2 ring-offset-canvas" : ""}`}
-                  style={{ background: CLAN_VAR[c.clan], boxShadow: "var(--shadow-float)" }}
+                  style={{ background: c.gender === "She-cat" ? "var(--gender-she)" : c.gender === "Tom" ? "var(--gender-tom)" : "var(--gender-other)", boxShadow: "var(--shadow-float)" }}
                 >
                   <CatAvatar avatar={c.avatar} className="h-[62px] w-[62px] border-2 border-card" />
                 </div>
                 <StatusDot status={c.status} />
               </div>
               <div className="mt-1.5 w-full shrink-0 truncate font-display text-[15px] font-semibold leading-tight text-foreground">{catName(c)}</div>
-              <div className="mt-1 flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-border bg-card px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
-                <span className="h-2 w-2 rounded-full" style={{ background: CLAN_VAR[c.clan] }} />
-                {c.clan} · {c.rank === "None" ? "—" : c.rank === "Medicine Cat" ? "Med Cat" : c.rank}
-              </div>
-            </button>
+              <div className="mt-1 flex h-5 items-center justify-center text-muted-foreground" title={`${c.rank} · ${c.status}`}><RoleIcon cat={c} /></div>
+              {c.clan !== clan.affiliation && <span title={c.clan} className="absolute -top-3 right-6 flex h-7 w-7 items-center justify-center rounded-full border-2 border-card bg-card shadow-float" style={{ color: CLAN_VAR[c.clan] ?? clan.color }}><ClanCrest crest={c.clan} className="h-5 w-5" /></span>}
+            </Button>
           );
         })}
       </div>
@@ -334,4 +349,9 @@ function StatusDot({ status }: { status: Cat["status"] }) {
       {status === "Dark Forest" && <Moon size={10} />}
     </span>
   );
+}
+
+function RoleIcon({ cat }: { cat: Cat }) {
+  const Icon = cat.rank === 'Leader' ? Star : cat.rank === 'Deputy' ? Shield : cat.rank === 'Medicine Cat' ? Leaf : cat.rank === 'Elder' ? Moon : PawPrint;
+  return <Icon size={15} aria-label={cat.rank} />;
 }
