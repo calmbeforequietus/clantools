@@ -30,4 +30,4 @@
 - Kinship checks, Allegiances text export and name suggestions are pure modules under src/lib/tree. Why: their outputs are testable without UI.
 - Cat profiles are one centered read-first dialog (CatDrawer) for Clan pages and lineages; body art derives from icon settings unless a portrait is uploaded. Why: one layout, one appearance editor.
 - New Clan IDs are name slugs fixed at creation; Clan sections (built-in + custom) may pair half-width, Allegiances always full. Why: stable URLs, flexible layouts.
-- Lineage undo/redo keeps 10 store snapshots, typing bursts coalesced. Why: simple reversal of any edit.
+- Lineage undo/redo keeps 10 store snapshots, typing bursts coalesced. Why: reversible edits.
