@@ -22,7 +22,7 @@ it('loads saved trees without any ancestor provider', async () => {
     return <p>{store?.trees[0]?.name ?? 'Loading'}</p>;
   }
   render(<OrphanReader />);
-  await waitFor(() => expect(screen.getByText("Firestar’s Lineage")).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByText("Firestar's Lineage")).toBeInTheDocument());
 });
 
 it('keeps the saved store available when provider children update', async () => {
