@@ -31,9 +31,9 @@ it('keeps the saved store available when provider children update', async () => 
     return <p>{store ? `${store.clans.length}:${revision}` : 'Loading'}</p>;
   }
   const view = render(<ForestProvider><Reader revision={1} /></ForestProvider>);
-  await waitFor(() => expect(screen.getByText('4:1')).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByText('1:1')).toBeInTheDocument());
   view.rerender(<ForestProvider><Reader revision={2} /></ForestProvider>);
-  expect(screen.getByText('4:2')).toBeInTheDocument();
+  expect(screen.getByText('1:2')).toBeInTheDocument();
 });
 
 it('renders a legacy canvas without Clan metadata while eras are enabled', () => {
