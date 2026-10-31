@@ -1,5 +1,5 @@
 # Shared lineage characters
-- [ ] Ask for a name before creating any cat, including cats created through relationship buttons, then check duplicate names.
+- [x] Ask for a name before creating any cat, including cats created through relationship buttons, then check duplicate names; browser verified and 12 targeted tests passed.
 - [x] Explain Clan member count versus lineage cat count from the actual calculation.
 - [x] Prompt on matching names for new cats across Clans: reuse the existing character and data, or keep separate identity.
 - [x] Add existing-cat picker with selectable known relatives when adding to a lineage.
