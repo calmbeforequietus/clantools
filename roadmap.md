@@ -1,4 +1,5 @@
 # Current Clan updates
+- [ ] Remove main-page Clan count and give shared mentor connections unique approaches at each cat.
 - [x] Center gateway heading and unify bold wordmark; align Clan actions and separate medicine cats.
 - [x] Living-only Allegiances with off-by-default StarClan switch and bold rank labels.
 - [x] Custom cat icon creator for new and existing cats with saved editable settings.
