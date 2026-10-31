@@ -29,7 +29,7 @@ export function LineagePage() {
   const { clanId } = useParams({ from: '/clan/$clanId/lineage' });
   const search = useSearch({ from: '/clan/$clanId/lineage' });
   const clan = store?.clans.find(c => c.id === clanId);
-  const [warning, setWarning] = useState<(RelationWarning & { kind: RelKind; other: string }) | null>(null);
+  const [warning, setWarning] = useState<(RelationWarning & { kind: RelKind; other: string; pendingCat?: Cat }) | null>(null);
   const [eraEdit, setEraEdit] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
@@ -78,7 +78,6 @@ export function LineagePage() {
 
   const actions = {
     newTree: () => {
-      const c = newCat({ names: ["First Cat"] });
       addTree({ id: crypto.randomUUID(), name: "Untitled Tree", cats: [], updatedAt: Date.now() });
     },
     rename: () => {
@@ -233,16 +232,19 @@ export function LineagePage() {
           cat={focused}
           cats={cats}
           eras={clan.eras}
+          affiliations={store.clans.map(c => c.affiliation)}
           relTags={kinship?.labels.get(focused.id)}
           onClose={() => setDrawer(false)}
           onSelect={(id) => select(id)}
-          onUpdate={(patch) => setCats((cs) => cs.map((c) => (c.id === focused.id ? { ...c, ...patch } : c)))}
+          onUpdate={(patch) => setStore(s => s && { ...s, trees: s.trees.map(t => ({ ...t, cats: t.cats.map(c => c.id === focused.id ? { ...c, ...patch } : c) })) })}
           onAddRel={(k, o) => { const issue = checkRelation(cats, focused.id, k, o); if (issue) setWarning({ ...issue, kind: k, other: o }); else setCats(cs => addRelation(cs, focused.id, k, o)); }}
           onRemoveRel={(k, o) => setCats((cs) => removeRelation(cs, focused.id, k, o))}
           onCreateRel={(k: RelKind) => {
             const isKit = k === "kits" || k === "fosterKits" || k === "apprentices";
             const c = newCat({ clan: focused.clan, names: [isKit ? "New Kit" : "New Cat"], rank: k === "apprentices" ? "Apprentice" : isKit ? "Kit" : "Warrior" });
-            setCats((cs) => addRelation(mutate([...cs, c], () => {}), focused.id, k, c.id));
+            const issue = checkRelation([...cats, c], focused.id, k, c.id);
+            if (issue) { setWarning({ ...issue, kind: k, other: c.id, pendingCat: c }); return; }
+            setCats(cs => addRelation([...cs, c], focused.id, k, c.id));
             toast.success(`Added a new cat linked to ${catName(focused)}`);
           }}
           onDelete={() => {
@@ -252,7 +254,7 @@ export function LineagePage() {
           }}
         />
       )}
-      {warning && <Dialog open onOpenChange={v => !v && setWarning(null)}><DialogContent><DialogHeader><DialogTitle>{warning.title}</DialogTitle></DialogHeader><p className="text-sm leading-relaxed text-muted-foreground">{warning.message}</p><DialogFooter><Button variant="outline" onClick={() => setWarning(null)}>{warning.blocked ? 'Close' : 'Cancel'}</Button>{!warning.blocked && <Button onClick={() => { if (focusId) setCats(cs => addRelation(cs, focusId, warning.kind, warning.other)); setWarning(null); }}>Connect anyway</Button>}</DialogFooter></DialogContent></Dialog>}
+      {warning && <Dialog open onOpenChange={v => !v && setWarning(null)}><DialogContent><DialogHeader><DialogTitle>{warning.title}</DialogTitle></DialogHeader><p className="text-sm leading-relaxed text-muted-foreground">{warning.message}</p><DialogFooter><Button variant="outline" onClick={() => setWarning(null)}>{warning.blocked ? 'Close' : 'Cancel'}</Button>{!warning.blocked && <Button onClick={() => { if (focusId) setCats(cs => addRelation(warning.pendingCat ? [...cs, warning.pendingCat] : cs, focusId, warning.kind, warning.other)); setWarning(null); }}>Connect anyway</Button>}</DialogFooter></DialogContent></Dialog>}
       {eraEdit && <Dialog open onOpenChange={v => !v && setEraEdit(false)}><DialogContent><DialogHeader><DialogTitle>Leadership eras</DialogTitle></DialogHeader>{clan.eras.map(era => <div key={era.id} className="flex gap-2"><Input aria-label="Era name" value={era.name} onChange={e => setStore(s => s && { ...s, clans: s.clans.map(c => c.id === clanId ? { ...c, eras: c.eras.map(v => v.id === era.id ? { ...v, name: e.target.value } : v) } : c) })} /><Button variant="ghost" size="icon" aria-label="Remove era" onClick={() => setStore(s => s && { ...s, clans: s.clans.map(c => c.id === clanId ? { ...c, eras: c.eras.filter(v => v.id !== era.id) } : c) })}><Trash2 /></Button></div>)}<Button variant="outline" onClick={() => setStore(s => s && { ...s, clans: s.clans.map(c => c.id === clanId ? { ...c, eras: [...c.eras, { id: crypto.randomUUID(), name: 'New leadership era' }] } : c) })}><Plus />Add era</Button><Button onClick={() => setEraEdit(false)}>Done</Button></DialogContent></Dialog>}
     </main>
   );

@@ -96,6 +96,17 @@ export function computeLayout(cats: Cat[]): Positions {
   for (const unit of roots) targets.set(unit, mean(unit.ids.flatMap(id => [...idx.children(id), ...idx.apprentices(id)])) ?? unit.x);
   roots.sort((a, b) => (targets.get(a) ?? a.x) - (targets.get(b) ?? b.x));
   pack(roots);
+  for (const root of roots) {
+    const descendants = root.ids.flatMap(id => idx.children(id));
+    if (!descendants.length) continue;
+    const target = mean(descendants);
+    if (target === undefined) continue;
+    const desired = target - (root.ids.length - 1) * W / 2;
+    const others = [...positions.entries()].filter(([id, p]) => p.y === 0 && !root.ids.includes(id));
+    if (root.ids.every((_, i) => others.every(([, p]) => Math.abs(desired + i * W - p.x) >= W))) {
+      root.ids.forEach((id, i) => positions.set(id, { x: desired + i * W, y: 0 }));
+    }
+  }
   return positions;
 }
 

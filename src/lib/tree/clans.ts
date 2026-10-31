@@ -2,7 +2,7 @@ import type { ClanPage, Tree } from './types';
 
 export const CRESTS = ['ThunderClan', 'ShadowClan', 'WindClan', 'RiverClan', 'SkyClan', 'StarClan', 'BloodClan', 'Leaf', 'Feather', 'Flame', 'Mountain', 'Flower', 'Fish', 'Sun', 'Snow', 'Paw'];
 export const CLAN_COLORS = ['var(--clan-thunder)', 'var(--clan-shadow)', 'var(--clan-wind)', 'var(--clan-river)', 'var(--clan-sky)', 'var(--clan-star)', 'var(--clan-blood)', 'var(--clan-kittypet)'];
-export function initialClans(treeId: string): ClanPage[] {
+export function initialClans(_treeId: string): ClanPage[] {
   return ['ThunderClan', 'ShadowClan', 'WindClan', 'RiverClan', 'SkyClan', 'StarClan', 'BloodClan'].map((name, i) => ({
     id: name === 'ThunderClan' ? 'thunderclan' : name.toLowerCase(), name, affiliation: name,
     crest: name, color: CLAN_COLORS[i] ?? CLAN_COLORS[0] ?? 'var(--primary)',

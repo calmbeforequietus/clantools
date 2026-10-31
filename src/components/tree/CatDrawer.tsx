@@ -26,6 +26,7 @@ export function CatDrawer({
   cats,
   relTags,
   eras = [],
+  affiliations = [],
   onClose,
   onUpdate,
   onAddRel,
@@ -38,6 +39,7 @@ export function CatDrawer({
   cats: Cat[];
   relTags?: string[] | undefined;
   eras?: Era[];
+  affiliations?: string[];
   onClose: () => void;
   onUpdate: (patch: Partial<Cat>) => void;
   onAddRel: (kind: RelKind, other: string) => void;
@@ -49,7 +51,7 @@ export function CatDrawer({
   const idx = useMemo(() => buildIndex(cats), [cats]);
   const [editing, setEditing] = useState(false);
   const [stageIndex, setStageIndex] = useState<number | null>(null);
-  const stages = cat.names.map((name, i) => ({ ...cat.stages?.[i], name }));
+  const stages = cat.names.map((name, i) => ({ rank: name.endsWith("kit") ? "Kit" as const : name.endsWith("paw") ? "Apprentice" as const : name.endsWith("star") ? "Leader" as const : i === cat.names.length-1 ? cat.rank : "Warrior" as const, ...cat.stages?.[i], name }));
   const stage = stageIndex === null ? undefined : stages[stageIndex];
   const updateStage = (patch: Partial<LifeStage>) => { if (stageIndex === null) return; onUpdate({ stages: stages.map((v, i) => i === stageIndex ? { ...v, ...patch } : v) }); };
   const [newName, setNewName] = useState("");
@@ -100,9 +102,9 @@ export function CatDrawer({
           {editing && <div className="space-y-1.5">
             {cat.names.map((n, i) => (
               <div key={i} className="flex gap-1.5">
-                <Input value={n} onChange={(e) => setName(i, e.target.value)} className="h-8" />
+                <Input aria-label={`Name ${i + 1}`} value={n} onChange={(e) => setName(i, e.target.value)} className="h-8" />
                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" disabled={cat.names.length === 1}
-                  onClick={() => onUpdate({ names: cat.names.filter((_, j) => j !== i) })} aria-label="Remove name">
+                  onClick={() => onUpdate({ names: cat.names.filter((_, j) => j !== i), stages: stages.filter((_, j) => j !== i) })} aria-label="Remove name">
                   <X size={14} />
                 </Button>
               </div>
@@ -118,7 +120,7 @@ export function CatDrawer({
           <Field label="Clan / affiliation">
             <Select value={cat.clan} onValueChange={(v) => onUpdate({ clan: v as Cat["clan"] })}>
               <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-              <SelectContent>{CLANS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+              <SelectContent>{[...new Set([...CLANS, ...affiliations, cat.clan])].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
           </Field>
           <Field label="Rank">
@@ -159,7 +161,7 @@ export function CatDrawer({
                     <span className="text-sm font-semibold text-foreground">{label}</span>
                     {editing && <div className="flex items-center gap-1">
                       <Select value="" onValueChange={(v) => onAddRel(kind, v)}>
-                        <SelectTrigger className="h-7 w-[120px] text-xs"><SelectValue placeholder="Link cat…" /></SelectTrigger>
+                        <SelectTrigger aria-label={`Link ${label.toLowerCase()}`} className="h-7 w-[120px] text-xs"><SelectValue placeholder="Link cat…" /></SelectTrigger>
                         <SelectContent>{options.map((o) => <SelectItem key={o.id} value={o.id}>{catName(o)}</SelectItem>)}</SelectContent>
                       </Select>
                       <Button size="icon" variant="ghost" className="h-7 w-7" title={`Create new ${label.toLowerCase()}`} onClick={() => onCreateRel(kind)}>
