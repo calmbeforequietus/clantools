@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { ForestProvider, useForest } from './ForestProvider';
 import { TreeCanvas } from './TreeCanvas';
@@ -42,4 +42,16 @@ it('renders a legacy canvas without Clan metadata while eras are enabled', () =>
     options={{ showParents: true, showMates: true, showFoster: false, showMentors: false, showEras: true, hideUnrelated: false }}
     onSelect={vi.fn()} onZoom={vi.fn()} apiRef={{ current: null }} treeKey="legacy" />);
   expect(screen.getByRole('button', { name: 'View Firestar' })).toBeInTheDocument();
+});
+it('selecting a mentor connection highlights exactly its two cats and can be cleared', () => {
+  const cats = canonCats();
+  render(<TreeCanvas cats={cats} positions={computeLayout(cats)} focusId={null} kinship={null}
+    options={{showParents:true,showMates:true,showFoster:false,showMentors:true,showEras:false,hideUnrelated:false}}
+    onSelect={vi.fn()} onZoom={vi.fn()} apiRef={{current:null}} treeKey="selection" />);
+  fireEvent.click(screen.getByRole('button',{name:'Mentor connection: Firestar and Cloudtail'}));
+  expect(screen.getByRole('button',{name:'View Firestar'})).toHaveAttribute('data-relationship-highlighted','true');
+  expect(screen.getByRole('button',{name:'View Cloudtail'})).toHaveAttribute('data-relationship-highlighted','true');
+  expect(screen.getByRole('button',{name:'View Sandstorm'})).toHaveAttribute('data-relationship-highlighted','false');
+  fireEvent.click(screen.getByRole('button',{name:'Clear relationship highlight'}));
+  expect(screen.getByRole('button',{name:'View Firestar'})).toHaveAttribute('data-relationship-highlighted','false');
 });
