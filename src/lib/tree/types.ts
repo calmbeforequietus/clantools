@@ -8,8 +8,9 @@ export const CLANS = [
   "Dark Forest",
   "Loner/Rogue",
   "Kittypet",
+  "BloodClan",
 ] as const;
-export type Clan = (typeof CLANS)[number];
+export type Clan = (typeof CLANS)[number] | (string & {});
 
 export const CLAN_VAR: Record<Clan, string> = {
   ThunderClan: "var(--clan-thunder)",
@@ -21,6 +22,7 @@ export const CLAN_VAR: Record<Clan, string> = {
   "Dark Forest": "var(--clan-darkforest)",
   "Loner/Rogue": "var(--clan-loner)",
   Kittypet: "var(--clan-kittypet)",
+  BloodClan: "var(--clan-blood)",
 };
 
 export const RANKS = [
