@@ -193,3 +193,71 @@ button svg.crest-detail { width: 24px; height: 24px; }
 }
 .deceased-name { color: var(--deceased-name); }
 @media (max-width: 640px) { .allegiance-row { grid-template-columns: 1fr; gap: 12px; } }
+:root, .dark {
+  --cat-cream: oklch(0.9 0.05 85); --cat-brown: oklch(0.52 0.08 55); --cat-cinnamon: oklch(0.58 0.1 45);
+  --cat-lilac: oklch(0.75 0.03 330); --cat-fawn: oklch(0.8 0.05 65); --cat-amber: oklch(0.72 0.15 65);
+  --cat-yellow: oklch(0.86 0.15 100); --cat-copper: oklch(0.62 0.15 45); --cat-hazel: oklch(0.65 0.1 110);
+  --cat-ice: oklch(0.85 0.06 225); --cat-brick: oklch(0.52 0.13 30);
+  --cat-scar: oklch(0.55 0.1 15); --cat-cloud: oklch(0.88 0.02 240); --cat-collar: oklch(0.55 0.18 25);
+  --cat-feather: oklch(0.6 0.08 60); --cat-flower: oklch(0.82 0.1 340);
+}
+
+/* Text size */
+html[data-text="sm"] { font-size: 14px; }
+html[data-text="lg"] { font-size: 18px; }
+html[data-text="xl"] { font-size: 20px; }
+
+/* Spirit realm filter */
+.spirit-starclan { filter: drop-shadow(0 0 6px var(--spirit-star)) drop-shadow(0 0 14px var(--spirit-star)); }
+.spirit-starclan::after { content: "✦ ✧ ✦"; position: absolute; top: -6px; left: 50%; transform: translateX(-50%); font-size: 11px; letter-spacing: 6px; color: var(--spirit-star); pointer-events: none; }
+.spirit-darkforest { filter: drop-shadow(0 0 8px var(--spirit-dark)) drop-shadow(0 0 16px var(--spirit-dark)) saturate(0.6); }
+:root { --spirit-star: oklch(0.8 0.12 260); --spirit-dark: oklch(0.3 0.08 20); }
+
+/* Themes */
+html[data-theme="night"] {
+  --background: oklch(0.22 0.02 50); --foreground: oklch(0.95 0.015 78); --card: oklch(0.26 0.022 50); --card-foreground: oklch(0.95 0.015 78);
+  --popover: oklch(0.26 0.022 50); --popover-foreground: oklch(0.95 0.015 78); --primary: oklch(0.72 0.15 55); --primary-foreground: oklch(0.2 0.02 50);
+  --secondary: oklch(0.32 0.025 50); --secondary-foreground: oklch(0.95 0.015 78); --muted: oklch(0.3 0.02 50); --muted-foreground: oklch(0.75 0.03 70);
+  --accent: oklch(0.34 0.03 55); --accent-foreground: oklch(0.95 0.015 78); --border: oklch(1 0 0 / 14%); --input: oklch(1 0 0 / 18%); --ring: oklch(0.72 0.15 55);
+  --canvas: oklch(0.2 0.02 50); --canvas-dot: oklch(0.32 0.02 50); --deceased-name: oklch(0.7 0.04 245);
+  --edge-blood: oklch(0.68 0.12 150); --edge-mate: oklch(0.7 0.13 305); --edge-mentor: oklch(0.8 0.13 85); --edge-foster: oklch(0.7 0.08 190);
+}
+html[data-theme="leafbare"] {
+  --background: oklch(0.96 0.008 240); --foreground: oklch(0.27 0.03 250); --card: oklch(0.99 0.004 240); --card-foreground: oklch(0.27 0.03 250);
+  --popover: oklch(0.99 0.004 240); --popover-foreground: oklch(0.27 0.03 250); --primary: oklch(0.5 0.09 240); --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.92 0.015 240); --secondary-foreground: oklch(0.3 0.03 250); --muted: oklch(0.93 0.012 240); --muted-foreground: oklch(0.48 0.03 250);
+  --accent: oklch(0.9 0.03 230); --accent-foreground: oklch(0.27 0.03 250); --border: oklch(0.87 0.015 240); --input: oklch(0.86 0.015 240); --ring: oklch(0.5 0.09 240);
+  --canvas: oklch(0.95 0.01 240); --canvas-dot: oklch(0.84 0.02 240);
+}
+html[data-theme="cb-redgreen"], html[data-theme="cb-blueyellow"] {
+  --background: oklch(0.97 0.004 90); --foreground: oklch(0.22 0 0); --card: oklch(1 0 0); --card-foreground: oklch(0.22 0 0);
+  --popover: oklch(1 0 0); --popover-foreground: oklch(0.22 0 0); --secondary: oklch(0.93 0 0); --secondary-foreground: oklch(0.22 0 0);
+  --muted: oklch(0.93 0 0); --muted-foreground: oklch(0.42 0 0); --accent: oklch(0.91 0 0); --accent-foreground: oklch(0.22 0 0);
+  --border: oklch(0.82 0 0); --input: oklch(0.8 0 0); --canvas: oklch(0.96 0.003 90); --canvas-dot: oklch(0.82 0 0); --deceased-name: oklch(0.5 0 0);
+}
+/* Okabe–Ito palette: distinguishable with protanopia and deuteranopia */
+html[data-theme="cb-redgreen"] {
+  --primary: oklch(0.53 0.13 245); --primary-foreground: oklch(1 0 0); --ring: oklch(0.53 0.13 245);
+  --edge-blood: oklch(0.53 0.13 245); --edge-mate: oklch(0.62 0.18 45); --edge-foster: oklch(0.67 0.12 345); --edge-mentor: oklch(0.45 0 0);
+  --gender-she: oklch(0.76 0.16 75); --gender-tom: oklch(0.53 0.13 245); --gender-other: oklch(0.7 0 0);
+  --status-living: oklch(0.74 0.11 235); --status-starclan: oklch(0.76 0.16 75); --status-darkforest: oklch(0.25 0 0);
+}
+/* Red / teal / black: distinguishable with tritanopia */
+html[data-theme="cb-blueyellow"] {
+  --primary: oklch(0.55 0.2 25); --primary-foreground: oklch(1 0 0); --ring: oklch(0.55 0.2 25);
+  --edge-blood: oklch(0.5 0.08 200); --edge-mate: oklch(0.55 0.2 25); --edge-foster: oklch(0.65 0.2 350); --edge-mentor: oklch(0.3 0 0);
+  --gender-she: oklch(0.66 0.2 15); --gender-tom: oklch(0.6 0.1 195); --gender-other: oklch(0.7 0 0);
+  --status-living: oklch(0.6 0.1 195); --status-starclan: oklch(0.65 0.2 350); --status-darkforest: oklch(0.25 0 0);
+}
+html[data-theme="mono"] {
+  --background: oklch(0.97 0 0); --foreground: oklch(0.2 0 0); --card: oklch(1 0 0); --card-foreground: oklch(0.2 0 0);
+  --popover: oklch(1 0 0); --popover-foreground: oklch(0.2 0 0); --primary: oklch(0.3 0 0); --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.92 0 0); --secondary-foreground: oklch(0.2 0 0); --muted: oklch(0.93 0 0); --muted-foreground: oklch(0.45 0 0);
+  --accent: oklch(0.9 0 0); --accent-foreground: oklch(0.2 0 0); --destructive: oklch(0.35 0 0); --border: oklch(0.82 0 0); --input: oklch(0.8 0 0); --ring: oklch(0.3 0 0);
+  --canvas: oklch(0.96 0 0); --canvas-dot: oklch(0.82 0 0); --deceased-name: oklch(0.58 0 0);
+  --edge-blood: oklch(0.25 0 0); --edge-mate: oklch(0.5 0 0); --edge-foster: oklch(0.4 0 0); --edge-mentor: oklch(0.62 0 0);
+  --gender-she: oklch(0.86 0 0); --gender-tom: oklch(0.4 0 0); --gender-other: oklch(0.65 0 0);
+  --status-living: oklch(0.55 0 0); --status-starclan: oklch(0.8 0 0); --status-darkforest: oklch(0.2 0 0);
+  --spirit-star: oklch(0.85 0 0); --spirit-dark: oklch(0.2 0 0);
+}
+html[data-theme="mono"] img, html[data-theme="mono"] svg, html[data-theme="mono"] .clan-crest { filter: grayscale(1); }
