@@ -298,7 +298,7 @@ export function TreeCanvas({
               opacity={selectedEdge ? (selectedEdge.key === e.key ? 1 : 0.12) : hl ? (e.on ? 0.95 : 0.1) : e.kind === "mentor" ? 0.9 : e.kind === "foster" ? 0.45 : 0.85}
               style={{ transition: "opacity 200ms" }}
             />
-            <path d={e.d} fill="none" stroke="transparent" strokeWidth={18} className="pointer-events-auto cursor-pointer" style={{pointerEvents:'stroke'}}
+            <path d={e.d} fill="none" stroke="transparent" strokeWidth={18} className="pointer-events-auto cursor-pointer outline-none" style={{pointerEvents:'stroke'}}
               role="button" tabIndex={0} aria-label={`${e.kind === 'mentor' ? 'Mentor' : e.kind === 'mate' ? 'Mates' : e.kind === 'foster' ? 'Foster' : 'Parentage'} connection: ${e.ids.map(id=>{const cat=idx.byId.get(id);return cat ? catName(cat) : 'Unknown cat';}).join(' and ')}`}
               aria-pressed={selectedEdge?.key === e.key}
               onPointerDown={event=>event.stopPropagation()}
