@@ -1,4 +1,5 @@
 # Clantools refinements
+- [ ] Match official and custom crest visual sizes.
 - [ ] Confirmed Clan deletion and lineage transfer with persistence tests.
 - [ ] Compact page spacing, normal Allegiances font and reordered arrange control.
 - [ ] Leader-centered opening view, muted deceased names and curved mentor paths.
