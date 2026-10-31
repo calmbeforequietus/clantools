@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, useParams, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ChevronDown, Copy, Download, FilePlus2, FileUp, Focus, ImageDown, Maximize, Minus, Pencil, Plus, RotateCcw, Trash2, X,
+  ArrowLeft, ChevronDown, Copy, Download, FilePlus2, FileUp, Focus, ImageDown, Maximize, Minus, Pencil, Plus, RotateCcw, Trash2, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,11 @@ import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useForest } from "./ForestProvider";
+import { clanTreeCats } from "@/lib/tree/clans";
+import { checkRelation, type RelationWarning } from "@/lib/tree/validation";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { CatDrawer } from "@/components/tree/CatDrawer";
 import { TreeCanvas, type CanvasApi, type CanvasOptions } from "@/components/tree/TreeCanvas";
 import { canonTree } from "@/lib/tree/canon";
@@ -19,55 +24,48 @@ import {
 } from "@/lib/tree/ops";
 import { catName, type Cat, type Tree } from "@/lib/tree/types";
 
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Clan Lineage — Warrior Cats Family Tree Builder" },
-      { name: "description", content: "Map Warrior Cats bloodlines, mates and mentors on an interactive canvas, starting with Firestar's lineage." },
-      { property: "og:title", content: "Clan Lineage — Warrior Cats Family Tree Builder" },
-      { property: "og:description", content: "Interactive Warrior Cats family trees with kinship calculator, profiles and PNG export." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: Index,
-});
-
-function Index() {
-  const [store, setStore] = useState<Store | null>(null);
+export function LineagePage() {
+  const { store, setStore } = useForest();
+  const { clanId } = useParams({ from: '/clan/$clanId/lineage' });
+  const search = useSearch({ from: '/clan/$clanId/lineage' });
+  const clan = store?.clans.find(c => c.id === clanId);
+  const [warning, setWarning] = useState<(RelationWarning & { kind: RelKind; other: string }) | null>(null);
+  const [eraEdit, setEraEdit] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [options, setOptions] = useState<CanvasOptions>({ showMentors: true, showFoster: true, hideUnrelated: false });
+  const [options, setOptions] = useState<CanvasOptions>({ showMentors: false, showFoster: false, showParents: true, showMates: true, showEras: true, hideUnrelated: false });
   const api = useRef<CanvasApi>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => setStore(loadStore()), []);
   useEffect(() => {
-    if (!store) return;
-    try {
-      saveStore(store);
-    } catch {
-      toast.error("Couldn't auto-save — storage is full. Try smaller uploaded images.");
+    if (!store || !clan) return;
+    const existing = store.trees.find(t => t.clanId === clanId);
+    if (!existing) {
+      const shared = store.trees.flatMap(t => t.cats).filter((c, i, all) => all.findIndex(v => v.id === c.id) === i);
+      const t: Tree = { id: crypto.randomUUID(), name: `${clan.name} Lineage`, cats: clanTreeCats({ id: '', name: '', cats: shared, updatedAt: 0 }, clan.affiliation), clanId, updatedAt: Date.now() };
+      setStore(s => s && { ...s, trees: [...s.trees, t], activeId: t.id });
+    } else if (store.trees.find(t => t.id === store.activeId)?.clanId !== clanId) {
+      setStore(s => s && { ...s, activeId: existing.id });
     }
-  }, [store]);
-
-  const tree = store?.trees.find((t) => t.id === store.activeId) ?? store?.trees[0];
+  }, [clanId, clan, store, setStore]);
+  useEffect(() => { if (search.cat) { setFocusId(search.cat); setDrawer(true); } }, [search.cat]);
+  const tree = store?.trees.find(t => t.id === store.activeId && t.clanId === clanId) ?? store?.trees.find(t => t.clanId === clanId);
   const cats = tree?.cats ?? [];
   const positions = useMemo(() => computeLayout(cats), [cats]);
   const kinship = useMemo(() => (focusId && cats.some((c) => c.id === focusId) ? computeKinship(cats, focusId) : null), [cats, focusId]);
   const focused = cats.find((c) => c.id === focusId);
 
   const setCats = useCallback((fn: (c: Cat[]) => Cat[]) => {
-    setStore((s) => s && { ...s, trees: s.trees.map((t) => (t.id === s.activeId ? { ...t, cats: fn(t.cats), updatedAt: Date.now() } : t)) });
-  }, []);
+    setStore((s) => s && { ...s, trees: s.trees.map((t) => (t.id === tree?.id ? { ...t, cats: fn(t.cats), updatedAt: Date.now() } : t)) });
+  }, [tree?.id]);
   const switchTo = (id: string) => {
     setStore((s) => s && { ...s, activeId: id });
     setFocusId(null);
     setDrawer(false);
   };
   const addTree = (t: Tree) => {
-    setStore((s) => s && { trees: [...s.trees, t], activeId: t.id });
+    setStore((s) => s && { ...s, trees: [...s.trees, { ...t, clanId }], activeId: t.id });
     setFocusId(null);
     setDrawer(false);
   };
@@ -76,12 +74,12 @@ function Index() {
     setDrawer(!!id);
   };
 
-  if (!store || !tree) return <div className="h-screen bg-canvas" />;
+  if (!store || !tree || !clan) return <div className="h-screen bg-canvas" />;
 
   const actions = {
     newTree: () => {
       const c = newCat({ names: ["First Cat"] });
-      addTree({ id: crypto.randomUUID(), name: "Untitled Tree", cats: [c], updatedAt: Date.now() });
+      addTree({ id: crypto.randomUUID(), name: "Untitled Tree", cats: [], updatedAt: Date.now() });
     },
     rename: () => {
       const n = window.prompt("Rename tree", tree.name)?.trim();
@@ -92,7 +90,9 @@ function Index() {
       if (store.trees.length === 1) { toast.error("You need at least one tree."); return; }
       if (!window.confirm(`Delete "${tree.name}"?`)) return;
       const rest = store.trees.filter((t) => t.id !== tree.id);
-      setStore({ trees: rest, activeId: rest[0]!.id });
+      const next = rest.find(t => t.clanId === clanId);
+      if (!next) { toast.error("Keep at least one tree for this Clan."); return; }
+      setStore({ ...store, trees: rest, activeId: next.id });
       select(null);
     },
     canon: () => addTree(canonTree(crypto.randomUUID())),
@@ -125,7 +125,7 @@ function Index() {
       }
     },
     addCat: () => {
-      const c = newCat({ clan: focused?.clan ?? "ThunderClan" });
+      const c = newCat({ clan: focused?.clan ?? clan.affiliation });
       setCats((cs) => [...cs, c]);
       select(c.id);
     },
@@ -136,6 +136,7 @@ function Index() {
   return (
     <main className="relative h-screen w-screen overflow-hidden bg-canvas text-foreground">
       <TreeCanvas
+        clan={clan}
         cats={cats}
         positions={positions}
         focusId={focusId}
@@ -149,17 +150,18 @@ function Index() {
 
       {/* Top-left: brand + tree switcher */}
       <div className="absolute left-3 top-3 z-20 flex items-center gap-2 rounded-2xl border border-border bg-card/95 p-1.5 pl-3 shadow-float backdrop-blur">
-        <span className="font-display text-lg font-bold text-primary">Clan Lineage</span>
+        <Button size="icon" variant="ghost" title="Back to Clan" aria-label="Back to Clan" asChild><Link to="/clan/$clanId" params={{ clanId }}><ArrowLeft /></Link></Button>
+        <span className="hidden font-display text-lg font-bold text-primary">{clan.name}</span>
         <span className="h-5 w-px bg-border" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="max-w-[220px] gap-1 font-semibold">
+            <Button variant="ghost" size="sm" className="max-w-[160px] gap-1 font-semibold">
               <span className="truncate">{tree.name}</span> <ChevronDown size={14} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-60">
             <DropdownMenuLabel>Your trees</DropdownMenuLabel>
-            {store.trees.map((t) => (
+            {store.trees.filter(t => t.clanId === clanId).map((t) => (
               <DropdownMenuItem key={t.id} onClick={() => switchTo(t.id)} className={t.id === tree.id ? "font-semibold text-primary" : ""}>
                 <span className="truncate">{t.name}</span>
                 <span className="ml-auto text-xs text-muted-foreground">{t.cats.length} cats</span>
@@ -177,7 +179,7 @@ function Index() {
 
       {/* Top-center: focus banner */}
       {focused && (
-        <div className={`absolute top-3 z-20 hidden -translate-x-1/2 ${drawer ? "left-[calc((100%-416px)/2)] " : "left-1/2"} items-center gap-3 rounded-full border border-border bg-card/95 py-1.5 pl-4 pr-1.5 text-sm shadow-float backdrop-blur md:flex`}>
+        <div className={`absolute top-3 z-20 hidden -translate-x-1/2 ${drawer ? "left-[calc((100%-416px)/2)] " : "left-1/2"} items-center gap-3 rounded-full border border-border bg-card/95 py-1.5 pl-4 pr-1.5 text-sm shadow-float backdrop-blur xl:flex`}>
           <Focus size={15} className="text-primary" />
           <span>Focused on <b>{catName(focused)}</b> · {relCount} relatives</span>
           <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -215,9 +217,11 @@ function Index() {
 
       {/* Bottom-right: legend */}
       {!drawer && (
-        <div className="absolute bottom-3 right-3 z-20 hidden space-y-1.5 rounded-2xl border border-border bg-card/95 p-3 text-xs shadow-float backdrop-blur sm:block">
-          <LegendRow color="var(--edge-blood)" label="Parentage" />
-          <LegendRow color="var(--edge-mate)" label="Mates" thick />
+        <div className="absolute bottom-3 right-3 z-20 space-y-1.5 rounded-2xl border border-border bg-card/95 p-3 text-xs shadow-float backdrop-blur">
+          <LegendRow color="var(--edge-blood)" label="Parentage" toggle={options.showParents} onToggle={v => setOptions(o => ({ ...o, showParents: v }))} />
+          <LegendRow color="var(--edge-mate)" label="Mates" thick toggle={options.showMates} onToggle={v => setOptions(o => ({ ...o, showMates: v }))} />
+          <label className="flex items-center justify-between gap-3 text-muted-foreground">Leadership eras<Switch checked={options.showEras} onCheckedChange={v => setOptions(o => ({ ...o, showEras: v }))} /></label>
+          <Button size="sm" variant="ghost" onClick={() => setEraEdit(true)}>Edit eras</Button>
           <LegendRow color="var(--edge-foster)" label="Foster" dash="6 4" toggle={options.showFoster} onToggle={(v) => setOptions((o) => ({ ...o, showFoster: v }))} />
           <LegendRow color="var(--edge-mentor)" label="Mentor → apprentice" dash="2 4" toggle={options.showMentors} onToggle={(v) => setOptions((o) => ({ ...o, showMentors: v }))} />
         </div>
@@ -228,10 +232,12 @@ function Index() {
           key={focused.id}
           cat={focused}
           cats={cats}
+          eras={clan.eras}
+          relTags={kinship?.labels.get(focused.id)}
           onClose={() => setDrawer(false)}
           onSelect={(id) => select(id)}
           onUpdate={(patch) => setCats((cs) => cs.map((c) => (c.id === focused.id ? { ...c, ...patch } : c)))}
-          onAddRel={(k, o) => setCats((cs) => addRelation(cs, focused.id, k, o))}
+          onAddRel={(k, o) => { const issue = checkRelation(cats, focused.id, k, o); if (issue) setWarning({ ...issue, kind: k, other: o }); else setCats(cs => addRelation(cs, focused.id, k, o)); }}
           onRemoveRel={(k, o) => setCats((cs) => removeRelation(cs, focused.id, k, o))}
           onCreateRel={(k: RelKind) => {
             const isKit = k === "kits" || k === "fosterKits" || k === "apprentices";
@@ -246,6 +252,8 @@ function Index() {
           }}
         />
       )}
+      {warning && <Dialog open onOpenChange={v => !v && setWarning(null)}><DialogContent><DialogHeader><DialogTitle>{warning.title}</DialogTitle></DialogHeader><p className="text-sm leading-relaxed text-muted-foreground">{warning.message}</p><DialogFooter><Button variant="outline" onClick={() => setWarning(null)}>{warning.blocked ? 'Close' : 'Cancel'}</Button>{!warning.blocked && <Button onClick={() => { if (focusId) setCats(cs => addRelation(cs, focusId, warning.kind, warning.other)); setWarning(null); }}>Connect anyway</Button>}</DialogFooter></DialogContent></Dialog>}
+      {eraEdit && <Dialog open onOpenChange={v => !v && setEraEdit(false)}><DialogContent><DialogHeader><DialogTitle>Leadership eras</DialogTitle></DialogHeader>{clan.eras.map(era => <div key={era.id} className="flex gap-2"><Input aria-label="Era name" value={era.name} onChange={e => setStore(s => s && { ...s, clans: s.clans.map(c => c.id === clanId ? { ...c, eras: c.eras.map(v => v.id === era.id ? { ...v, name: e.target.value } : v) } : c) })} /><Button variant="ghost" size="icon" aria-label="Remove era" onClick={() => setStore(s => s && { ...s, clans: s.clans.map(c => c.id === clanId ? { ...c, eras: c.eras.filter(v => v.id !== era.id) } : c) })}><Trash2 /></Button></div>)}<Button variant="outline" onClick={() => setStore(s => s && { ...s, clans: s.clans.map(c => c.id === clanId ? { ...c, eras: [...c.eras, { id: crypto.randomUUID(), name: 'New leadership era' }] } : c) })}><Plus />Add era</Button><Button onClick={() => setEraEdit(false)}>Done</Button></DialogContent></Dialog>}
     </main>
   );
 }
@@ -257,7 +265,7 @@ function LegendRow({ color, label, dash, thick, toggle, onToggle }: {
     <div className="flex items-center gap-2">
       <svg width="28" height="8"><path d="M2 4 H26" stroke={color} strokeWidth={thick ? 3 : 2} strokeDasharray={dash} strokeLinecap="round" /></svg>
       <span className="flex-1 text-muted-foreground">{label}</span>
-      {onToggle && <Switch checked={!!toggle} onCheckedChange={onToggle} className="scale-75" />}
+      {onToggle && <Switch aria-label={`Show ${label}`} checked={!!toggle} onCheckedChange={onToggle} className="scale-75" />}
     </div>
   );
 }
