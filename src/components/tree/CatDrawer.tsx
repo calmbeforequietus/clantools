@@ -179,10 +179,10 @@ export function CatDrawer({
                             <Button variant="ghost" className="h-auto p-0 flex items-center gap-1 hover:underline" onClick={() => onSelect(id)}>
                               <CatAvatar avatar={o.avatar} className="h-5 w-5" />
                               {catName(o)}
-                            </button>
+                            </Button>
                             {editing && <Button variant="ghost" size="icon" onClick={() => onRemoveRel(kind, id)} className="rounded-full p-0.5 text-muted-foreground hover:bg-background" aria-label={`Unlink ${catName(o)}`}>
                               <X size={11} />
-                            </button>
+                            </Button>}
                           </span>
                         );
                       })}
