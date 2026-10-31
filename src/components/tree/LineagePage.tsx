@@ -23,7 +23,7 @@ import {
   addRelation, deleteCat, isTree, moveLineage, newCat, removeRelation, type RelKind,
 } from "@/lib/tree/ops";
 import { catName, type Cat, type Tree } from "@/lib/tree/types";
-import { sharedCats, reuseCat } from '@/lib/tree/shared-cats';
+import { sharedCats, reuseCat, matchingNames, combineCat } from '@/lib/tree/shared-cats';
 import { ExistingCatPicker } from './ExistingCatPicker';
 
 export function LineagePage() {
@@ -31,6 +31,10 @@ export function LineagePage() {
   const navigate = useNavigate();
   const [moving, setMoving] = useState(false);
   const [addingCat,setAddingCat]=useState(false);
+  const [nameMatches,setNameMatches]=useState<Cat[]>([]);
+  const [combining,setCombining]=useState<Cat|null>(null);
+  const newIds=useRef(new Set<string>());
+  const separateIds=useRef(new Set<string>());
   const [destination, setDestination] = useState('');
   const { clanId } = useParams({ from: '/clan/$clanId/lineage' });
   const search = useSearch({ from: '/clan/$clanId/lineage' });
@@ -136,8 +140,9 @@ export function LineagePage() {
         toast.error("Couldn't render the image. Linked web images can block export.", { id: t });
       }
     },
-    addCat: () => {
-      const c = newCat({ clan: focused?.clan ?? clan.affiliation });
+    addCat: (name='New Cat') => {
+      const c = newCat({ clan: focused?.clan ?? clan.affiliation,names:[name] });
+      newIds.current.add(c.id);
       setCats((cs) => [...cs, c]);
       select(c.id);
     },
@@ -249,12 +254,14 @@ export function LineagePage() {
           relTags={kinship?.labels.get(focused.id)}
           onClose={() => setDrawer(false)}
           onSelect={(id) => select(id)}
+          onCheckName={()=>{if(newIds.current.has(focused.id)&&!separateIds.current.has(focused.id))setNameMatches(matchingNames(sharedCats(store.trees),focused.names,focused.id));}}
           onUpdate={(patch) => setStore(s => s && { ...s, trees: s.trees.map(t => t.cats.some(c=>c.id===focused.id)?{ ...t,updatedAt:Date.now(),cats: t.cats.map(c => c.id === focused.id ? { ...c, ...patch } : c) }:t) })}
           onAddRel={(k, o) => { const issue = checkRelation(cats, focused.id, k, o); if (issue) setWarning({ ...issue, kind: k, other: o }); else setCats(cs => addRelation(cs, focused.id, k, o)); }}
           onRemoveRel={(k, o) => setCats((cs) => removeRelation(cs, focused.id, k, o))}
           onCreateRel={(k: RelKind) => {
             const isKit = k === "kits" || k === "fosterKits" || k === "apprentices";
             const c = newCat({ clan: focused.clan, names: [isKit ? "New Kit" : "New Cat"], rank: k === "apprentices" ? "Apprentice" : isKit ? "Kit" : "Warrior" });
+            newIds.current.add(c.id);
             const issue = checkRelation([...cats, c], focused.id, k, c.id);
             if (issue) { setWarning({ ...issue, kind: k, other: c.id, pendingCat: c }); return; }
             setCats(cs => addRelation([...cs, c], focused.id, k, c.id));
@@ -269,7 +276,9 @@ export function LineagePage() {
       )}
       {warning && <Dialog open onOpenChange={v => !v && setWarning(null)}><DialogContent><DialogHeader><DialogTitle>{warning.title}</DialogTitle></DialogHeader><p className="text-sm leading-relaxed text-muted-foreground">{warning.message}</p><DialogFooter><Button variant="outline" onClick={() => setWarning(null)}>{warning.blocked ? 'Close' : 'Cancel'}</Button>{!warning.blocked && <Button onClick={() => { if (focusId) setCats(cs => addRelation(warning.pendingCat ? [...cs, warning.pendingCat] : cs, focusId, warning.kind, warning.other)); setWarning(null); }}>Connect anyway</Button>}</DialogFooter></DialogContent></Dialog>}
       {moving && <Dialog open onOpenChange={setMoving}><DialogContent><DialogHeader><DialogTitle>Move lineage</DialogTitle></DialogHeader><p className="text-sm text-muted-foreground">Move “{tree.name}” and all its cats to another Clan. Cat affiliations and relationships stay unchanged.</p><Select value={destination} onValueChange={setDestination}><SelectTrigger aria-label="Destination Clan"><SelectValue placeholder="Choose a Clan" /></SelectTrigger><SelectContent>{store.clans.filter(c=>c.id!==clanId).map(c=><SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select><DialogFooter><Button variant="outline" onClick={()=>setMoving(false)}>Cancel</Button><Button disabled={!destination} onClick={()=>{setStore(s=>s && moveLineage(s,tree.id,destination));setMoving(false);navigate({to:'/clan/$clanId/lineage',params:{clanId:destination},search:{}});}}>Move lineage</Button></DialogFooter></DialogContent></Dialog>}
-      {addingCat && <ExistingCatPicker all={sharedCats(store.trees)} available={sharedCats(store.trees).filter(c=>!cats.some(local=>local.id===c.id))} onClose={()=>setAddingCat(false)} onNew={()=>{setAddingCat(false);actions.addCat();}} onAdd={(id,selected)=>{setCats(cs=>reuseCat(cs,sharedCats(store.trees),id,selected));setAddingCat(false);select(id);}}/>}
+      {addingCat && <ExistingCatPicker all={sharedCats(store.trees)} available={sharedCats(store.trees).filter(c=>!cats.some(local=>local.id===c.id))} onClose={()=>setAddingCat(false)} onNew={(name)=>{setAddingCat(false);actions.addCat(name);}} onAdd={(id,selected)=>{setCats(cs=>reuseCat(cs,sharedCats(store.trees),id,selected));setAddingCat(false);select(id);}}/>}
+      {nameMatches.length>0&&focused&&<Dialog open onOpenChange={v=>!v&&setNameMatches([])}><DialogContent><DialogHeader><DialogTitle>Is this the same character?</DialogTitle></DialogHeader>{nameMatches.map(c=><Button key={c.id} variant="outline" className="h-auto whitespace-normal" onClick={()=>{setNameMatches([]);setCombining(c);}}>Same character: {catName(c)} · {c.clan}</Button>)}<Button variant="secondary" onClick={()=>{separateIds.current.add(focused.id);setNameMatches([]);}}>No, this is a separate character</Button></DialogContent></Dialog>}
+      {combining&&focused&&<ExistingCatPicker initialCat={combining} available={[]} all={sharedCats(store.trees)} onClose={()=>setCombining(null)} onNew={()=>setCombining(null)} onAdd={(id,selected)=>{setCats(cs=>combineCat(cs,sharedCats(store.trees),focused.id,id,selected));newIds.current.delete(focused.id);setCombining(null);select(id);}}/>}
     </main>
   );
 }

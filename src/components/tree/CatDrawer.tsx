@@ -35,6 +35,7 @@ export function CatDrawer({
   onSelect,
   otherLineages=[],
   onOpenLineage,
+  onCheckName,
 }: {
   cat: Cat;
   cats: Cat[];
@@ -49,6 +50,7 @@ export function CatDrawer({
   onSelect: (id: string) => void;
   otherLineages?: {id:string;name:string;clanId:string}[];
   onOpenLineage?: (id:string,clanId:string)=>void;
+  onCheckName?: ()=>void;
 }) {
   const idx = useMemo(() => buildIndex(cats), [cats]);
   const [editing, setEditing] = useState(false);
@@ -106,7 +108,7 @@ export function CatDrawer({
           {editing && <div className="space-y-1.5">
             {cat.names.map((n, i) => (
               <div key={i} className="flex gap-1.5">
-                <Input aria-label={`Name ${i + 1}`} value={n} onChange={(e) => setName(i, e.target.value)} className="h-8" />
+                <Input aria-label={`Name ${i + 1}`} value={n} onChange={(e) => setName(i, e.target.value)} onBlur={onCheckName} className="h-8" />
                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" disabled={cat.names.length === 1}
                   onClick={() => onUpdate({ names: cat.names.filter((_, j) => j !== i), stages: stages.filter((_, j) => j !== i) })} aria-label="Remove name">
                   <X size={14} />
