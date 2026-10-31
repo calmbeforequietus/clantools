@@ -1,5 +1,6 @@
 import { Cloud, Droplet, Feather, Footprints, House, Moon, Sparkles, TreePine, Waves, Wind, Zap } from "lucide-react";
 import { ClanCrest } from "./ClanCrest";
+import { CustomCatFace } from './CustomCatFace';
 import { PELTS } from "@/lib/tree/pelts";
 import { CLAN_VAR, type Avatar, type Clan } from "@/lib/tree/types";
 
@@ -66,6 +67,7 @@ export function ClanBadge({ clan, size = 28 }: { clan: Clan; size?: number }) {
 export function CatAvatar({ avatar, className = "" }: { avatar: Avatar; className?: string }) {
   return (
     <div className={`overflow-hidden rounded-full ${className}`}>
+      {avatar.kind === 'custom' && <CustomCatFace settings={avatar.settings} />}
       {avatar.kind === "pelt" && <PeltFace pelt={avatar.pelt} />}
       {avatar.kind === "clan" && <ClanBadge clan={avatar.clan} />}
       {avatar.kind === "image" && (

@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PELTS } from "@/lib/tree/pelts";
 import { CLANS, type Avatar } from "@/lib/tree/types";
 import { CatAvatar, ClanBadge, PeltFace } from "./CatAvatar";
+import { CatIconCreator } from './CatIconCreator';
+import { DEFAULT_CAT_ICON } from '@/lib/tree/cat-icon';
 
 export function AvatarPicker({ value, onChange }: { value: Avatar; onChange: (a: Avatar) => void }) {
   const [url, setUrl] = useState("");
@@ -21,20 +23,22 @@ export function AvatarPicker({ value, onChange }: { value: Avatar; onChange: (a:
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button type="button" className="group relative rounded-full ring-2 ring-border transition hover:ring-primary" aria-label="Change avatar">
+        <Button variant="ghost" type="button" className="group relative h-auto rounded-full p-0 ring-2 ring-border transition hover:ring-primary" aria-label="Change avatar">
           <CatAvatar avatar={value} className="h-20 w-20" />
           <span className="absolute inset-x-0 bottom-0 rounded-b-full bg-foreground/60 py-0.5 text-[10px] font-semibold text-background opacity-0 transition group-hover:opacity-100">
             Change
           </span>
-        </button>
+        </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80" align="start">
-        <Tabs defaultValue="pelts">
-          <TabsList className="grid w-full grid-cols-3">
+      <PopoverContent className="max-h-[80dvh] w-80 overflow-y-auto" align="start">
+        <Tabs defaultValue={value.kind === 'custom' ? 'creator' : 'pelts'}>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="creator">Create</TabsTrigger>
             <TabsTrigger value="pelts">Pelts</TabsTrigger>
             <TabsTrigger value="clans">Badges</TabsTrigger>
             <TabsTrigger value="custom">Image</TabsTrigger>
           </TabsList>
+          <TabsContent value="creator"><CatIconCreator value={value.kind === 'custom' ? value.settings : DEFAULT_CAT_ICON} onChange={settings => onChange({ kind: 'custom', settings })} /></TabsContent>
           <TabsContent value="pelts" className="grid grid-cols-5 gap-2 pt-2">
             {Object.entries(PELTS).map(([k, p]) => (
               <button key={k} type="button" title={p.label} onClick={() => onChange({ kind: "pelt", pelt: k })}
