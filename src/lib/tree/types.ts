@@ -113,6 +113,8 @@ export interface Tree {
   cats: Cat[];
   updatedAt: number;
   clanId?: string;
+  /** Applied additive canon expansion; user edits are never reapplied on load. */
+  canonRevision?: number;
 }
 
 export const catName = (c: Cat) => c.names[c.names.length - 1] || "Unnamed";
