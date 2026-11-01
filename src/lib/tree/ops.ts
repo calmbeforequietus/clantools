@@ -1,4 +1,5 @@
-import { canonTree } from "./canon";
+import { canonTree, LEGACY_CANON_IDS } from "./canon";
+import { expandCanonTree } from './canon-expansion';
 import { initialClans } from "./clans";
 import type { ClanPage, Cat, Tree } from "./types";
 
@@ -122,7 +123,20 @@ export function loadStore(): Store {
 export function refineStore(store: Store): Store {
   // The commissioned factory refresh replaces old local edits exactly once.
   // Later edits, imports and even an intentionally empty forest remain intact.
-  if (store.presentationVersion === PRESENTATION_VERSION) return store;
+  if (store.presentationVersion === PRESENTATION_VERSION) {
+    const shared = store.trees.flatMap(tree => tree.cats);
+    let changed = false;
+    const trees = store.trees.map(tree => {
+      // Only recognize the substantial original preset, not a reused Firestar
+      // in a custom lineage. Renamed/custom lineages are deliberately untouched.
+      const legacyPreset = tree.name === "Firestar's Lineage" && tree.cats.filter(cat => LEGACY_CANON_IDS.has(cat.id)).length >= 40;
+      if (!legacyPreset) return tree;
+      const expanded = expandCanonTree(tree, LEGACY_CANON_IDS, shared);
+      if (expanded !== tree) changed = true;
+      return expanded;
+    });
+    return changed ? { ...store, trees } : store;
+  }
   if (store.presentationVersion === 2) {
     const removed=new Set(['shadowclan','windclan','riverclan','skyclan','starclan','bloodclan']);
     return { ...store,presentationVersion:PRESENTATION_VERSION,
