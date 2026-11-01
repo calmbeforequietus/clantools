@@ -99,6 +99,7 @@ export function CatDrawer({
     if (i < 0 || i + delta < 0 || i + delta >= order.length) return;
     const nextOrder = [...order];
     const [moved] = nextOrder.splice(i, 1);
+    if (moved === undefined) return;
     nextOrder.splice(i + delta, 0, moved);
     onUpdate({ sectionOrder: nextOrder });
   };
