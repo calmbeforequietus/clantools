@@ -27,7 +27,7 @@ function c(
   };
 }
 
-export function canonCats(): Cat[] {
+function baseCanonCats(): Cat[] {
   return [
     c("jake", ["Jake"], "Kittypet", "None", "Living", "Tom", "gingerWhite", "Ginger-and-white tom.", { mates: ["nutmeg"] }),
     c("nutmeg", ["Nutmeg"], "Kittypet", "None", "Living", "She-cat", "brown", "Brown she-cat."),
@@ -87,6 +87,12 @@ export function canonCats(): Cat[] {
   ];
 }
 
+export const LEGACY_CANON_IDS: ReadonlySet<string> = new Set(baseCanonCats().map(cat => cat.id));
+
+export function canonCats(): Cat[] {
+  return baseCanonCats();
+}
+
 export function canonTree(id: string): Tree {
-  return { id, name: "Firestar's Lineage", cats: canonCats(), updatedAt: Date.now() };
+  return { id, name: "Firestar's Lineage", cats: canonCats(), updatedAt: Date.now(), canonRevision: 1 };
 }

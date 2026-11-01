@@ -307,7 +307,6 @@ export function LineagePage() {
       {checking && !drawer && <KinshipChecker key={tree.id} cats={cats} initialA={focusId} onHighlight={setKinHighlight} onClose={()=>setChecking(false)} />}
       {drawer && focused && (
         <CatDrawer
-          variant="side"
           key={focused.id}
           cat={focused}
           cats={cats}

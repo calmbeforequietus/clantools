@@ -13,9 +13,9 @@
 - Tree layout is fully automatic (generation by parentage, mates aligned); no manual node positions are stored. Why: trees stay tidy as cats are added.
 - Clan pages use nested TanStack routes with an overview index and lineage leaf; ForestProvider preserves and migrates the existing browser-local store. Why: navigation shares edits without discarding previously saved trees.
 - A Clan's own saved trees define its roster once created; Clans without trees discover members from existing trees, and matching cat IDs receive profile updates across trees. Why: roster links and edited profiles remain consistent.
-- Canon crest vectors are traced from the user-supplied image; original uploaded artwork remains represented by asset pointers. Why: scalable symbols render reliably without external image-mask loading.
+- Canon crests use traced vectors and upload pointers. Why: reliable scalable symbols.
 - Forest hooks subscribe directly to a browser-scoped external store and self-initialize after hydration; SSR always reads a null snapshot and the provider is an optional initializer. Why: route refreshes cannot lose an ancestor context, duplicate module copies share edits, and server requests never share user data.
-- Clan pages persist top-level section order separately from Lore item order; the versioned factory refresh replaces older local forests once, and current-version edits and empty forests are preserved. Why: the commissioned reset must restore canonical defaults without repeatedly erasing subsequent work.
+- Clan and Lore orders are separate; factory resets run once and preserve current edits and empty forests. Why: no repeated data erasure.
 - Clan deletion and lineage transfer are pure store operations; empty saved forests are valid and transfers retain cat affiliations. Why: destructive actions must remove only owned lineages and must not silently reseed deleted data.
 - Custom cat avatars store editable settings and render through shared SVG artwork; colors use global cat-art tokens. Why: the creator, profile, stages, canvas and exports share the same saved appearance.
 - Mentor routing is a pure obstacle-aware path search with deterministic separated lanes and broad clearance-checked curves; canvas edges carry explicit connected cat IDs and a separate click target. Why: curves avoid cats and selections identify the real endpoints, including both biological parents.
@@ -31,3 +31,4 @@
 - Cat profiles are one centered read-first dialog (CatDrawer) for Clan pages and lineages; body art derives from icon settings unless a portrait is uploaded. Why: one layout, one appearance editor.
 - New Clan IDs are name slugs fixed at creation; Clan sections (built-in + custom) may pair half-width, Allegiances always full. Why: stable URLs, flexible layouts.
 - Lineage undo/redo keeps 10 store snapshots, typing bursts coalesced. Why: reversible edits.
+- Canon expansion uses a per-tree additive revision, not a factory reset; auto-upgrade only substantial original named presets. Preserve profiles and old deletions, reuse shared profiles for new IDs, never reapply. Why: larger defaults without lost work.
