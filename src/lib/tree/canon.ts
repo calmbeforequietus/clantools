@@ -87,6 +87,12 @@ function baseCanonCats(): Cat[] {
   ];
 }
 
+export const LEGACY_CANON_IDS: ReadonlySet<string> = new Set(baseCanonCats().map(cat => cat.id));
+
+export function canonCats(): Cat[] {
+  return baseCanonCats();
+}
+
 export function canonTree(id: string): Tree {
   return { id, name: "Firestar's Lineage", cats: canonCats(), updatedAt: Date.now(), canonRevision: 1 };
 }
