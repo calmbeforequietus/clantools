@@ -10,7 +10,7 @@
 <!-- LOVABLE:END -->
 
 - Family-tree logic, Clan roster derivation and relationship validation live in pure modules under src/lib/tree; UI and shared saved-store context live in src/components/tree. Why: keeps genealogy and membership rules testable without the canvas.
-- Tree layout is fully automatic (generation by parentage, mates aligned); no manual node positions are stored. Why: trees stay tidy as cats are added.
+- Layout is automatic with lineage-local single/group position overrides; mate units move together, one undo step per drop. Why: preserves manual arrangements and genealogy.
 - Clan pages use nested TanStack routes with an overview index and lineage leaf; ForestProvider preserves and migrates the existing browser-local store. Why: navigation shares edits without discarding previously saved trees.
 - A Clan's own saved trees define its roster once created; Clans without trees discover members from existing trees, and matching cat IDs receive profile updates across trees. Why: roster links and edited profiles remain consistent.
 - Canon crests use traced vectors and upload pointers. Why: reliable scalable symbols.
