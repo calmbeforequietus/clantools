@@ -1,4 +1,5 @@
 # Creator, tools and settings
+- [ ] Add box selection and persistent group dragging; verify selection, undo and reload.
 - [ ] Expand Firestar's canon families from the official reference and early ThunderClan; preserve saved edits and verify larger-tree behavior.
 - [x] Expanded realistic cat creator with scars, ears, blind eye, accessories; tabbed layout.
 - [x] Kinship checker for any two cats with shared-ancestor highlight.
