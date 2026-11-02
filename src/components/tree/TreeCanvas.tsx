@@ -234,7 +234,7 @@ export function TreeCanvas({
   const onPointerDown = (e: React.PointerEvent) => {
     const el = containerRef.current;
       if (!el) return;
-    if (selectionMode && e.button === 0 && e.pointerType !== 'touch') {
+    if (selectionMode && e.button === 0) {
       e.preventDefault();
       const rect = el.getBoundingClientRect(), v = viewRef.current;
       const point = (event: { clientX: number; clientY: number }): Point => ({ x: (event.clientX - rect.left - v.x) / v.k, y: (event.clientY - rect.top - v.y) / v.k });
@@ -399,7 +399,7 @@ export function TreeCanvas({
       onClick={() => { if (!moved.current) { setSelectedEdge(null); setSelectedCats(new Set()); onSelect(null); } }}
     >
       {onMoveCats && <div className="absolute left-3 top-20 z-20 flex items-center gap-1 rounded-md border border-border bg-card p-1 shadow-float" onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
-        <Button size="icon" variant={!selectionMode ? 'secondary' : 'ghost'} aria-label="Pan tool" title="Pan tool" aria-pressed={!selectionMode} onClick={() => setSelectionMode(false)}><Hand size={17} /></Button>
+        <Button size="icon" variant={!selectionMode ? 'secondary' : 'ghost'} aria-label="Pan tool" title="Pan tool" aria-pressed={!selectionMode} onClick={() => { setSelectionMode(false); setSelectedCats(new Set()); }}><Hand size={17} /></Button>
         <Button size="icon" variant={selectionMode ? 'secondary' : 'ghost'} aria-label="Box selection tool" title="Box selection — Shift adds cats" aria-pressed={selectionMode} onClick={() => { setSelectionMode(true); setSelectedEdge(null); onSelect(null); }}><BoxSelect size={17} /></Button>
         {selectedCats.size > 0 && <><span className="px-2 text-xs tabular-nums" role="status">{selectedCats.size} selected</span><Button size="icon" variant="ghost" aria-label="Clear cat selection" title="Clear selection" onClick={() => setSelectedCats(new Set())}><X size={16} /></Button></>}
       </div>}
@@ -436,7 +436,7 @@ export function TreeCanvas({
               opacity={selectedEdge ? (selectedEdge.key === e.key ? 1 : 0.12) : hl ? (e.on ? 0.95 : 0.1) : e.kind === "mentor" ? 0.9 : e.kind === "foster" ? 0.45 : 0.85}
               style={{ transition: "opacity 200ms" }}
             />
-            <path d={e.d} fill="none" stroke="transparent" strokeWidth={18} className="pointer-events-auto cursor-pointer outline-none" style={{pointerEvents:'stroke'}}
+            <path d={e.d} fill="none" stroke="transparent" strokeWidth={18} className="pointer-events-auto cursor-pointer outline-none" style={{pointerEvents:selectionMode ? 'none' : 'stroke'}}
               role="button" tabIndex={0} aria-label={`${e.kind === 'mentor' ? 'Mentor' : e.kind === 'mate' ? 'Mates' : e.kind === 'foster' ? 'Foster' : 'Parentage'} connection: ${e.ids.map(id=>{const cat=idx.byId.get(id);return cat ? catName(cat) : 'Unknown cat';}).join(' and ')}`}
               aria-pressed={selectedEdge?.key === e.key}
               onPointerDown={event=>event.stopPropagation()}
@@ -458,6 +458,10 @@ export function TreeCanvas({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
+                if (selectionMode && e.detail === 0) {
+                  setSelectedCats(ids => { const next = new Set(ids); if (next.has(c.id)) next.delete(c.id); else next.add(c.id); return next; });
+                  return;
+                }
                 if (!moved.current && !selectionMode && !selectedCats.size) { setSelectedEdge(null); onSelect(c.id); }
               }}
               aria-label={`View ${catName(c)}`}
