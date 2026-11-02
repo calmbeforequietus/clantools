@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type Ref } from "react";
 import { toPng } from "html-to-image";
-import { Baby, Compass, Feather, House, Leaf, Moon, Shield, Skull, Sparkles, Star, X } from "lucide-react";
+import { Baby, BoxSelect, Compass, Feather, Hand, House, Leaf, Moon, Shield, Skull, Sparkles, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ClanCrest } from "./ClanCrest";
 import { CatAvatar } from "./CatAvatar";
@@ -9,6 +9,7 @@ import { routeMentorConnections, roundedMentorPath } from '@/lib/tree/mentor-rou
 import { parentRelationshipPath, relationshipPath } from '@/lib/tree/relationship-routing';
 import { AVATAR, AVATAR_CY, AVATAR_TOP, bounds, GAP_X, GAP_Y, NODE_H, NODE_W, type Positions } from "@/lib/tree/layout";
 import { CLAN_VAR, catName, type Cat, type ClanPage } from "@/lib/tree/types";
+import { catsInBox, movingCatIds, translateCats, type Point } from '@/lib/tree/selection';
 
 export interface CanvasApi {
   fit: () => void;
@@ -39,7 +40,7 @@ export function TreeCanvas({
   kinship,
   options,
   onSelect,
-  onMoveCat,
+  onMoveCats,
   onZoom,
   apiRef,
   treeKey,
@@ -53,8 +54,8 @@ export function TreeCanvas({
   kinship: Kinship | null;
   options: CanvasOptions;
   onSelect: (id: string | null) => void;
-  /** Commits a dragged cat's new position; undefined hides the feature. */
-  onMoveCat?: (id: string, pos: { x: number; y: number }) => void;
+  /** Commits the complete group in one saved edit. */
+  onMoveCats?: (positions: Positions) => void;
   onZoom: (k: number) => void;
   apiRef: Ref<CanvasApi>;
   treeKey: string;
@@ -65,15 +66,19 @@ export function TreeCanvas({
   const worldRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ x: 0, y: 0, k: 1 });
   const [selectedEdge, setSelectedEdge] = useState<{ key: string; ids: string[] } | null>(null);
-  useEffect(() => { setSelectedEdge(null); setDragPos(null); }, [treeKey, options, cats]);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set());
+  const [selectionBox, setSelectionBox] = useState<{ start: Point; end: Point } | null>(null);
+  useEffect(() => { setSelectedEdge(null); setDragPos(null); setSelectedCats(new Set()); setSelectionBox(null); }, [treeKey]);
+  useEffect(() => { setSelectedCats(ids => new Set([...ids].filter(id => cats.some(c => c.id === id)))); }, [cats]);
   const viewRef = useRef(view);
   viewRef.current = view;
   const moved = useRef(false);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const gesture = useRef<{ view: typeof view; x: number; y: number; dist?: number } | null>(null);
   // Manual repositioning: dragPos follows the pointer live; the drop commits it via onMoveCat.
-  const [dragPos, setDragPos] = useState<{ id: string; x: number; y: number } | null>(null);
-  const dragPosRef = useRef<{ id: string; x: number; y: number } | null>(null);
+  const [dragPos, setDragPos] = useState<Positions | null>(null);
+  const dragPosRef = useRef<Positions | null>(null);
   const idx = useMemo(() => buildIndex(cats), [cats]);
 
   useEffect(() => onZoom(view.k), [view.k, onZoom]);
@@ -92,28 +97,24 @@ export function TreeCanvas({
 
   // While dragging, the whole mate-unit follows the pointer live, so edges and the
   // minimap read the live override instead of the committed layout.
-  const livePositions = useMemo(() => {
-    if (!dragPos) return positions;
-    const base = positions.get(dragPos.id);
-    if (!base) return positions;
-    const dx = dragPos.x - base.x, dy = dragPos.y - base.y;
-    const next = new Map(positions);
-    next.set(dragPos.id, { x: dragPos.x, y: dragPos.y });
-    // The couple moves as one so the joined family line and mate link stay coherent.
-    for (const m of idx.mates(dragPos.id)) {
-      const bp = positions.get(m);
-      if (bp) next.set(m, { x: bp.x + dx, y: bp.y + dy });
-    }
-    return next;
-  }, [positions, dragPos, idx]);
+  const livePositions = dragPos ?? positions;
 
   // Grab a cat to reposition it; pan-on-canvas instead of click-select is preserved for taps.
   const startCatDrag = (c: Cat) => (e: React.PointerEvent) => {
-    if (!onMoveCat || e.button !== 0) return;
+    if (!onMoveCats || e.button !== 0) return;
     const el = containerRef.current;
     const base = positions.get(c.id);
     if (!el || !base) return;
     e.stopPropagation();
+    if (selectionMode && e.shiftKey) {
+      setSelectedCats(ids => { const next = new Set(ids); if (next.has(c.id)) next.delete(c.id); else next.add(c.id); return next; });
+      moved.current = true;
+      return;
+    }
+    const selection = selectedCats.has(c.id) ? selectedCats : new Set([c.id]);
+    if (selectionMode || selectedCats.size) { setSelectedCats(selection); setSelectedEdge(null); onSelect(null); }
+    const movingIds = movingCatIds(cats, selection);
+    dragPosRef.current = null;
     const grab = {
       dx: (e.clientX - el.getBoundingClientRect().left - viewRef.current.x) / viewRef.current.k - base.x,
       dy: (e.clientY - el.getBoundingClientRect().top - viewRef.current.y) / viewRef.current.k - base.y,
@@ -136,10 +137,11 @@ export function TreeCanvas({
         x: Math.round(raw.x / 20) * 20,
         y: Math.round(raw.y / 20) * 20,
       } : raw;
-      dragPosRef.current = pos;
-      setDragPos(pos);
+      const next = translateCats(positions, movingIds, { x: pos.x - base.x, y: pos.y - base.y });
+      dragPosRef.current = next;
+      setDragPos(next);
     };
-    const up = () => {
+    const up = (event: PointerEvent) => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", up);
@@ -147,7 +149,7 @@ export function TreeCanvas({
       dragPosRef.current = null;
       setDragPos(null);
       // Commit outside of state updaters; a bare click (no movement) never commits.
-      if (moved.current && dp && dp.id === c.id) onMoveCat(c.id, { x: dp.x, y: dp.y });
+      if (event.type !== 'pointercancel' && moved.current && dp) onMoveCats(new Map([...dp].filter(([id]) => movingIds.has(id))));
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
@@ -232,6 +234,29 @@ export function TreeCanvas({
   const onPointerDown = (e: React.PointerEvent) => {
     const el = containerRef.current;
       if (!el) return;
+    if (selectionMode && e.button === 0 && e.pointerType !== 'touch') {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect(), v = viewRef.current;
+      const point = (event: { clientX: number; clientY: number }): Point => ({ x: (event.clientX - rect.left - v.x) / v.k, y: (event.clientY - rect.top - v.y) / v.k });
+      const start = point(e), initial = e.shiftKey ? new Set(selectedCats) : new Set<string>();
+      moved.current = false;
+      setSelectedEdge(null); onSelect(null); setSelectionBox({ start, end: start });
+      const move = (event: PointerEvent) => {
+        if (event.pointerId !== e.pointerId) return;
+        moved.current = true;
+        const end = point(event);
+        setSelectionBox({ start, end });
+        setSelectedCats(new Set([...initial, ...catsInBox(positions, start, end).filter(visible)]));
+      };
+      const up = (event: PointerEvent) => {
+        if (event.pointerId !== e.pointerId) return;
+        window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+        setSelectionBox(null);
+        if (!moved.current) setSelectedCats(initial);
+      };
+      window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+      return;
+    }
     const rect = el.getBoundingClientRect();
     pointers.current.set(e.pointerId, { x: e.clientX - rect.left, y: e.clientY - rect.top });
     const pts = [...pointers.current.values()];
@@ -348,7 +373,7 @@ export function TreeCanvas({
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 cursor-grab touch-none select-none overflow-hidden bg-canvas active:cursor-grabbing"
+      className={`absolute inset-0 ${selectionMode ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'} touch-none select-none overflow-hidden bg-canvas`}
       style={{
         backgroundImage: "radial-gradient(var(--canvas-dot) 1.2px, transparent 1.2px)",
         backgroundSize: `${24 * view.k}px ${24 * view.k}px`,
@@ -367,12 +392,17 @@ export function TreeCanvas({
         else if (e.key === 'ArrowDown') setView(v => ({ ...v, y: v.y - step }));
         else if ((e.key === '+' || e.key === '=') && el) zoomAt(el.clientWidth / 2, el.clientHeight / 2, viewRef.current.k * 1.2);
         else if (e.key === '-' && el) zoomAt(el.clientWidth / 2, el.clientHeight / 2, viewRef.current.k / 1.2);
-        else if (e.key === 'Escape') { setSelectedEdge(null); onSelect(null); }
+        else if (e.key === 'Escape') { setSelectedEdge(null); setSelectedCats(new Set()); setSelectionBox(null); onSelect(null); }
         else return;
         e.preventDefault();
       }}
-      onClick={() => { if (!moved.current) { setSelectedEdge(null); onSelect(null); } }}
+      onClick={() => { if (!moved.current) { setSelectedEdge(null); setSelectedCats(new Set()); onSelect(null); } }}
     >
+      {onMoveCats && <div className="absolute left-3 top-20 z-20 flex items-center gap-1 rounded-md border border-border bg-card p-1 shadow-float" onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
+        <Button size="icon" variant={!selectionMode ? 'secondary' : 'ghost'} aria-label="Pan tool" title="Pan tool" aria-pressed={!selectionMode} onClick={() => setSelectionMode(false)}><Hand size={17} /></Button>
+        <Button size="icon" variant={selectionMode ? 'secondary' : 'ghost'} aria-label="Box selection tool" title="Box selection — Shift adds cats" aria-pressed={selectionMode} onClick={() => { setSelectionMode(true); setSelectedEdge(null); onSelect(null); }}><BoxSelect size={17} /></Button>
+        {selectedCats.size > 0 && <><span className="px-2 text-xs tabular-nums" role="status">{selectedCats.size} selected</span><Button size="icon" variant="ghost" aria-label="Clear cat selection" title="Clear selection" onClick={() => setSelectedCats(new Set())}><X size={16} /></Button></>}
+      </div>}
       {selectedEdge && <div className="absolute left-3 top-20 z-20 flex max-w-[calc(100%-24px)] flex-wrap items-center gap-2 rounded-md border border-border bg-card p-2 shadow-float" onPointerDown={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()}>
         {selectedEdge.ids.map(id => { const cat=idx.byId.get(id); return cat && <Button key={id} variant="ghost" size="sm" onClick={()=>{setSelectedEdge(null);onSelect(id);}}>{catName(cat)}</Button>; })}
         <Button variant="ghost" size="icon" className="size-8" aria-label="Clear relationship highlight" onClick={()=>setSelectedEdge(null)}><X /></Button>
@@ -383,6 +413,7 @@ export function TreeCanvas({
         className="absolute left-0 top-0"
         style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})`, transformOrigin: "0 0" }}
       >
+        {selectionBox && <div aria-hidden className="pointer-events-none absolute z-10 border-2 border-primary bg-primary/15" style={{ left: Math.min(selectionBox.start.x, selectionBox.end.x), top: Math.min(selectionBox.start.y, selectionBox.end.y), width: Math.abs(selectionBox.end.x - selectionBox.start.x), height: Math.abs(selectionBox.end.y - selectionBox.start.y) }} />}
         <svg
           className="pointer-events-none absolute overflow-visible"
           style={{ left: b.minX, top: b.minY }}
@@ -427,18 +458,19 @@ export function TreeCanvas({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                if (!moved.current) { setSelectedEdge(null); onSelect(c.id); }
+                if (!moved.current && !selectionMode && !selectedCats.size) { setSelectedEdge(null); onSelect(c.id); }
               }}
               aria-label={`View ${catName(c)}`}
               data-relationship-highlighted={selectedEdge?.ids.includes(c.id) ?? false}
-              onPointerDown={onMoveCat ? startCatDrag(c) : undefined}
-              className={`group absolute flex flex-col !justify-start gap-0 rounded-md p-0 items-center whitespace-normal text-center hover:bg-transparent focus-visible:ring-2 focus-visible:ring-ring ${onMoveCat ? "cursor-move" : ""}`}
+              data-cat-selected={selectedCats.has(c.id)}
+              onPointerDown={onMoveCats ? startCatDrag(c) : undefined}
+              className={`group absolute flex flex-col !justify-start gap-0 rounded-md p-0 items-center whitespace-normal text-center hover:bg-transparent focus-visible:ring-2 focus-visible:ring-ring ${onMoveCats ? "cursor-move" : ""} ${selectedCats.has(c.id) ? 'ring-2 ring-primary bg-primary/10' : ''}`}
               style={{
                 left: p.x - NODE_W / 2,
                 top: p.y,
                 width: NODE_W,
                 height: NODE_H,
-                opacity: isOn(c.id) ? 1 : 0.22,
+                opacity: selectedCats.has(c.id) || isOn(c.id) ? 1 : 0.22,
                 transition: "opacity 200ms",
               }}
             >

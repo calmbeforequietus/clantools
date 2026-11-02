@@ -198,18 +198,13 @@ export function LineagePage() {
         kinship={kinship}
         options={options}
         onSelect={select}
-        onMoveCat={(id, pos) => {
-          // Dropping a cat moves its whole mate-unit by the same shift so the
-          // joined family line stays coherent; other units' pins are untouched.
-          const base = positions.get(id);
-          if (!base) return;
-          const dx = pos.x - base.x, dy = pos.y - base.y;
-          setCats(cs => cs.map(c2 => {
-            if (c2.id !== id && !c2.mates.includes(id)) return c2;
-            const prev = c2.pos ?? positions.get(c2.id);
-            if (!prev) return c2;
-            return { ...c2, pos: { x: prev.x + dx, y: prev.y + dy } };
+        onMoveCats={(updates) => {
+          lastEdit.current = 0;
+          setCats(cs => cs.map(c => {
+            const pos = updates.get(c.id);
+            return pos ? { ...c, pos } : c;
           }));
+          lastEdit.current = 0;
         }}
         onZoom={setZoom}
         apiRef={api}
