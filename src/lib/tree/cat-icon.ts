@@ -1,11 +1,11 @@
 // Every color key maps to a global --cat-* token. Older saves used the first
 // ten keys, so they all remain valid.
 export const CAT_COLORS = ['ink', 'ash', 'silver', 'snow', 'ginger', 'chocolate', 'gold', 'rose', 'green', 'blue',
-  'cream', 'brown', 'cinnamon', 'lilac', 'fawn', 'amber', 'yellow', 'copper', 'hazel', 'ice', 'brick'] as const;
+  'cream', 'brown', 'cinnamon', 'lilac', 'fawn', 'amber', 'yellow', 'copper', 'hazel', 'ice', 'brick', 'smoke', 'blue-gray', 'caramel', 'red', 'sandy', 'tawny', 'cinder', 'ivory'] as const;
 export type CatColor = typeof CAT_COLORS[number];
 
 /** Real cat coat colors only. */
-export const COAT_COLORS: CatColor[] = ['ink', 'chocolate', 'brown', 'cinnamon', 'ginger', 'gold', 'cream', 'fawn', 'lilac', 'ash', 'silver', 'snow'];
+export const COAT_COLORS: CatColor[] = ['ink', 'chocolate', 'brown', 'cinnamon', 'ginger', 'gold', 'cream', 'fawn', 'lilac', 'ash', 'silver', 'snow', 'cinder', 'smoke', 'blue-gray', 'caramel', 'red', 'sandy', 'tawny', 'ivory'];
 export const EYE_COLORS: CatColor[] = ['green', 'hazel', 'yellow', 'amber', 'copper', 'blue', 'ice'];
 export const NOSE_COLORS: CatColor[] = ['rose', 'brick', 'chocolate', 'ash', 'ink'];
 
@@ -13,6 +13,7 @@ export const COLOR_LABEL: Record<CatColor, string> = {
   ink: 'Black', ash: 'Gray', silver: 'Silver', snow: 'White', ginger: 'Ginger', chocolate: 'Dark brown', gold: 'Golden',
   rose: 'Pink', green: 'Green', blue: 'Blue', cream: 'Cream', brown: 'Brown', cinnamon: 'Cinnamon', lilac: 'Lilac',
   fawn: 'Fawn', amber: 'Amber', yellow: 'Yellow', copper: 'Copper', hazel: 'Hazel', ice: 'Pale blue', brick: 'Brick red',
+  smoke: 'Smoke', 'blue-gray': 'Blue-gray', caramel: 'Caramel', red: 'Deep red', sandy: 'Sandy', tawny: 'Tawny', cinder: 'Charcoal', ivory: 'Ivory',
 };
 
 export const COAT_PATTERNS = ['solid', 'tabby', 'marbled', 'spotted', 'tortoiseshell', 'calico', 'bicolor', 'tuxedo', 'pointed'] as const;
