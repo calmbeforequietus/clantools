@@ -45,11 +45,14 @@ export function CatBodyArt({ settings, className = '', colors, kit = false }: { 
       {s.ears === 'torn right' && <path d="M54 6 42 20 50 22Z" fill="var(--card)" />}
       {s.ears === 'notched' && <path d="M47 8 52 12 49 15Z" fill="var(--card)" />}
       <ellipse cx="32" cy="38" rx="22" ry="20" fill={base} stroke={ink} strokeWidth="1.2" strokeOpacity=".25" />
-      {s.pattern === 'tabby' && <g stroke={mark} strokeWidth="3" strokeLinecap="round"><path d="M32 20v9 M25 22l3 7 M39 22l-3 7 M12 39l7 2 M52 39l-7 2" /></g>}
-      {s.pattern === 'tortoiseshell' && <path d="M11 36Q15 20 30 20L27 36 17 45Z" fill={mark} />}
-      {s.pattern === 'calico' && <><path d="M11 36Q15 20 30 20L27 34 16 42Z" fill={coat} /><path d="M36 20Q50 20 53 36L44 38Z" fill={mark} /></>}
-      {(s.pattern === 'bicolor' || s.pattern === 'tuxedo') && <path d="M32 33Q27 42 23 48Q24 58 32 58Q40 58 41 48Q37 42 32 33" fill={white} />}
-      {s.pattern === 'pointed' && <ellipse cx="32" cy="40" rx="14" ry="14" fill={mark} />}
+      {s.pattern === 'tabby' && <g stroke={mark} strokeWidth="3" strokeLinecap="round"><path d="M32 20v9 M25 22l3 7 M39 22l-3 7 M12 39l7 2 M13 46l7 1 M52 39l-7 2 M51 46l-7 1" /></g>}
+      {s.pattern === 'marbled' && <g stroke={mark} strokeWidth="3" fill="none" strokeLinecap="round"><path d="M24 21Q32 28 40 21 M13 38Q19 33 18 44 M51 38Q45 33 46 44 M28 25Q32 31 36 25" /></g>}
+      {s.pattern === 'tortoiseshell' && <g fill={mark}><path d="M11 36Q15 20 30 20L27 36 17 45Z" /><path d="M37 46Q50 36 53 40Q51 55 39 57Z" /></g>}
+      {s.pattern === 'calico' && <g><path d="M11 36Q15 20 30 20L27 34 16 42Z" fill={coat} /><path d="M36 20Q50 20 53 36L44 38Z" fill={mark} /><path d="M40 50Q50 44 53 42Q50 55 42 57Z" fill={coat} /></g>}
+      {s.pattern === 'bicolor' && <path d="M32 25Q28 40 20 48Q22 59 32 58Q42 59 44 48Q36 40 32 25" fill={white} />}
+      {s.pattern === 'tuxedo' && <path d="M32 33Q27 42 23 48Q24 58 32 58Q40 58 41 48Q37 42 32 33" fill={white} />}
+      {s.pattern === 'spotted' && <g fill={mark}><circle cx="22" cy="25" r="3" /><circle cx="41" cy="26" r="4" /><circle cx="15" cy="43" r="3" /><circle cx="48" cy="45" r="3" /><circle cx="23" cy="53" r="2" /></g>}
+      {s.pattern === 'pointed' && <ellipse cx="32" cy="39" rx="15" ry="15" fill={mark} />}
       {(['left', 'right'] as const).map(side => { const cx = side === 'left' ? 24 : 40, blind = s.blind === side; return <g key={side}>
         <ellipse cx={cx} cy="36" rx={kit ? 6 : 4.5} ry={kit ? 6.5 : 5} fill={blind ? 'var(--cat-cloud)' : eyeColor(side === 'left' ? s.leftEye : s.rightEye)} />
         {!blind && <><ellipse cx={cx} cy="36" rx={kit ? 1.8 : 1.4} ry={kit ? 4.3 : 3.7} fill={ink} />{kit && <circle cx={cx - 1.8} cy="33.5" r="1.5" fill="white" />}</>}</g>; })}

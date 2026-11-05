@@ -5,7 +5,7 @@ export function allegianceCats(cats: Cat[], includeStarClan = false) {
 }
 
 export const CRESTS = ['ThunderClan', 'ShadowClan', 'WindClan', 'RiverClan', 'SkyClan', 'StarClan', 'BloodClan', 'Leaf', 'Feather', 'Flame', 'Mountain', 'Flower', 'Fish', 'Sun', 'Snow', 'Paw'];
-export const CLAN_COLORS = ['var(--clan-thunder)', 'var(--clan-shadow)', 'var(--clan-wind)', 'var(--clan-river)', 'var(--clan-sky)', 'var(--clan-star)', 'var(--clan-blood)', 'var(--clan-kittypet)'];
+export const CLAN_COLORS = ['var(--clan-thunder)', 'var(--clan-shadow)', 'var(--clan-wind)', 'var(--clan-river)', 'var(--clan-sky)', 'var(--clan-star)', 'var(--clan-blood)', 'var(--clan-kittypet)', 'var(--clan-forest)', 'var(--clan-moss)', 'var(--clan-teal)', 'var(--clan-navy)', 'var(--clan-plum)', 'var(--clan-rust)', 'var(--clan-ember)', 'var(--clan-sand)', 'var(--clan-slate)'];
 export function initialClans(_treeId: string): ClanPage[] {
   return ['ThunderClan'].map((name, i) => ({
     id: name === 'ThunderClan' ? 'thunderclan' : name.toLowerCase(), name, affiliation: name,
