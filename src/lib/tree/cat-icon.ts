@@ -2,14 +2,16 @@
 // ten keys, so they all remain valid.
 export const CAT_COLORS = ['ink', 'ash', 'silver', 'snow', 'ginger', 'chocolate', 'gold', 'rose', 'green', 'blue',
   'cream', 'brown', 'cinnamon', 'lilac', 'fawn', 'amber', 'yellow', 'copper', 'hazel', 'ice', 'brick', 'smoke', 'blue-gray', 'caramel', 'red', 'sandy', 'tawny', 'cinder', 'ivory'] as const;
-export type CatColor = typeof CAT_COLORS[number];
+/** A named palette color or a custom #rrggbb hex from the color picker. */
+export type CatColor = typeof CAT_COLORS[number] | `#${string}`;
+export const isHex = (v: unknown): v is `#${string}` => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
 
 /** Real cat coat colors only. */
 export const COAT_COLORS: CatColor[] = ['ink', 'chocolate', 'brown', 'cinnamon', 'ginger', 'gold', 'cream', 'fawn', 'lilac', 'ash', 'silver', 'snow', 'cinder', 'smoke', 'blue-gray', 'caramel', 'red', 'sandy', 'tawny', 'ivory'];
 export const EYE_COLORS: CatColor[] = ['green', 'hazel', 'yellow', 'amber', 'copper', 'blue', 'ice'];
 export const NOSE_COLORS: CatColor[] = ['rose', 'brick', 'chocolate', 'ash', 'ink'];
 
-export const COLOR_LABEL: Record<CatColor, string> = {
+export const COLOR_LABEL: Record<typeof CAT_COLORS[number], string> = {
   ink: 'Black', ash: 'Gray', silver: 'Silver', snow: 'White', ginger: 'Ginger', chocolate: 'Dark brown', gold: 'Golden',
   rose: 'Pink', green: 'Green', blue: 'Blue', cream: 'Cream', brown: 'Brown', cinnamon: 'Cinnamon', lilac: 'Lilac',
   fawn: 'Fawn', amber: 'Amber', yellow: 'Yellow', copper: 'Copper', hazel: 'Hazel', ice: 'Pale blue', brick: 'Brick red',
@@ -35,7 +37,7 @@ export const DEFAULT_CAT_ICON: CatIconSettings = { coat: 'ash', markings: 'ink',
 
 /** Fill fields that older saved icons do not have. */
 export function normalizeIcon(s: Partial<CatIconSettings>): CatIconSettings {
-  const pick = <T,>(v: unknown, list: readonly T[], d: T) => (list.includes(v as T) ? v as T : d);
+  const pick = <T,>(v: unknown, list: readonly T[], d: T) => (list.includes(v as T) || (list === (CAT_COLORS as readonly unknown[]) && isHex(v)) ? v as T : d);
   return {
     coat: pick(s.coat, CAT_COLORS, DEFAULT_CAT_ICON.coat), markings: pick(s.markings, CAT_COLORS, DEFAULT_CAT_ICON.markings),
     pattern: pick(s.pattern, COAT_PATTERNS, 'tabby'), leftEye: pick(s.leftEye, CAT_COLORS, 'green'), rightEye: pick(s.rightEye, CAT_COLORS, 'green'),
@@ -43,4 +45,5 @@ export function normalizeIcon(s: Partial<CatIconSettings>): CatIconSettings {
     scars: (s.scars ?? []).filter(x => SCARS.includes(x)), blind: pick(s.blind, BLIND_EYES, 'none'), accessory: pick(s.accessory, ACCESSORIES, 'none'),
   };
 }
-export const catColor = (color: CatColor) => `var(--cat-${color})`;
+export const catColor = (color: CatColor) => isHex(color) ? color : `var(--cat-${color})`;
+export const colorLabel = (color: CatColor) => isHex(color) ? `Custom ${color}` : COLOR_LABEL[color];
