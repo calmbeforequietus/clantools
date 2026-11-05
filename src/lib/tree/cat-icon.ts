@@ -1,13 +1,17 @@
 // Every color key maps to a global --cat-* token. Older saves used the first
 // ten keys, so they all remain valid.
 export const CAT_COLORS = ['ink', 'ash', 'silver', 'snow', 'ginger', 'chocolate', 'gold', 'rose', 'green', 'blue',
-  'cream', 'brown', 'cinnamon', 'lilac', 'fawn', 'amber', 'yellow', 'copper', 'hazel', 'ice', 'brick', 'smoke', 'blue-gray', 'caramel', 'red', 'sandy', 'tawny', 'cinder', 'ivory'] as const;
+  'cream', 'brown', 'cinnamon', 'lilac', 'fawn', 'amber', 'yellow', 'copper', 'hazel', 'ice', 'brick', 'smoke', 'blue-gray', 'caramel', 'red', 'sandy', 'tawny', 'cinder', 'ivory',
+  'russet', 'chestnut', 'sable', 'onyx', 'dun', 'pearl', 'taupe', 'pewter', 'marmalade', 'apricot', 'chinchilla'] as const;
 /** A named palette color or a custom #rrggbb hex from the color picker. */
 export type CatColor = typeof CAT_COLORS[number] | `#${string}`;
 export const isHex = (v: unknown): v is `#${string}` => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
 
 /** Real cat coat colors only. */
-export const COAT_COLORS: CatColor[] = ['ink', 'chocolate', 'brown', 'cinnamon', 'ginger', 'gold', 'cream', 'fawn', 'lilac', 'ash', 'silver', 'snow', 'cinder', 'smoke', 'blue-gray', 'caramel', 'red', 'sandy', 'tawny', 'ivory'];
+/** Ordered darkest to lightest, cool grays then warm browns then reds. */
+export const COAT_COLORS: CatColor[] = ['ink', 'onyx', 'sable', 'cinder', 'smoke', 'pewter', 'ash', 'taupe', 'dun', 'blue-gray',
+  'silver', 'chinchilla', 'pearl', 'lilac', 'snow', 'ivory', 'cream', 'fawn', 'sandy', 'apricot',
+  'chocolate', 'chestnut', 'brown', 'cinnamon', 'russet', 'ginger', 'marmalade', 'red', 'tawny', 'caramel', 'gold'];
 export const EYE_COLORS: CatColor[] = ['green', 'hazel', 'yellow', 'amber', 'copper', 'blue', 'ice'];
 export const NOSE_COLORS: CatColor[] = ['rose', 'brick', 'chocolate', 'ash', 'ink'];
 
@@ -16,6 +20,8 @@ export const COLOR_LABEL: Record<typeof CAT_COLORS[number], string> = {
   rose: 'Pink', green: 'Green', blue: 'Blue', cream: 'Cream', brown: 'Brown', cinnamon: 'Cinnamon', lilac: 'Lilac',
   fawn: 'Fawn', amber: 'Amber', yellow: 'Yellow', copper: 'Copper', hazel: 'Hazel', ice: 'Pale blue', brick: 'Brick red',
   smoke: 'Smoke', 'blue-gray': 'Blue-gray', caramel: 'Caramel', red: 'Deep red', sandy: 'Sandy', tawny: 'Tawny', cinder: 'Charcoal', ivory: 'Ivory',
+  russet: 'Russet', chestnut: 'Chestnut', sable: 'Sable', onyx: 'Onyx', dun: 'Dun', pearl: 'Pearl',
+  taupe: 'Taupe', pewter: 'Pewter', marmalade: 'Marmalade', apricot: 'Apricot', chinchilla: 'Chinchilla',
 };
 
 export const COAT_PATTERNS = ['solid', 'tabby', 'marbled', 'spotted', 'tortoiseshell', 'calico', 'bicolor', 'tuxedo', 'pointed'] as const;
