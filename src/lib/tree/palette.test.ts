@@ -3,7 +3,7 @@ import { expect, it } from 'vitest';
 import { CAT_COLORS, COAT_COLORS, COLOR_LABEL } from './cat-icon';
 import { PELTS, type Pattern } from './pelts';
 
-const css = readFileSync(new URL('../../styles.css', import.meta.url), 'utf8');
+const css = readFileSync('src/styles.css', 'utf8');
 const hex = /^#[0-9a-f]{6}$/i;
 const patterns: Pattern[] = ['solid', 'tabby', 'white', 'tortie'];
 
