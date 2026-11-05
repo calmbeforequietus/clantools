@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  ACCESSORIES, BLIND_EYES, COAT_COLORS, COAT_PATTERNS, COLOR_LABEL, EAR_STYLES, EYE_COLORS, MOUTH_SHAPES, NOSE_COLORS, SCARS,
+  ACCESSORIES, BLIND_EYES, COAT_COLORS, COAT_PATTERNS, EAR_STYLES, EYE_COLORS, MOUTH_SHAPES, NOSE_COLORS, SCARS,
   catColor, colorLabel, isHex, normalizeIcon, type CatColor, type CatIconSettings,
 } from '@/lib/tree/cat-icon';
 import { CustomCatFace } from './CustomCatFace';
@@ -16,7 +16,7 @@ function Chips<T extends string>({ label, options, value, onPick }: { label: str
 
 function Swatches({ label, colors, value, onPick }: { label: string; colors: CatColor[]; value: CatColor; onPick: (c: CatColor) => void }) {
   return <fieldset><legend className="mb-1.5 text-xs font-semibold">{label} <span className="font-normal text-muted-foreground">· {colorLabel(value)}</span></legend><div className="flex flex-wrap gap-1.5">
-    {colors.map(color => <button type="button" key={color} title={COLOR_LABEL[color]} aria-label={`${label}: ${COLOR_LABEL[color]}`} aria-pressed={value === color} onClick={() => onPick(color)}
+    {colors.map(color => <button type="button" key={color} title={colorLabel(color)} aria-label={`${label}: ${colorLabel(color)}`} aria-pressed={value === color} onClick={() => onPick(color)}
       className={`size-7 rounded-full border border-border ${value === color ? 'ring-2 ring-primary ring-offset-2 ring-offset-popover' : ''}`} style={{ background: catColor(color) }} />)}
     <label title="Custom color" className={`relative size-7 cursor-pointer overflow-hidden rounded-full border border-border bg-[conic-gradient(red,yellow,lime,cyan,blue,magenta,red)] ${isHex(value) ? 'ring-2 ring-primary ring-offset-2 ring-offset-popover' : ''}`} style={isHex(value) ? { background: value } : undefined}>
       <span className="sr-only">{label}: custom color</span>
