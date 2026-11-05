@@ -223,6 +223,10 @@ button svg.crest-detail { width: 24px; height: 24px; }
   --cat-smoke: oklch(0.38 0.012 260); --cat-blue-gray: oklch(0.62 0.03 240); --cat-caramel: oklch(0.68 0.08 60);
   --cat-red: oklch(0.56 0.15 40); --cat-sandy: oklch(0.82 0.07 75); --cat-tawny: oklch(0.6 0.1 60);
   --cat-cinder: oklch(0.3 0.015 30); --cat-ivory: oklch(0.93 0.025 85);
+  --cat-russet: oklch(0.45 0.12 45); --cat-chestnut: oklch(0.45 0.11 58); --cat-sable: oklch(0.27 0.04 55);
+  --cat-onyx: oklch(0.18 0.006 260); --cat-dun: oklch(0.54 0.035 90); --cat-pearl: oklch(0.78 0.03 55);
+  --cat-taupe: oklch(0.62 0.025 45); --cat-pewter: oklch(0.47 0.02 255); --cat-marmalade: oklch(0.7 0.17 58);
+  --cat-apricot: oklch(0.83 0.09 55); --cat-chinchilla: oklch(0.88 0.012 250);
   --clan-forest: oklch(0.5 0.1 150); --clan-moss: oklch(0.62 0.1 125); --clan-teal: oklch(0.58 0.09 195);
   --clan-navy: oklch(0.4 0.09 260); --clan-plum: oklch(0.45 0.1 330); --clan-rust: oklch(0.52 0.13 40);
   --clan-sand: oklch(0.78 0.08 80); --clan-slate: oklch(0.5 0.02 250); --clan-ember: oklch(0.6 0.19 30);
